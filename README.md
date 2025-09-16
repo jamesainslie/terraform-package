@@ -20,11 +20,11 @@ A cross-platform Terraform provider for managing packages across macOS (Homebrew
 
 ## Current Status
 
-**Phase 2 Complete**: Full macOS support with Homebrew integration
+**macOS Support Complete**: Full Homebrew integration available
 
 - ✅ **macOS (Homebrew)**: Complete support for formulas and casks
-- 🔄 **Linux (APT)**: Planned for Phase 3
-- 🔄 **Windows (winget/choco)**: Planned for Phase 4
+- 🔄 **Linux (APT)**: Planned for next milestone
+- 🔄 **Windows (winget/choco)**: Planned for future milestone
 
 ## Quick Start
 
@@ -245,22 +245,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Roadmap
 
-### Phase 2 (Current) - macOS Support ✅
+### Current Milestone - macOS Support ✅
 - Complete Homebrew integration
 - Package and repository management
 - Comprehensive data sources
 
-### Phase 3 (Next) - Linux Support 🔄
+### Next Milestone - Linux Support 🔄
 - APT package manager integration
 - Ubuntu/Debian support
 - Repository and GPG key management
 
-### Phase 4 (Future) - Windows Support 🔄
+### Future Milestone - Windows Support 🔄
 - winget and Chocolatey integration
 - Windows package management
 - Elevation handling
 
-### Phase 5 (Future) - Advanced Features 🔄
+### Advanced Features Milestone 🔄
 - Performance optimization
 - Enterprise features
 - Additional package managers
