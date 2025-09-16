@@ -37,7 +37,7 @@ import (
 )
 
 const (
-	managerAuto    = "auto" 
+	managerAuto    = "auto"
 	managerBrew    = "brew"
 	platformDarwin = "darwin"
 )
@@ -238,7 +238,7 @@ func (d *DependenciesDataSource) Read(
 func (d *DependenciesDataSource) getBrewDependencies(ctx context.Context, packageName, depType string) ([]DependencyInfo, error) {
 	brewPath := d.providerData.Config.BrewPath.ValueString()
 	if brewPath == "" {
-		brewPath = "brew"
+		brewPath = managerBrew
 	}
 
 	// Get detailed package information with dependencies
