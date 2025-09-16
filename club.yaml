@@ -1,0 +1,9 @@
+tools:
+  - id: go
+    version: 1.24.3
+taskProvider: make
+blueprints:
+  - id: clubify
+    version: 0.0.2
+    inputs:
+      tech_stack: go
