@@ -1,64 +1,282 @@
-# Terraform Provider Scaffolding (Terraform Plugin Framework)
+# Terraform Package Provider
 
-_This template repository is built on the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework). The template repository built on the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) can be found at [terraform-provider-scaffolding](https://github.com/hashicorp/terraform-provider-scaffolding). See [Which SDK Should I Use?](https://developer.hashicorp.com/terraform/plugin/framework-benefits) in the Terraform documentation for additional information._
+A cross-platform Terraform provider for managing packages across macOS (Homebrew), Linux (APT), and Windows (winget/Chocolatey) with unified resource definitions and consistent behavior.
 
-This repository is a *template* for a [Terraform](https://www.terraform.io) provider. It is intended as a starting point for creating Terraform providers, containing:
+[![Tests](https://github.com/geico-private/terraform-provider-pkg/workflows/Tests/badge.svg)](https://github.com/geico-private/terraform-provider-pkg/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/geico-private/terraform-provider-pkg)](https://goreportcard.com/report/github.com/geico-private/terraform-provider-pkg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- A resource and a data source (`internal/provider/`),
-- Examples (`examples/`) and generated documentation (`docs/`),
-- Miscellaneous meta files.
+## Features
 
-These files contain boilerplate code that you will need to edit to create your own Terraform provider. Tutorials for creating Terraform providers can be found on the [HashiCorp Developer](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework) platform. _Terraform Plugin Framework specific guides are titled accordingly._
+- **Cross-Platform Package Management**: Unified interface for Homebrew, APT, winget, and Chocolatey
+- **Smart Package Resolution**: Automatic package name mapping across platforms
+- **Version Management**: Support for exact versions, ranges, and pinning
+- **Drift Detection**: Automatic detection of package state changes
+- **Repository Management**: Support for custom package repositories and taps
+- **Comprehensive Discovery**: 10 data sources for package information and auditing
+- **Security-First**: Proper privilege handling and input validation
 
-Please see the [GitHub template repository documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) for how to create a new repository from this template on GitHub.
+## Current Status
 
-Once you've written your provider, you'll want to [publish it on the Terraform Registry](https://developer.hashicorp.com/terraform/registry/providers/publishing) so that others can use it.
+**Phase 2 Complete**: Full macOS support with Homebrew integration
 
-## Requirements
+- ✅ **macOS (Homebrew)**: Complete support for formulas and casks
+- 🔄 **Linux (APT)**: Planned for Phase 3
+- 🔄 **Windows (winget/choco)**: Planned for Phase 4
 
-- [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
-- [Go](https://golang.org/doc/install) >= 1.23
+## Quick Start
 
-## Building The Provider
+### Installation
 
-1. Clone the repository
-1. Enter the repository directory
-1. Build the provider using the Go `install` command:
+```hcl
+terraform {
+  required_providers {
+    pkg = {
+      source  = "geico-private/pkg"
+      version = "~> 0.1"
+    }
+  }
+}
 
-```shell
-go install
+provider "pkg" {
+  default_manager = "auto"  # auto-detects based on OS
+  assume_yes      = true    # non-interactive mode
+  sudo_enabled    = true    # enable privilege escalation when needed
+}
 ```
 
-## Adding Dependencies
+### Basic Usage
 
-This provider uses [Go modules](https://github.com/golang/go/wiki/Modules).
-Please see the Go documentation for the most up to date information about using Go modules.
+```hcl
+# Install a package
+resource "pkg_package" "git" {
+  name    = "git"
+  state   = "present"
+  version = "2.42.*"
+  pin     = false
+}
 
-To add a new dependency `github.com/author/dependency` to your Terraform provider:
+# Add a custom repository
+resource "pkg_repo" "fonts" {
+  manager = "brew"
+  name    = "homebrew/cask-fonts"
+  uri     = "homebrew/cask-fonts"
+}
 
-```shell
-go get github.com/author/dependency
-go mod tidy
+# Get package information
+data "pkg_package_info" "git_info" {
+  name = "git"
+}
+
+# Search for packages
+data "pkg_package_search" "fonts" {
+  query = "font"
+}
 ```
 
-Then commit the changes to `go.mod` and `go.sum`.
+## Resources
 
-## Using the provider
+### pkg_package
 
-Fill this in for each provider
+Manages package installation across platforms.
 
-## Developing the Provider
-
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
-
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
-
-To generate or update documentation, run `make generate`.
-
-In order to run the full suite of Acceptance tests, run `make testacc`.
-
-*Note:* Acceptance tests create real resources, and often cost money to run.
-
-```shell
-make testacc
+```hcl
+resource "pkg_package" "example" {
+  name                = "git"
+  state               = "present"        # present | absent
+  version             = "2.42.*"         # optional version specification
+  pin                 = false            # pin at current version
+  reinstall_on_drift  = true             # reinstall if version drifts
+  
+  # Platform-specific overrides
+  aliases = {
+    darwin  = "git"
+    linux   = "git"
+    windows = "Git.Git"
+  }
+  
+  # Operation timeouts
+  timeouts {
+    create = "15m"
+    read   = "2m"
+    update = "15m"
+    delete = "10m"
+  }
+}
 ```
+
+### pkg_repo
+
+Manages package repositories and taps.
+
+```hcl
+resource "pkg_repo" "example" {
+  manager = "brew"                    # brew | apt | winget | choco
+  name    = "homebrew/cask-fonts"     # repository identifier
+  uri     = "homebrew/cask-fonts"     # repository URI/tap name
+  gpg_key = ""                        # GPG key (APT only)
+}
+```
+
+## Data Sources
+
+### Discovery and Information
+
+- **`pkg_package_info`**: Get detailed package information
+- **`pkg_package_search`**: Search for packages
+- **`pkg_registry_lookup`**: Cross-platform name resolution
+- **`pkg_manager_info`**: Package manager availability and version
+
+### Auditing and Maintenance
+
+- **`pkg_installed_packages`**: List all installed packages
+- **`pkg_outdated_packages`**: Find packages needing updates
+- **`pkg_repository_packages`**: List packages from repositories
+- **`pkg_dependencies`**: Package dependency analysis
+- **`pkg_version_history`**: Available package versions
+- **`pkg_security_info`**: Security advisory information
+
+## Provider Configuration
+
+```hcl
+provider "pkg" {
+  default_manager = "auto"                              # auto | brew | apt | winget | choco
+  assume_yes      = true                                # non-interactive mode
+  sudo_enabled    = true                                # enable sudo on Unix
+  update_cache    = "on_change"                         # never | on_change | always
+  lock_timeout    = "10m"                               # package manager lock timeout
+  
+  # Custom binary paths (optional)
+  brew_path       = "/opt/homebrew/bin/brew"
+  apt_get_path    = "/usr/bin/apt-get"
+  winget_path     = "C:\\Windows\\System32\\winget.exe"
+  choco_path      = "C:\\ProgramData\\chocolatey\\bin\\choco.exe"
+}
+```
+
+## Examples
+
+See the [`examples/`](./examples/) directory for complete usage examples:
+
+- **Basic Usage**: Simple package installation
+- **Cross-Platform**: Platform-specific configurations
+- **Advanced**: Repository management and version pinning
+- **Discovery**: Using data sources for package discovery
+
+## Development
+
+### Prerequisites
+
+- Go 1.21+
+- Terraform 1.5+
+- Platform-specific package managers (brew, apt, winget, choco)
+
+### Building
+
+```bash
+# Clone the repository
+git clone https://github.com/geico-private/terraform-provider-pkg.git
+cd terraform-provider-pkg
+
+# Build the provider
+make build
+
+# Run tests
+make test
+
+# Run acceptance tests (requires package managers)
+make test-acc
+
+# Install locally for development
+make install
+```
+
+### Testing
+
+```bash
+# Unit tests (all platforms)
+make test
+
+# Acceptance tests (requires actual package managers)
+TF_ACC=1 go test ./internal/provider/
+
+# Coverage report
+make test-coverage
+```
+
+## Contributing
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/new-feature`
+3. **Make changes and add tests**
+4. **Run quality checks**: `make check`
+5. **Commit using conventional commits**: `git commit -m "feat: add new feature"`
+6. **Push and create pull request**
+
+### Commit Convention
+
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation changes
+- `test:` Test additions or changes
+- `refactor:` Code refactoring
+- `chore:` Maintenance tasks
+
+## Security
+
+### Reporting Vulnerabilities
+
+Please report security vulnerabilities privately to the maintainers.
+
+### Security Features
+
+- **Input Validation**: All user inputs are validated and sanitized
+- **Privilege Handling**: Secure sudo/elevation handling
+- **Non-Interactive Mode**: Prevents interactive prompts in automation
+- **Timeout Protection**: All operations have configurable timeouts
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Roadmap
+
+### Phase 2 (Current) - macOS Support ✅
+- Complete Homebrew integration
+- Package and repository management
+- Comprehensive data sources
+
+### Phase 3 (Next) - Linux Support 🔄
+- APT package manager integration
+- Ubuntu/Debian support
+- Repository and GPG key management
+
+### Phase 4 (Future) - Windows Support 🔄
+- winget and Chocolatey integration
+- Windows package management
+- Elevation handling
+
+### Phase 5 (Future) - Advanced Features 🔄
+- Performance optimization
+- Enterprise features
+- Additional package managers
+
+## Support
+
+- **Documentation**: [Provider Documentation](./docs/)
+- **Examples**: [Usage Examples](./examples/)
+- **Issues**: [GitHub Issues](https://github.com/geico-private/terraform-provider-pkg/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/geico-private/terraform-provider-pkg/discussions)
+
+## Acknowledgments
+
+Built with:
+- [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework)
+- [GoReleaser](https://goreleaser.com/) for multi-platform builds
+- [GitHub Actions](https://github.com/features/actions) for CI/CD
+
+---
+
+**Made with ❤️ for the Terraform community**

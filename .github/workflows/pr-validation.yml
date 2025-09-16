@@ -1,0 +1,206 @@
+# Pull Request validation workflow
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  # Validate PR title and description
+  pr-check:
+    name: PR Title and Description Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check PR title follows conventional commits
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            test
+            chore
+            ci
+            perf
+            build
+          scopes: |
+            brew
+            apt
+            winget
+            choco
+            core
+            tests
+            docs
+            ci
+          requireScope: false
+          
+      - name: Check PR size
+        uses: pascalgn/size-label-action@v0.5.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          sizes: >
+            {
+              "0": "XS",
+              "20": "S", 
+              "100": "M",
+              "500": "L",
+              "1000": "XL"
+            }
+
+  # Fast feedback for common issues
+  quick-checks:
+    name: Quick Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Check for merge conflicts
+        run: |
+          if grep -r "<<<<<<< HEAD" . --exclude-dir=.git; then
+            echo "Merge conflict markers found"
+            exit 1
+          fi
+          
+      - name: Check go mod tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum || (echo "go mod tidy made changes" && exit 1)
+          
+      - name: Check gofmt
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "Code is not formatted with gofmt:"
+            gofmt -s -l .
+            exit 1
+          fi
+          
+      - name: Run go vet
+        run: go vet ./...
+        
+      - name: Check for TODO/FIXME comments
+        run: |
+          todos=$(grep -r "TODO\|FIXME" --include="*.go" . | wc -l)
+          echo "Found $todos TODO/FIXME comments"
+          if [ "$todos" -gt 10 ]; then
+            echo "Too many TODO/FIXME comments ($todos). Please address some before merging."
+            exit 1
+          fi
+
+  # Test coverage check
+  coverage-check:
+    name: Coverage Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Run tests with coverage
+        run: go test -v ./internal/... -coverprofile=coverage.out -covermode=atomic
+        
+      - name: Check coverage threshold
+        run: |
+          coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Current coverage: ${coverage}%"
+          
+          # Require minimum 60% coverage
+          if (( $(echo "$coverage < 60" | bc -l) )); then
+            echo "Coverage ${coverage}% is below minimum threshold of 60%"
+            exit 1
+          fi
+          
+          echo "Coverage check passed: ${coverage}%"
+          
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            ## Test Coverage Report
+            
+            Current coverage: **${{ steps.coverage.outputs.coverage }}%**
+            
+            Coverage details available in the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+  # Validate Terraform configurations
+  terraform-validate:
+    name: Validate Terraform Configs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+          
+      - name: Validate examples
+        run: |
+          for example_dir in examples/*/; do
+            if [ -d "$example_dir" ] && [ -f "$example_dir/main.tf" -o -f "$example_dir/provider.tf" ]; then
+              echo "Validating: $example_dir"
+              cd "$example_dir"
+              terraform fmt -check=true -diff=true
+              terraform validate
+              cd - > /dev/null
+            fi
+          done
+
+  # Check for breaking changes
+  breaking-changes:
+    name: Breaking Changes Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Check for breaking changes in provider schema
+        run: |
+          # This is a placeholder for schema compatibility checking
+          # In a real implementation, you'd compare provider schemas
+          echo "Checking for breaking changes in provider schema..."
+          
+          # Check if any required attributes were removed
+          if git diff origin/main...HEAD -- internal/provider/ | grep -E "^\-.*Required.*true"; then
+            echo "Warning: Potential breaking change detected - required attribute removed"
+            echo "Please review schema changes carefully"
+          fi
+          
+          echo "Breaking changes check completed"

@@ -1,0 +1,156 @@
+# Documentation workflow for Terraform Package Provider
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'internal/provider/**'
+      - 'docs/**'
+      - 'examples/**'
+  pull_request:
+    paths:
+      - 'internal/provider/**'
+      - 'docs/**'
+      - 'examples/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Generate provider documentation
+  generate-docs:
+    name: Generate Provider Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+          
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Build provider
+        run: go build -v .
+        
+      - name: Generate documentation
+        run: |
+          # Install tfplugindocs
+          go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
+          
+          # Generate docs
+          tfplugindocs generate --provider-name pkg
+          
+      - name: Check for documentation changes
+        run: |
+          if ! git diff --quiet docs/; then
+            echo "Documentation changes detected"
+            git diff --name-only docs/
+          else
+            echo "No documentation changes"
+          fi
+          
+      - name: Commit documentation updates
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if ! git diff --quiet docs/; then
+            git add docs/
+            git commit -m "docs: auto-update provider documentation"
+            git push
+          fi
+
+  # Validate examples
+  validate-examples:
+    name: Validate Examples
+    runs-on: macos-latest  # Use macOS for Homebrew examples
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+          
+      - name: Build provider
+        run: go build -v .
+        
+      - name: Validate examples
+        run: |
+          # Create dev override for local testing
+          mkdir -p ~/.terraformrc.d
+          cat > ~/.terraformrc.d/dev.tfrc << EOF
+          provider_installation {
+            dev_overrides {
+              "geico-private/pkg" = "$(pwd)"
+            }
+            direct {}
+          }
+          EOF
+          
+          # Validate each example
+          for example_dir in examples/*/; do
+            if [ -d "$example_dir" ] && [ -f "$example_dir/main.tf" -o -f "$example_dir/provider.tf" ]; then
+              echo "Validating example: $example_dir"
+              cd "$example_dir"
+              
+              # Initialize and validate
+              terraform init
+              terraform validate
+              terraform plan
+              
+              cd - > /dev/null
+            fi
+          done
+
+  # Check documentation quality
+  docs-quality:
+    name: Documentation Quality Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Check markdown files
+        uses: DavidAnson/markdownlint-action@v1
+        with:
+          files: '**/*.md'
+          ignore: 'node_modules'
+          
+      - name: Check for broken links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          check-modified-files-only: 'yes'
+          
+      - name: Spell check
+        uses: streetsidesoftware/cspell-action@v6
+        with:
+          files: |
+            **/*.md
+            **/*.go
+          incremental_files_only: false

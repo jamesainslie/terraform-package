@@ -145,7 +145,7 @@ tests/                 # Test utilities and fixtures
 ```go
 // Use GTS structured logging
 log := lg.FromContext(ctx)
-log.Info("installing package", 
+log.Info("installing package",
     slog.String("package", name),
     slog.String("version", version),
     slog.String("manager", manager))

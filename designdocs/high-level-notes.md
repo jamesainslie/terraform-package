@@ -16,9 +16,12 @@ https://developer.hashicorp.com/terraform/plugin/sdkv2/testing
 https://developer.hashicorp.com/terraform/plugin/sdkv2/schemas
 https://developer.hashicorp.com/terraform/plugin/sdkv2/resources
 
-## Cloned the Terraform Framework Provider Repo
+## Implementation Reference
 
-https://github.com/hashicorp/terraform-provider-scaffolding-framework.git
+Used Terraform Plugin Framework documentation and best practices from:
+- https://developer.hashicorp.com/terraform/plugin/framework
+- https://developer.hashicorp.com/terraform/plugin/framework/resources
+- https://developer.hashicorp.com/terraform/plugin/framework/data-sources
 
 ## High-level design
 
@@ -357,4 +360,3 @@ resource "pkg_repo" "nodesource" {
 - [ ] Release to GitHub + TF Registry
 
 If you want, I can spin up a starter repo skeleton (provider main, resource skeletons, adapter interfaces, and a couple of acceptance tests) that compiles and installs a harmless package (jq) on Ubuntu and Windows to prove the shape.
-

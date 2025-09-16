@@ -1,85 +1,297 @@
-# Terraform Provider testing workflow.
+# Terraform Package Provider testing workflow.
 name: Tests
 
-# This GitHub action runs your tests for each pull request and push.
-# Optionally, you can turn it on using a schedule for regular testing.
+# This GitHub action runs comprehensive tests for the package provider
+# across multiple platforms and Terraform versions.
 on:
   pull_request:
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
+      - 'examples/**'
+      - 'designdocs/**'
+      - '*.md'
   push:
+    branches: [main]
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
+      - 'examples/**'
+      - 'designdocs/**'
+      - '*.md'
+  schedule:
+    # Run tests weekly on Sundays at 2 AM UTC for dependency updates
+    - cron: '0 2 * * 0'
 
 # Testing only needs permissions to read the repository contents.
 permissions:
   contents: read
 
 jobs:
-  # Ensure project builds before running testing matrix
+  # Ensure project builds and passes linting
   build:
-    name: Build
+    name: Build and Lint
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           cache: true
-      - run: go mod download
-      - run: go build -v .
+          
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Verify dependencies
+        run: go mod verify
+        
+      - name: Build provider
+        run: go build -v .
+        
       - name: Run linters
-        uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9 # v8.0.0
+        uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          args: --timeout=5m
 
+  # Generate documentation and verify it's up to date
   generate:
+    name: Generate Documentation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           cache: true
-      # We need the latest version of Terraform for our documentation generation to use
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
-      - run: make generate
-      - name: git diff
+          
+      - name: Generate documentation
+        run: make generate
+        
+      - name: Check for differences
         run: |
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'make generate' command and commit."; exit 1)
 
-  # Run acceptance tests in a matrix with Terraform CLI versions
-  test:
-    name: Terraform Provider Acceptance Tests
+  # Unit tests across platforms
+  unit-tests:
+    name: Unit Tests (${{ matrix.os }})
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        # list whatever Terraform versions here you would like to support
-        terraform:
-          - '1.0.*'
-          - '1.1.*'
-          - '1.2.*'
-          - '1.3.*'
-          - '1.4.*'
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+          
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Run unit tests
+        run: go test -v ./internal/... -coverprofile=coverage.out -race
+        
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.out
+          flags: unittests
+          name: codecov-${{ matrix.os }}
+          fail_ci_if_error: false
+
+  # Acceptance tests for macOS (Homebrew)
+  acceptance-tests-macos:
+    name: Acceptance Tests (macOS - Homebrew)
+    needs: [build, unit-tests]
+    runs-on: macos-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform:
+          - '1.5.*'
+          - '1.6.*'
+          - '1.7.*'
+          - '1.8.*'
+          - '1.9.*'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
-      - run: go mod download
-      - env:
+          
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Verify Homebrew availability
+        run: |
+          which brew
+          brew --version
+          
+      - name: Run acceptance tests
+        env:
           TF_ACC: "1"
-        run: go test -v -cover ./internal/provider/
-        timeout-minutes: 10
+          TF_LOG: "INFO"
+        run: go test -v ./internal/provider/ -timeout=30m
+        
+      - name: Clean up test packages
+        if: always()
+        run: |
+          # Clean up any test packages that might have been left behind
+          brew uninstall hello --ignore-dependencies || true
+          brew untap homebrew/cask-fonts || true
+
+  # Future: Acceptance tests for Linux (APT) - Phase 3
+  acceptance-tests-linux:
+    name: Acceptance Tests (Linux - APT)
+    needs: [build, unit-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: false  # Disabled until Phase 3 implementation
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform:
+          - '1.5.*'
+          - '1.8.*'
+          - '1.9.*'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ matrix.terraform }}
+          terraform_wrapper: false
+          
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Verify APT availability
+        run: |
+          which apt-get
+          apt-get --version
+          
+      - name: Run acceptance tests
+        env:
+          TF_ACC: "1"
+          TF_LOG: "INFO"
+        run: go test -v ./internal/provider/ -run=".*Linux.*" -timeout=20m
+
+  # Future: Acceptance tests for Windows (winget) - Phase 4
+  acceptance-tests-windows:
+    name: Acceptance Tests (Windows - winget)
+    needs: [build, unit-tests]
+    runs-on: windows-latest
+    timeout-minutes: 30
+    if: false  # Disabled until Phase 4 implementation
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform:
+          - '1.5.*'
+          - '1.8.*'
+          - '1.9.*'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ matrix.terraform }}
+          terraform_wrapper: false
+          
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Verify winget availability
+        run: |
+          winget --version
+          
+      - name: Run acceptance tests
+        env:
+          TF_ACC: "1"
+          TF_LOG: "INFO"
+        run: go test -v ./internal/provider/ -run=".*Windows.*" -timeout=20m
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+          
+      - name: Run Gosec Security Scanner
+        uses: securecodewarrior/github-action-gosec@master
+        with:
+          args: './...'
+          
+      - name: Run govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+  # Dependency review for security
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4

@@ -1,9 +1,85 @@
-# Examples
+# Terraform Package Provider Examples
 
-This directory contains examples that are mostly used for documentation, but can also be run/tested manually via the Terraform CLI.
+This directory contains practical examples demonstrating how to use the Terraform Package Provider for cross-platform package management.
 
-The document generation tool looks for files in the following locations by default. All other *.tf files besides the ones mentioned below are ignored by the documentation tool. This is useful for creating examples that can run and/or are testable even if some parts are not relevant for the documentation.
+## Available Examples
 
-* **provider/provider.tf** example file for the provider index page
-* **data-sources/`full data source name`/data-source.tf** example file for the named data source page
-* **resources/`full resource name`/resource.tf** example file for the named data source page
+### Provider Configuration
+- **[provider/](./provider/)** - Basic and advanced provider configuration examples
+
+### Package Management  
+- **[test-module/](./test-module/)** - Complete test module with real package installation
+- **[resources/package_management/](./resources/package_management/)** - Package and repository resource examples
+
+### Data Sources
+- **[data-sources/package_discovery/](./data-sources/package_discovery/)** - Package discovery and information examples
+
+## Running Examples
+
+### Prerequisites
+- Terraform 1.5+
+- Platform-specific package manager:
+  - **macOS**: Homebrew (`brew`)
+  - **Linux**: APT (`apt-get`) - Phase 3
+  - **Windows**: winget or Chocolatey - Phase 4
+
+### Basic Usage
+
+1. **Navigate to an example directory**:
+   ```bash
+   cd examples/test-module/
+   ```
+
+2. **Initialize Terraform**:
+   ```bash
+   terraform init
+   ```
+
+3. **Plan the changes**:
+   ```bash
+   terraform plan
+   ```
+
+4. **Apply the configuration**:
+   ```bash
+   terraform apply
+   ```
+
+### Local Development
+
+For testing with a locally built provider:
+
+1. **Build the provider**:
+   ```bash
+   make build
+   ```
+
+2. **Set up dev override**:
+   ```bash
+   export TF_CLI_CONFIG_FILE="$(pwd)/.terraformrc"
+   ```
+
+3. **Run the example**:
+   ```bash
+   cd examples/test-module/
+   terraform init
+   terraform apply
+   ```
+
+## Example Descriptions
+
+### test-module/
+Complete demonstration of provider capabilities:
+- Package installation and management
+- Data source usage for discovery
+- Cross-platform name resolution
+- Real package operations with GNU Hello
+
+### provider/
+Provider configuration examples:
+- Basic setup with auto-detection
+- Advanced configuration with custom paths
+- Platform-specific configurations
+- Security and timeout settings
+
+Each example includes detailed comments explaining the configuration and expected behavior.
