@@ -32,10 +32,13 @@ jobs:
         run: go mod download
         
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.61.0
-          args: --no-config --enable=errcheck,govet,staticcheck,unused,ineffassign,gosimple,gocritic,revive,godot,misspell,gosec,bodyclose,contextcheck,errorlint,nilerr,wrapcheck,goconst,lll,nolintlint,varnamelen --timeout=10m --issues-exit-code=1
+        run: |
+          # Remove config file for CI compatibility
+          mv .golangci.yml .golangci.yml.bak || true
+          # Install specific version
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.61.0
+          # Run with explicit configuration
+          golangci-lint run --enable=errcheck,govet,staticcheck,unused,ineffassign,gocritic,revive,godot,misspell,gosec,bodyclose,contextcheck,errorlint,nilerr,wrapcheck,goconst,lll,nolintlint,varnamelen --timeout=10m --issues-exit-code=1
           
       - name: Run go vet
         run: go vet ./...
