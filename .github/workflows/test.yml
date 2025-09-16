@@ -55,13 +55,10 @@ jobs:
         run: go build -v .
         
       - name: Run linters
-        run: |
-          # Remove config file for CI compatibility
-          mv .golangci.yml .golangci.yml.bak || true
-          # Install specific version
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.61.0
-          # Run with explicit configuration
-          golangci-lint run --enable=errcheck,govet,staticcheck,unused,ineffassign,gocritic,revive,godot,misspell,gosec,bodyclose,contextcheck,errorlint,nilerr,wrapcheck,goconst,lll,nolintlint,varnamelen --timeout=5m
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.61.0
+          args: --enable=errcheck,govet,staticcheck,unused,ineffassign,gocritic,revive,godot,misspell,gosec,bodyclose,contextcheck,errorlint,nilerr,wrapcheck,goconst,lll,nolintlint,varnamelen --timeout=5m
 
   # Generate documentation and verify it's up to date
   generate:
