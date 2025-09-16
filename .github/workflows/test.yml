@@ -57,8 +57,8 @@ jobs:
       - name: Run linters
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.61.0
-          args: --enable=errcheck,govet,staticcheck,unused,ineffassign,gocritic,revive,godot,misspell,gosec,bodyclose,contextcheck,errorlint,nilerr,wrapcheck,goconst,lll,nolintlint,varnamelen --timeout=5m
+          version: latest
+          args: --timeout=5m
 
   # Generate documentation and verify it's up to date
   generate:
@@ -277,9 +277,9 @@ jobs:
           cache: true
           
       - name: Run Gosec Security Scanner
-        run: |
-          go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
-          gosec ./...
+        uses: securecodewarrior/github-action-gosec@master
+        with:
+          args: './...'
           
       - name: Run govulncheck
         run: |
