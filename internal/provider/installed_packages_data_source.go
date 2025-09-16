@@ -222,8 +222,8 @@ func (d *InstalledPackagesDataSource) getInstalledBrewPackages(ctx context.Conte
 		return nil, fmt.Errorf("failed to list installed packages: exit code %d, error: %w", result.ExitCode, err)
 	}
 
-	var packages []InstalledPackageInfo
 	lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
+	packages := make([]InstalledPackageInfo, 0, len(lines))
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)

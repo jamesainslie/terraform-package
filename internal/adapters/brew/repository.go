@@ -32,6 +32,10 @@ import (
 	"github.com/geico-private/terraform-provider-pkg/internal/executor"
 )
 
+const (
+	brewCommand = "brew"
+)
+
 // BrewRepositoryManager implements repository management for Homebrew taps.
 type BrewRepositoryManager struct {
 	executor executor.Executor
@@ -41,7 +45,7 @@ type BrewRepositoryManager struct {
 // NewBrewRepositoryManager creates a new Homebrew repository manager.
 func NewBrewRepositoryManager(exec executor.Executor, brewPath string) *BrewRepositoryManager {
 	if brewPath == "" {
-		brewPath = "brew"
+		brewPath = brewCommand
 	}
 	return &BrewRepositoryManager{
 		executor: exec,
@@ -100,8 +104,8 @@ func (b *BrewRepositoryManager) ListRepositories(ctx context.Context) ([]adapter
 			result.ExitCode, err, result.Stderr)
 	}
 
-	var repositories []adapters.RepositoryInfo
 	lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
+	repositories := make([]adapters.RepositoryInfo, 0, len(lines))
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)

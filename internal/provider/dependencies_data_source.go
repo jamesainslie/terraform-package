@@ -89,7 +89,7 @@ func (d *DependenciesDataSource) Schema(ctx context.Context, req datasource.Sche
 			"type": schema.StringAttribute{
 				MarkdownDescription: "Type of dependencies to retrieve. Valid values: 'runtime', 'build', " +
 					"'optional', 'all'. Defaults to 'runtime'.",
-				Optional:            true,
+				Optional: true,
 			},
 			"dependencies": schema.ListNestedAttribute{
 				MarkdownDescription: "List of package dependencies.",

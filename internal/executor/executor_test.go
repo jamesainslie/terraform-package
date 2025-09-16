@@ -30,6 +30,10 @@ import (
 	"time"
 )
 
+const (
+	osWindows = "windows"
+)
+
 func TestSystemExecutor_Run(t *testing.T) {
 	executor := NewSystemExecutor()
 	ctx := context.Background()
@@ -101,7 +105,7 @@ func TestSystemExecutor_RunWithEnv(t *testing.T) {
 
 	var cmd string
 	var args []string
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		cmd = "cmd"
 		args = []string{"/C", "echo %TEST_VAR_12345%"}
 	} else {
@@ -317,7 +321,7 @@ func TestDetectPrivilegeEscalation(t *testing.T) {
 }
 
 func TestSystemExecutor_RunWithSudo(t *testing.T) {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == osWindows {
 		t.Skip("Skipping sudo test on Windows")
 	}
 

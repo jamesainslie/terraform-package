@@ -426,10 +426,11 @@ func (r *PackageResource) ImportState(ctx context.Context, req resource.ImportSt
 	// Import format: "manager:package_name" or just "package_name" (auto-detect manager)
 	parts := strings.SplitN(req.ID, ":", 2)
 
-	if len(parts) == 1 {
+	switch len(parts) {
+	case 1:
 		// Just package name provided, use auto-detection
 		resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
-	} else if len(parts) == 2 {
+	case 2:
 		// Manager and package name provided
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("name"), parts[1])...)
@@ -441,7 +442,7 @@ func (r *PackageResource) ImportState(ctx context.Context, req resource.ImportSt
 		if !resp.Diagnostics.HasError() {
 			resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("managers"), managersList)...)
 		}
-	} else {
+	default:
 		resp.Diagnostics.AddError(
 			"Invalid Import ID",
 			"Import ID must be in format 'package_name' or 'manager:package_name'",

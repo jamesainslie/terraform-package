@@ -105,7 +105,7 @@ func (r *DefaultRegistry) GetPackageMapping(ctx context.Context, logicalName str
 
 // ListPackages returns all available package mappings.
 func (r *DefaultRegistry) ListPackages(ctx context.Context) ([]PackageMapping, error) {
-	var packages []PackageMapping
+	packages := make([]PackageMapping, 0, len(r.mappings))
 	for _, mapping := range r.mappings {
 		packages = append(packages, mapping)
 	}
