@@ -33,9 +33,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-const (
-	managerAuto = "auto"
-)
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &SecurityInfoDataSource{}
@@ -176,7 +173,7 @@ func (d *SecurityInfoDataSource) Read(
 	}
 
 	// Determine package manager
-	managerName := managerAuto
+	managerName := "auto"
 	if !data.Manager.IsNull() {
 		managerName = data.Manager.ValueString()
 	}

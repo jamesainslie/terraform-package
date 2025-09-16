@@ -39,10 +39,6 @@ import (
 	"github.com/geico-private/terraform-provider-pkg/internal/adapters/brew"
 )
 
-const (
-	managerBrew    = "brew"
-	platformDarwin = "darwin"
-)
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &RepositoryResource{}
@@ -298,7 +294,7 @@ func (r *RepositoryResource) ImportState(
 	name := parts[1]
 
 	// Validate manager
-	if manager != managerBrew {
+	if manager != "brew" {
 		resp.Diagnostics.AddError(
 			"Unsupported Manager",
 			fmt.Sprintf("Only 'brew' manager is supported in Phase 2, got: %s", manager),
@@ -322,7 +318,7 @@ func (r *RepositoryResource) getRepositoryManager(_ context.Context, managerName
 	}
 
 	// Check OS compatibility
-	if runtime.GOOS != platformDarwin {
+	if runtime.GOOS != "darwin" {
 		return nil, fmt.Errorf("homebrew is only supported on macOS, current OS: %s", runtime.GOOS)
 	}
 
