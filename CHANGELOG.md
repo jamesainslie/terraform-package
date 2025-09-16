@@ -23,9 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update all repository URLs to personal GitHub account
 - Restore robust golangci-lint configuration with version 2 format
 - Improve dependabot and dependency review configuration
+- Update golangci-lint config for CI compatibility
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
