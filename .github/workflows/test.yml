@@ -22,6 +22,8 @@ on:
   schedule:
     # Run tests weekly on Sundays at 2 AM UTC for dependency updates
     - cron: '0 2 * * 0'
+  workflow_dispatch:
+    # Allow manual triggering of the workflow
 
 # Testing only needs permissions to read the repository contents.
 permissions:
