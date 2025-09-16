@@ -57,7 +57,7 @@ jobs:
       - name: Run linters
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          version: v1.60.0
           args: --timeout=5m
 
   # Generate documentation and verify it's up to date
