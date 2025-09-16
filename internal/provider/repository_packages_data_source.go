@@ -40,7 +40,6 @@ import (
 var _ datasource.DataSource = &RepositoryPackagesDataSource{}
 
 // NewRepositoryPackagesDataSource creates a new repository packages data source.
-// NewRepositoryPackagesDataSource creates a new repository packages data source.
 func NewRepositoryPackagesDataSource() datasource.DataSource {
 	return &RepositoryPackagesDataSource{}
 }

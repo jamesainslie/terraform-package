@@ -47,7 +47,6 @@ var _ resource.Resource = &PackageResource{}
 var _ resource.ResourceWithImportState = &PackageResource{}
 
 // NewPackageResource creates a new package resource.
-// NewPackageResource creates a new package resource.
 func NewPackageResource() resource.Resource {
 	return &PackageResource{}
 }
@@ -74,6 +73,7 @@ type PackageResourceModel struct {
 	Timeouts *PackageResourceTimeouts `tfsdk:"timeouts"`
 }
 
+// PackageResourceTimeouts defines timeout configurations for package operations.
 type PackageResourceTimeouts struct {
 	Create types.String `tfsdk:"create"`
 	Read   types.String `tfsdk:"read"`
@@ -214,7 +214,6 @@ func (r *PackageResource) Configure(
 	r.providerData = providerData
 }
 
-// Create creates a new resource.
 func (r *PackageResource) Create(
 		ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data PackageResourceModel
@@ -331,7 +330,6 @@ func (r *PackageResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// Update updates an existing resource.
 func (r *PackageResource) Update(
 		ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data PackageResourceModel
@@ -403,7 +401,6 @@ func (r *PackageResource) Update(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// Delete removes a resource.
 func (r *PackageResource) Delete(
 		ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data PackageResourceModel
@@ -452,7 +449,6 @@ func (r *PackageResource) Delete(
 	}
 }
 
-// ImportState imports an existing resource.
 func (r *PackageResource) ImportState(
 		ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Import format: "manager:package_name" or just "package_name" (auto-detect manager)

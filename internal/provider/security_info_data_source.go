@@ -41,7 +41,6 @@ const (
 var _ datasource.DataSource = &SecurityInfoDataSource{}
 
 // NewSecurityInfoDataSource creates a new security info data source.
-// NewSecurityInfoDataSource creates a new security info data source.
 func NewSecurityInfoDataSource() datasource.DataSource {
 	return &SecurityInfoDataSource{}
 }

@@ -41,7 +41,6 @@ import (
 var _ datasource.DataSource = &InstalledPackagesDataSource{}
 
 // NewInstalledPackagesDataSource creates a new installed packages data source.
-// NewInstalledPackagesDataSource creates a new installed packages data source.
 func NewInstalledPackagesDataSource() datasource.DataSource {
 	return &InstalledPackagesDataSource{}
 }

@@ -49,7 +49,6 @@ var _ resource.Resource = &RepositoryResource{}
 var _ resource.ResourceWithImportState = &RepositoryResource{}
 
 // NewRepositoryResource creates a new repository resource.
-// NewRepositoryResource creates a new repository resource.
 func NewRepositoryResource() resource.Resource {
 	return &RepositoryResource{}
 }
@@ -151,7 +150,6 @@ func (r *RepositoryResource) Configure(
 	r.providerData = providerData
 }
 
-// Create creates a new resource.
 func (r *RepositoryResource) Create(
 		ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data RepositoryResourceModel
@@ -241,7 +239,6 @@ func (r *RepositoryResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// Update updates an existing resource.
 func (r *RepositoryResource) Update(
 		ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// For most package managers, repositories are immutable
@@ -252,7 +249,6 @@ func (r *RepositoryResource) Update(
 	)
 }
 
-// Delete removes a resource.
 func (r *RepositoryResource) Delete(
 		ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data RepositoryResourceModel
@@ -281,7 +277,6 @@ func (r *RepositoryResource) Delete(
 	}
 }
 
-// ImportState imports an existing resource.
 func (r *RepositoryResource) ImportState(
 		ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Import format: "manager:repository_name"

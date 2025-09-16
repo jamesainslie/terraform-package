@@ -39,16 +39,16 @@ type PackageMapping struct {
 // PackageRegistry defines the interface for package name resolution.
 type PackageRegistry interface {
 	// ResolvePackageName resolves a logical package name to platform-specific name
-	ResolvePackageName(ctx context.Context, logicalName string, platform string) (string, error)
+	ResolvePackageName(_ context.Context, logicalName string, platform string) (string, error)
 
 	// GetPackageMapping retrieves the full mapping for a logical package name
-	GetPackageMapping(ctx context.Context, logicalName string) (*PackageMapping, error)
+	GetPackageMapping(_ context.Context, logicalName string) (*PackageMapping, error)
 
 	// ListPackages returns all available package mappings
-	ListPackages(ctx context.Context) ([]PackageMapping, error)
+	ListPackages(_ context.Context) ([]PackageMapping, error)
 
 	// AddPackageMapping adds or updates a package mapping
-	AddPackageMapping(ctx context.Context, mapping PackageMapping) error
+	AddPackageMapping(_ context.Context, mapping PackageMapping) error
 }
 
 // DefaultRegistry provides a default implementation with embedded mappings.
@@ -64,7 +64,7 @@ func NewDefaultRegistry() *DefaultRegistry {
 }
 
 // ResolvePackageName resolves a logical package name for the current platform.
-func (r *DefaultRegistry) ResolvePackageName(ctx context.Context, logicalName string, platform string) (string, error) {
+func (r *DefaultRegistry) ResolvePackageName(_ context.Context, logicalName string, platform string) (string, error) {
 	if platform == "" {
 		platform = runtime.GOOS
 	}
@@ -95,7 +95,7 @@ func (r *DefaultRegistry) ResolvePackageName(ctx context.Context, logicalName st
 }
 
 // GetPackageMapping retrieves the full mapping for a logical package name.
-func (r *DefaultRegistry) GetPackageMapping(ctx context.Context, logicalName string) (*PackageMapping, error) {
+func (r *DefaultRegistry) GetPackageMapping(_ context.Context, logicalName string) (*PackageMapping, error) {
 	mapping, exists := r.mappings[logicalName]
 	if !exists {
 		return nil, nil
@@ -104,7 +104,7 @@ func (r *DefaultRegistry) GetPackageMapping(ctx context.Context, logicalName str
 }
 
 // ListPackages returns all available package mappings.
-func (r *DefaultRegistry) ListPackages(ctx context.Context) ([]PackageMapping, error) {
+func (r *DefaultRegistry) ListPackages(_ context.Context) ([]PackageMapping, error) {
 	packages := make([]PackageMapping, 0, len(r.mappings))
 	for _, mapping := range r.mappings {
 		packages = append(packages, mapping)
@@ -113,7 +113,7 @@ func (r *DefaultRegistry) ListPackages(ctx context.Context) ([]PackageMapping, e
 }
 
 // AddPackageMapping adds or updates a package mapping.
-func (r *DefaultRegistry) AddPackageMapping(ctx context.Context, mapping PackageMapping) error {
+func (r *DefaultRegistry) AddPackageMapping(_ context.Context, mapping PackageMapping) error {
 	r.mappings[mapping.LogicalName] = mapping
 	return nil
 }

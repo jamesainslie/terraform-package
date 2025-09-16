@@ -38,7 +38,6 @@ import (
 var _ datasource.DataSource = &PackageInfoDataSource{}
 
 // NewPackageInfoDataSource creates a new package info data source.
-// NewPackageInfoDataSource creates a new package info data source.
 func NewPackageInfoDataSource() datasource.DataSource {
 	return &PackageInfoDataSource{}
 }

@@ -40,7 +40,6 @@ import (
 var _ datasource.DataSource = &DependenciesDataSource{}
 
 // NewDependenciesDataSource creates a new dependencies data source.
-// NewDependenciesDataSource creates a new dependencies data source.
 func NewDependenciesDataSource() datasource.DataSource {
 	return &DependenciesDataSource{}
 }

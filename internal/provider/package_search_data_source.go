@@ -39,7 +39,6 @@ import (
 var _ datasource.DataSource = &PackageSearchDataSource{}
 
 // NewPackageSearchDataSource creates a new package search data source.
-// NewPackageSearchDataSource creates a new package search data source.
 func NewPackageSearchDataSource() datasource.DataSource {
 	return &PackageSearchDataSource{}
 }

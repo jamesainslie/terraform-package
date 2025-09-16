@@ -39,7 +39,6 @@ import (
 var _ datasource.DataSource = &VersionHistoryDataSource{}
 
 // NewVersionHistoryDataSource creates a new version history data source.
-// NewVersionHistoryDataSource creates a new version history data source.
 func NewVersionHistoryDataSource() datasource.DataSource {
 	return &VersionHistoryDataSource{}
 }
