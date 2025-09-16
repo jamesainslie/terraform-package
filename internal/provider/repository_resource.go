@@ -76,7 +76,7 @@ func (r *RepositoryResource) Metadata(
 
 // Schema defines the resource schema.
 func (r *RepositoryResource) Schema(
-		_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+		_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages package repositories (Homebrew taps, APT repositories, etc.).",
 
@@ -150,6 +150,7 @@ func (r *RepositoryResource) Configure(
 	r.providerData = providerData
 }
 
+// Create creates a new resource.
 func (r *RepositoryResource) Create(
 		ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data RepositoryResourceModel
@@ -239,8 +240,9 @@ func (r *RepositoryResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+// Update updates an existing resource.
 func (r *RepositoryResource) Update(
-		ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+		_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// For most package managers, repositories are immutable
 	// Any changes require replacement (handled by plan modifiers)
 	resp.Diagnostics.AddError(
@@ -249,6 +251,7 @@ func (r *RepositoryResource) Update(
 	)
 }
 
+// Delete removes a resource.
 func (r *RepositoryResource) Delete(
 		ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data RepositoryResourceModel
@@ -277,6 +280,7 @@ func (r *RepositoryResource) Delete(
 	}
 }
 
+// ImportState imports an existing resource.
 func (r *RepositoryResource) ImportState(
 		ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Import format: "manager:repository_name"

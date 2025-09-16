@@ -63,14 +63,16 @@ type PackageSearchResult struct {
 }
 
 // Metadata returns the data source type name.
+// Metadata returns the data source type name.
 func (d *PackageSearchDataSource) Metadata(
 		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package_search"
 }
 
 // Schema defines the data source schema.
+// Schema defines the data source schema.
 func (d *PackageSearchDataSource) Schema(
-		_ context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Searches for packages in the package manager catalog.",
 
@@ -109,6 +111,7 @@ func (d *PackageSearchDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *PackageSearchDataSource) Configure(
 		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

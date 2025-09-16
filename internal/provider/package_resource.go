@@ -89,7 +89,7 @@ func (r *PackageResource) Metadata(
 
 // Schema defines the resource schema.
 func (r *PackageResource) Schema(
-		_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+		_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a package installation across different package managers (Homebrew, APT, winget, Chocolatey).",
 
@@ -214,6 +214,7 @@ func (r *PackageResource) Configure(
 	r.providerData = providerData
 }
 
+// Create creates a new resource.
 func (r *PackageResource) Create(
 		ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data PackageResourceModel
@@ -330,6 +331,7 @@ func (r *PackageResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+// Update updates an existing resource.
 func (r *PackageResource) Update(
 		ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data PackageResourceModel
@@ -401,6 +403,7 @@ func (r *PackageResource) Update(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+// Delete removes a resource.
 func (r *PackageResource) Delete(
 		ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data PackageResourceModel
@@ -449,6 +452,7 @@ func (r *PackageResource) Delete(
 	}
 }
 
+// ImportState imports an existing resource.
 func (r *PackageResource) ImportState(
 		ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Import format: "manager:package_name" or just "package_name" (auto-detect manager)

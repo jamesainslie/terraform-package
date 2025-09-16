@@ -60,14 +60,16 @@ type PackageInfoDataSourceModel struct {
 }
 
 // Metadata returns the data source type name.
+// Metadata returns the data source type name.
 func (d *PackageInfoDataSource) Metadata(
 		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package_info"
 }
 
 // Schema defines the data source schema.
+// Schema defines the data source schema.
 func (d *PackageInfoDataSource) Schema(
-		_ context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves information about a package from the package manager.",
 
@@ -112,6 +114,7 @@ func (d *PackageInfoDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *PackageInfoDataSource) Configure(
 		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
