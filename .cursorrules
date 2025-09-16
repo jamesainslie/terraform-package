@@ -1,0 +1,213 @@
+# Cursor Rules for Terraform Package Provider
+
+## Project Overview
+This is a Terraform Plugin Framework provider for managing packages across macOS (Homebrew), Ubuntu (APT), and Windows (winget/chocolatey). The provider abstracts package management operations into consistent Terraform resources.
+
+## Core Development Principles
+
+### 1. Code Style & Standards
+- **Go Idiomatic Code**: Follow Go best practices, use effective Go patterns, and adhere to the Go Code Review Comments
+- **No Emojis**: Never use emojis in documentation, commit messages, code comments, or any output
+- **Atomic Changes**: Make small, focused commits that represent single logical changes
+- **Functional Programming**: Where appropriate, leverage functional programming principles (immutability, pure functions, composition)
+
+### 2. Testing Philosophy
+- **Test-Driven Development**: Write tests before implementation
+- **Meaningful Tests**: Tests should validate real behavior, not just achieve coverage
+- **Never Constrain Tests**: Don't modify tests just to make them pass - fix the implementation
+- **Test Types**:
+  - Unit tests for business logic with mocked dependencies
+  - Integration tests for adapter functionality
+  - Acceptance tests for full Terraform provider workflows
+  - Regression tests for bug fixes
+
+### 3. Version Management
+- **Semantic Versioning**: Always use semver starting at 0.1.0
+- **Proper CHANGELOG**: Maintain CHANGELOG.md following Keep a Changelog format
+- **Release Process**: Use proper tagging and release notes
+
+### 4. Code Quality
+- **Linter Compliance**: Address all linter issues, don't suppress unless absolutely necessary
+- **Ask Before Suppressing**: If linters are too strict for the use case, ask before suppressing
+- **Error Handling**: Implement comprehensive error handling with meaningful messages
+- **Context Propagation**: Always pass and respect context.Context for cancellation and timeouts
+
+## Terraform Provider Specific Rules
+
+### 5. Plugin Framework Patterns
+- Use Terraform Plugin Framework (not SDK v2)
+- Implement proper CRUD operations for resources
+- Use plan modifiers for computed attributes and replacement logic
+- Implement proper state management and drift detection
+- Use diagnostics for user-friendly error messages
+
+### 6. Provider Architecture
+- **Adapter Pattern**: Implement separate adapters for each package manager (brew, apt, winget, choco)
+- **Interface Segregation**: Define clean interfaces for package manager operations
+- **Dependency Injection**: Use provider configuration to inject appropriate adapters
+- **Timeout Handling**: Implement configurable timeouts for all operations
+
+### 7. Package Manager Integration
+- **Idempotency**: All operations must be idempotent
+- **Non-Interactive**: Always use non-interactive flags
+- **Privilege Handling**: Properly handle sudo/elevation requirements
+- **Version Resolution**: Implement robust version parsing and comparison
+- **Drift Detection**: Detect when actual state differs from desired state
+
+## Observability & Monitoring
+
+### 8. GTS Integration
+- **Always Use GTS**: For all observability needs, use the GTS Go client from `github.com/geico-private/gts/clients/go`
+- **Structured Logging**: Use GTS structured logging with proper service attributes
+- **Tracing**: Implement OpenTelemetry tracing for all operations
+- **Metrics**: Emit meaningful metrics for provider operations
+- **Error Tracking**: Use GTS core events for standardized error logging
+
+### 9. GTS Implementation
+```go
+// Initialize GTS components
+ctx, root := gtslog.New(ctx)
+root = root.With(
+    slog.String(lga.ServiceName, "terraform-provider-pkg"),
+    slog.String(lga.ServiceVersion, version),
+    slog.String(lga.ServiceInstanceID, instanceID),
+)
+
+// Always defer cleanup
+defer gtslog.DefaultGtsLogDefer(ctx)
+defer trc.DefaultTraceDefer(ctx)
+defer mtr.DefaultMetricsDefer(ctx)
+```
+
+## CLI Development
+
+### 10. CLI Tools (if applicable)
+- **Cobra**: Use Cobra for all CLI command structure
+- **Viper**: Use Viper for configuration management
+- **Bubbletea**: Use Bubbletea for any TUI components instead of ASCII charts
+- **Dark Theme**: Ensure all TUI components support dark themes
+
+## Documentation & Diagrams
+
+### 11. Documentation Standards
+- **Mermaid Diagrams**: Use Mermaid for all diagrams with dark theme support
+- **Architecture Documentation**: Maintain clear architecture documentation
+- **API Documentation**: Document all public interfaces
+- **Examples**: Provide comprehensive usage examples
+
+### 12. Mermaid Theme Configuration
+```mermaid
+%%{init: {
+  'theme': 'dark',
+  'themeVariables': {
+    'primaryColor': '#bb2528',
+    'primaryTextColor': '#fff',
+    'primaryBorderColor': '#7C0000',
+    'lineColor': '#F8B229',
+    'sectionBkgColor': '#1e1e1e',
+    'altSectionBkgColor': '#2d2d2d'
+  }
+}}%%
+```
+
+## File Organization
+
+### 13. Project Structure
+```
+internal/
+├── provider/           # Terraform provider implementation
+├── adapters/          # Package manager adapters
+├── registry/          # Package name registry
+├── executor/          # Command execution abstraction
+└── version/           # Version parsing and comparison
+
+pkg/                   # Public interfaces (if any)
+docs/                  # Generated documentation
+examples/              # Usage examples
+tests/                 # Test utilities and fixtures
+```
+
+### 14. Testing Structure
+- Unit tests alongside source files (`*_test.go`)
+- Integration tests in `tests/integration/`
+- Acceptance tests using Terraform Plugin Testing framework
+- Test fixtures in `tests/fixtures/`
+
+## Error Handling & Logging
+
+### 15. Error Management
+- Use structured errors with context
+- Implement error wrapping with meaningful messages
+- Use GTS core events for standardized error reporting
+- Provide actionable error messages to users
+
+### 16. Logging Standards
+```go
+// Use GTS structured logging
+log := lg.FromContext(ctx)
+log.Info("installing package", 
+    slog.String("package", name),
+    slog.String("version", version),
+    slog.String("manager", manager))
+
+// Use GTS core events for lifecycle
+gtcore.AppRequestInitiated(ctx)
+defer gtcore.AppRequestCompleted(ctx)
+```
+
+## Security Considerations
+
+### 17. Security Best Practices
+- Validate all user inputs
+- Sanitize command arguments
+- Handle privileges safely (sudo/elevation)
+- Never log sensitive information
+- Implement proper timeout handling
+- Use secure defaults
+
+## Performance & Reliability
+
+### 18. Performance Guidelines
+- Use context for cancellation and timeouts
+- Implement proper resource cleanup
+- Use connection pooling where applicable
+- Cache expensive operations appropriately
+- Implement retry logic with backoff
+
+### 19. Reliability Patterns
+- Implement circuit breaker for external dependencies
+- Use graceful degradation
+- Handle partial failures appropriately
+- Implement proper state recovery
+
+## Git & Release Management
+
+### 20. Commit Standards
+- Use conventional commits format
+- No emojis in commit messages (they break command parsing)
+- Include issue references where applicable
+- Keep commits atomic and focused
+
+### 21. Branch Strategy
+- Use feature branches for development
+- Require PR reviews for main branch
+- Use semantic versioning for releases
+- Maintain release notes and changelog
+
+## Environment Configuration
+
+### 22. Configuration Management
+- Use environment variables for configuration
+- Provide sensible defaults
+- Document all configuration options
+- Validate configuration at startup
+
+## Dependencies
+
+### 23. Dependency Management
+- Keep dependencies minimal and well-justified
+- Use Go modules properly
+- Regular security updates
+- Document dependency choices
+
+## This file should be saved as `.cursorrules` in the project root and will guide all development decisions and code generation for the Terraform package provider.
