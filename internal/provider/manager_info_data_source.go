@@ -37,7 +37,6 @@ import (
 	"github.com/geico-private/terraform-provider-pkg/internal/executor"
 )
 
-
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &ManagerInfoDataSource{}
 
