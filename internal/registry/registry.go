@@ -64,7 +64,7 @@ func NewDefaultRegistry() *DefaultRegistry {
 }
 
 // ResolvePackageName resolves a logical package name for the current platform.
-func (r *DefaultRegistry) ResolvePackageName(_ context.Context, logicalName string, platform string) (string, error) {
+func (r *DefaultRegistry) ResolvePackageName(_ context.Context, logicalName, platform string) (string, error) {
 	if platform == "" {
 		platform = runtime.GOOS
 	}

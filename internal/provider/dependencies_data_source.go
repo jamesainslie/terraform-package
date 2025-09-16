@@ -186,7 +186,7 @@ func (d *DependenciesDataSource) Read(
 	}
 
 	// Only support brew in Phase 2
-	if managerName != "brew" {
+	if managerName != managerBrew {
 		resp.Diagnostics.AddError(
 			"Unsupported Package Manager",
 			fmt.Sprintf("Only 'brew' manager is supported in Phase 2, got: %s", managerName),
