@@ -35,9 +35,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ROBUST SOLUTION - remove all config conflicts
 - ROBUST SOLUTION - use v1.60.0 everywhere without version tag
 - ULTIMATE ROBUST SOLUTION - no config file, pure defaults
+- Use working versions and correct gosec installation
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
