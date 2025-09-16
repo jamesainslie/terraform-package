@@ -31,9 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Final remaining issues and CI improvements
 - Synchronize golangci-lint versions between local and CI
 - Complete golangci-lint synchronization between local and CI
+- Remove config file conflicts and use command-line args
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
