@@ -47,6 +47,7 @@ var _ resource.Resource = &PackageResource{}
 var _ resource.ResourceWithImportState = &PackageResource{}
 
 // NewPackageResource creates a new package resource.
+// NewPackageResource creates a new package resource.
 func NewPackageResource() resource.Resource {
 	return &PackageResource{}
 }
@@ -80,11 +81,13 @@ type PackageResourceTimeouts struct {
 	Delete types.String `tfsdk:"delete"`
 }
 
+// Metadata returns the resource type name.
 func (r *PackageResource) Metadata(
 		ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package"
 }
 
+// Schema defines the resource schema.
 func (r *PackageResource) Schema(
 		ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -190,6 +193,7 @@ func (r *PackageResource) Schema(
 	}
 }
 
+// Configure configures the resource with provider data.
 func (r *PackageResource) Configure(
 		ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
@@ -210,6 +214,7 @@ func (r *PackageResource) Configure(
 	r.providerData = providerData
 }
 
+// Create creates a new resource.
 func (r *PackageResource) Create(
 		ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data PackageResourceModel
@@ -326,6 +331,7 @@ func (r *PackageResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+// Update updates an existing resource.
 func (r *PackageResource) Update(
 		ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data PackageResourceModel
@@ -397,6 +403,7 @@ func (r *PackageResource) Update(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
+// Delete removes a resource.
 func (r *PackageResource) Delete(
 		ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data PackageResourceModel
@@ -445,6 +452,7 @@ func (r *PackageResource) Delete(
 	}
 }
 
+// ImportState imports an existing resource.
 func (r *PackageResource) ImportState(
 		ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Import format: "manager:package_name" or just "package_name" (auto-detect manager)

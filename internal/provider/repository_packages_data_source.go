@@ -40,6 +40,7 @@ import (
 var _ datasource.DataSource = &RepositoryPackagesDataSource{}
 
 // NewRepositoryPackagesDataSource creates a new repository packages data source.
+// NewRepositoryPackagesDataSource creates a new repository packages data source.
 func NewRepositoryPackagesDataSource() datasource.DataSource {
 	return &RepositoryPackagesDataSource{}
 }
@@ -65,11 +66,13 @@ type RepositoryPackageInfo struct {
 	Version     types.String `tfsdk:"version"`
 }
 
+// Metadata returns the data source type name.
 func (d *RepositoryPackagesDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository_packages"
 }
 
+// Schema defines the data source schema.
 func (d *RepositoryPackagesDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -119,6 +122,7 @@ func (d *RepositoryPackagesDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *RepositoryPackagesDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.

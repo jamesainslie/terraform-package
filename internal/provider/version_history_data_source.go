@@ -39,6 +39,7 @@ import (
 var _ datasource.DataSource = &VersionHistoryDataSource{}
 
 // NewVersionHistoryDataSource creates a new version history data source.
+// NewVersionHistoryDataSource creates a new version history data source.
 func NewVersionHistoryDataSource() datasource.DataSource {
 	return &VersionHistoryDataSource{}
 }
@@ -56,11 +57,13 @@ type VersionHistoryDataSourceModel struct {
 	Versions types.List   `tfsdk:"versions"`
 }
 
+// Metadata returns the data source type name.
 func (d *VersionHistoryDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_version_history"
 }
 
+// Schema defines the data source schema.
 func (d *VersionHistoryDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -90,6 +93,7 @@ func (d *VersionHistoryDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *VersionHistoryDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.

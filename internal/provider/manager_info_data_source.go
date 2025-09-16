@@ -41,6 +41,7 @@ import (
 var _ datasource.DataSource = &ManagerInfoDataSource{}
 
 // NewManagerInfoDataSource creates a new manager info data source.
+// NewManagerInfoDataSource creates a new manager info data source.
 func NewManagerInfoDataSource() datasource.DataSource {
 	return &ManagerInfoDataSource{}
 }
@@ -61,11 +62,13 @@ type ManagerInfoDataSourceModel struct {
 	Platform        types.String `tfsdk:"platform"`
 }
 
+// Metadata returns the data source type name.
 func (d *ManagerInfoDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_manager_info"
 }
 
+// Schema defines the data source schema.
 func (d *ManagerInfoDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -108,6 +111,7 @@ func (d *ManagerInfoDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *ManagerInfoDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.

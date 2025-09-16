@@ -134,6 +134,7 @@ func (p *PackageProvider) Schema(
 	}
 }
 
+// Configure configures the provider with user-provided configuration.
 func (p *PackageProvider) Configure(
 		ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data PackageProviderModel
@@ -218,6 +219,7 @@ func (p *PackageProvider) Configure(
 	resp.ResourceData = providerData
 }
 
+// Resources returns the list of resources supported by this provider.
 func (p *PackageProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewPackageResource,
@@ -225,6 +227,7 @@ func (p *PackageProvider) Resources(_ context.Context) []func() resource.Resourc
 	}
 }
 
+// DataSources returns the list of data sources supported by this provider.
 func (p *PackageProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewPackageInfoDataSource,
@@ -240,6 +243,7 @@ func (p *PackageProvider) DataSources(_ context.Context) []func() datasource.Dat
 	}
 }
 
+// Functions returns the list of functions supported by this provider.
 func (p *PackageProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{
 		// No functions implemented - provider uses resources and data sources

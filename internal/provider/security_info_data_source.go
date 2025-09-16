@@ -41,6 +41,7 @@ const (
 var _ datasource.DataSource = &SecurityInfoDataSource{}
 
 // NewSecurityInfoDataSource creates a new security info data source.
+// NewSecurityInfoDataSource creates a new security info data source.
 func NewSecurityInfoDataSource() datasource.DataSource {
 	return &SecurityInfoDataSource{}
 }
@@ -70,11 +71,13 @@ type SecurityAdvisory struct {
 	URL         types.String `tfsdk:"url"`
 }
 
+// Metadata returns the data source type name.
 func (d *SecurityInfoDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_security_info"
 }
 
+// Schema defines the data source schema.
 func (d *SecurityInfoDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -139,6 +142,7 @@ func (d *SecurityInfoDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *SecurityInfoDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.

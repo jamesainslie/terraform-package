@@ -41,6 +41,7 @@ import (
 var _ datasource.DataSource = &InstalledPackagesDataSource{}
 
 // NewInstalledPackagesDataSource creates a new installed packages data source.
+// NewInstalledPackagesDataSource creates a new installed packages data source.
 func NewInstalledPackagesDataSource() datasource.DataSource {
 	return &InstalledPackagesDataSource{}
 }
@@ -66,11 +67,13 @@ type InstalledPackageInfo struct {
 	Repository types.String `tfsdk:"repository"`
 }
 
+// Metadata returns the data source type name.
 func (d *InstalledPackagesDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_installed_packages"
 }
 
+// Schema defines the data source schema.
 func (d *InstalledPackagesDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -119,6 +122,7 @@ func (d *InstalledPackagesDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *InstalledPackagesDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.

@@ -40,6 +40,7 @@ import (
 var _ datasource.DataSource = &DependenciesDataSource{}
 
 // NewDependenciesDataSource creates a new dependencies data source.
+// NewDependenciesDataSource creates a new dependencies data source.
 func NewDependenciesDataSource() datasource.DataSource {
 	return &DependenciesDataSource{}
 }
@@ -66,11 +67,13 @@ type DependencyInfo struct {
 	Optional types.Bool   `tfsdk:"optional"`
 }
 
+// Metadata returns the data source type name.
 func (d *DependenciesDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_dependencies"
 }
 
+// Schema defines the data source schema.
 func (d *DependenciesDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -125,6 +128,7 @@ func (d *DependenciesDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *DependenciesDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.

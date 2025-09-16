@@ -35,6 +35,7 @@ import (
 var _ datasource.DataSource = &RegistryLookupDataSource{}
 
 // NewRegistryLookupDataSource creates a new registry lookup data source.
+// NewRegistryLookupDataSource creates a new registry lookup data source.
 func NewRegistryLookupDataSource() datasource.DataSource {
 	return &RegistryLookupDataSource{}
 }
@@ -54,11 +55,13 @@ type RegistryLookupDataSourceModel struct {
 	Found       types.Bool   `tfsdk:"found"`
 }
 
+// Metadata returns the data source type name.
 func (d *RegistryLookupDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_registry_lookup"
 }
 
+// Schema defines the data source schema.
 func (d *RegistryLookupDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -96,6 +99,7 @@ func (d *RegistryLookupDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *RegistryLookupDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.

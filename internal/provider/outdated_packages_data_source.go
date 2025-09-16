@@ -40,6 +40,7 @@ import (
 var _ datasource.DataSource = &OutdatedPackagesDataSource{}
 
 // NewOutdatedPackagesDataSource creates a new outdated packages data source.
+// NewOutdatedPackagesDataSource creates a new outdated packages data source.
 func NewOutdatedPackagesDataSource() datasource.DataSource {
 	return &OutdatedPackagesDataSource{}
 }
@@ -64,11 +65,13 @@ type OutdatedPackageInfo struct {
 	Pinned         types.Bool   `tfsdk:"pinned"`
 }
 
+// Metadata returns the data source type name.
 func (d *OutdatedPackagesDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_outdated_packages"
 }
 
+// Schema defines the data source schema.
 func (d *OutdatedPackagesDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -113,6 +116,7 @@ func (d *OutdatedPackagesDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *OutdatedPackagesDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.

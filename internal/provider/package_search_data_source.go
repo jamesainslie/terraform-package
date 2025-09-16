@@ -39,6 +39,7 @@ import (
 var _ datasource.DataSource = &PackageSearchDataSource{}
 
 // NewPackageSearchDataSource creates a new package search data source.
+// NewPackageSearchDataSource creates a new package search data source.
 func NewPackageSearchDataSource() datasource.DataSource {
 	return &PackageSearchDataSource{}
 }
@@ -62,11 +63,13 @@ type PackageSearchResult struct {
 	Repository types.String `tfsdk:"repository"`
 }
 
+// Metadata returns the data source type name.
 func (d *PackageSearchDataSource) Metadata(
 		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package_search"
 }
 
+// Schema defines the data source schema.
 func (d *PackageSearchDataSource) Schema(
 		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -107,6 +110,7 @@ func (d *PackageSearchDataSource) Schema(
 	}
 }
 
+// Configure configures the data source with provider data.
 func (d *PackageSearchDataSource) Configure(
 		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
