@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Placeholder for future changes
+
+## [0.1.0] - 2025-09-16
+
+### Added
 - Initial implementation of Terraform Package Provider
 - Complete macOS support with Homebrew integration
 - Cross-platform package name registry
@@ -51,32 +56,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security-first design with privilege handling
 - Production-ready CI/CD pipeline
 
-## [0.1.0] - TBD
-
-### Added
-- Initial release with macOS/Homebrew support
-- Foundation for cross-platform package management
-- Complete provider implementation for Phase 2
-
 ### Supported Platforms
 - macOS with Homebrew (formulas and casks)
 
 ### Known Limitations
-- Linux (APT) support planned for Phase 3
-- Windows (winget/Chocolatey) support planned for Phase 4
-- Security advisory checking not fully implemented
+- Linux (APT) support planned for next milestone
+- Windows (winget/Chocolatey) support planned for future milestone
+- Security advisory checking framework implemented but not fully populated
 
 ---
 
 ## Future Releases
 
-### [0.2.0] - Phase 3 (Planned)
+### [0.2.0] - Linux Support (Planned)
 - Linux support with APT integration
 - Ubuntu/Debian package management
 - Repository and GPG key management
 - Cross-platform testing expansion
 
-### [0.3.0] - Phase 4 (Planned)
+### [0.3.0] - Windows Support (Planned)
 - Windows support with winget and Chocolatey
 - Complete cross-platform functionality
 - Enterprise features and optimizations
@@ -85,7 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API stability guarantee
 - Production-ready for all supported platforms
 - Comprehensive security and performance optimizations
-- Full observability and monitoring integration
+- Advanced features and monitoring integration
 
 ---
 
