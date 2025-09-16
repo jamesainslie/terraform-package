@@ -53,11 +53,13 @@ type RegistryLookupDataSourceModel struct {
 	Found       types.Bool   `tfsdk:"found"`
 }
 
-func (d *RegistryLookupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *RegistryLookupDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_registry_lookup"
 }
 
-func (d *RegistryLookupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *RegistryLookupDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Looks up platform-specific package names from the package registry.",
 
@@ -71,15 +73,18 @@ func (d *RegistryLookupDataSource) Schema(ctx context.Context, req datasource.Sc
 				Required:            true,
 			},
 			"darwin": schema.StringAttribute{
-				MarkdownDescription: "Package name for macOS/Homebrew. Empty if not found.",
+				MarkdownDescription: "Package name for macOS/Homebrew. " +
+					"Empty if not found.",
 				Computed:            true,
 			},
 			"linux": schema.StringAttribute{
-				MarkdownDescription: "Package name for Linux/APT. Empty if not found.",
+				MarkdownDescription: "Package name for Linux/APT. " +
+					"Empty if not found.",
 				Computed:            true,
 			},
 			"windows": schema.StringAttribute{
-				MarkdownDescription: "Package name for Windows/winget. Empty if not found.",
+				MarkdownDescription: "Package name for Windows/winget. " +
+					"Empty if not found.",
 				Computed:            true,
 			},
 			"found": schema.BoolAttribute{
@@ -90,7 +95,8 @@ func (d *RegistryLookupDataSource) Schema(ctx context.Context, req datasource.Sc
 	}
 }
 
-func (d *RegistryLookupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *RegistryLookupDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -109,7 +115,8 @@ func (d *RegistryLookupDataSource) Configure(ctx context.Context, req datasource
 	d.providerData = providerData
 }
 
-func (d *RegistryLookupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *RegistryLookupDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data RegistryLookupDataSourceModel
 
 	// Read Terraform configuration data into the model

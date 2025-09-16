@@ -63,11 +63,13 @@ type OutdatedPackageInfo struct {
 	Pinned         types.Bool   `tfsdk:"pinned"`
 }
 
-func (d *OutdatedPackagesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *OutdatedPackagesDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_outdated_packages"
 }
 
-func (d *OutdatedPackagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *OutdatedPackagesDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Lists packages that have available updates.",
 
@@ -77,7 +79,9 @@ func (d *OutdatedPackagesDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: "Data source identifier.",
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto'.",
+				MarkdownDescription: "Package manager to query. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto'.",
 				Optional:            true,
 			},
 			"packages": schema.ListNestedAttribute{
@@ -108,7 +112,8 @@ func (d *OutdatedPackagesDataSource) Schema(ctx context.Context, req datasource.
 	}
 }
 
-func (d *OutdatedPackagesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *OutdatedPackagesDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -127,7 +132,8 @@ func (d *OutdatedPackagesDataSource) Configure(ctx context.Context, req datasour
 	d.providerData = providerData
 }
 
-func (d *OutdatedPackagesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *OutdatedPackagesDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data OutdatedPackagesDataSourceModel
 
 	// Read Terraform configuration data into the model

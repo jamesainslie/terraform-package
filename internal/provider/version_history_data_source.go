@@ -55,11 +55,13 @@ type VersionHistoryDataSourceModel struct {
 	Versions types.List   `tfsdk:"versions"`
 }
 
-func (d *VersionHistoryDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *VersionHistoryDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_version_history"
 }
 
-func (d *VersionHistoryDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *VersionHistoryDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves available versions for a package.",
 
@@ -73,7 +75,9 @@ func (d *VersionHistoryDataSource) Schema(ctx context.Context, req datasource.Sc
 				Required:            true,
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto'.",
+				MarkdownDescription: "Package manager to query. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto'.",
 				Optional:            true,
 			},
 			"versions": schema.ListAttribute{
@@ -85,7 +89,8 @@ func (d *VersionHistoryDataSource) Schema(ctx context.Context, req datasource.Sc
 	}
 }
 
-func (d *VersionHistoryDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *VersionHistoryDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -104,7 +109,8 @@ func (d *VersionHistoryDataSource) Configure(ctx context.Context, req datasource
 	d.providerData = providerData
 }
 
-func (d *VersionHistoryDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *VersionHistoryDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data VersionHistoryDataSourceModel
 
 	// Read Terraform configuration data into the model

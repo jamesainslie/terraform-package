@@ -58,11 +58,13 @@ type PackageInfoDataSourceModel struct {
 	Repository        types.String `tfsdk:"repository"`
 }
 
-func (d *PackageInfoDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *PackageInfoDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package_info"
 }
 
-func (d *PackageInfoDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *PackageInfoDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves information about a package from the package manager.",
 
@@ -76,7 +78,9 @@ func (d *PackageInfoDataSource) Schema(ctx context.Context, req datasource.Schem
 				Required:            true,
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto' which auto-detects based on OS.",
+				MarkdownDescription: "Package manager to query. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto' which auto-detects based on OS.",
 				Optional:            true,
 			},
 			"installed": schema.BoolAttribute{
@@ -84,7 +88,8 @@ func (d *PackageInfoDataSource) Schema(ctx context.Context, req datasource.Schem
 				Computed:            true,
 			},
 			"version": schema.StringAttribute{
-				MarkdownDescription: "Currently installed version of the package. Empty if not installed.",
+				MarkdownDescription: "Currently installed version of the package. " +
+					"Empty if not installed.",
 				Computed:            true,
 			},
 			"available_versions": schema.ListAttribute{
@@ -104,7 +109,8 @@ func (d *PackageInfoDataSource) Schema(ctx context.Context, req datasource.Schem
 	}
 }
 
-func (d *PackageInfoDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *PackageInfoDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -123,7 +129,8 @@ func (d *PackageInfoDataSource) Configure(ctx context.Context, req datasource.Co
 	d.providerData = providerData
 }
 
-func (d *PackageInfoDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *PackageInfoDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data PackageInfoDataSourceModel
 
 	// Read Terraform configuration data into the model

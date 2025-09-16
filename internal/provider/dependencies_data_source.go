@@ -65,11 +65,13 @@ type DependencyInfo struct {
 	Optional types.Bool   `tfsdk:"optional"`
 }
 
-func (d *DependenciesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *DependenciesDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_dependencies"
 }
 
-func (d *DependenciesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *DependenciesDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves dependency information for a package.",
 
@@ -83,11 +85,14 @@ func (d *DependenciesDataSource) Schema(ctx context.Context, req datasource.Sche
 				Required:            true,
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto'.",
+				MarkdownDescription: "Package manager to query. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto'.",
 				Optional:            true,
 			},
 			"type": schema.StringAttribute{
-				MarkdownDescription: "Type of dependencies to retrieve. Valid values: 'runtime', 'build', " +
+				MarkdownDescription: "Type of dependencies to retrieve. " +
+					"Valid values: 'runtime', 'build', " +
 					"'optional', 'all'. Defaults to 'runtime'.",
 				Optional: true,
 			},
@@ -119,7 +124,8 @@ func (d *DependenciesDataSource) Schema(ctx context.Context, req datasource.Sche
 	}
 }
 
-func (d *DependenciesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *DependenciesDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -138,7 +144,8 @@ func (d *DependenciesDataSource) Configure(ctx context.Context, req datasource.C
 	d.providerData = providerData
 }
 
-func (d *DependenciesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *DependenciesDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data DependenciesDataSourceModel
 
 	// Read Terraform configuration data into the model

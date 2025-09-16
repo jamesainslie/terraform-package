@@ -61,11 +61,13 @@ type PackageSearchResult struct {
 	Repository types.String `tfsdk:"repository"`
 }
 
-func (d *PackageSearchDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *PackageSearchDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package_search"
 }
 
-func (d *PackageSearchDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *PackageSearchDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Searches for packages in the package manager catalog.",
 
@@ -79,7 +81,9 @@ func (d *PackageSearchDataSource) Schema(ctx context.Context, req datasource.Sch
 				Required:            true,
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to search. Valid values: 'auto', 'brew'. Defaults to 'auto' which auto-detects based on OS.",
+				MarkdownDescription: "Package manager to search. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto' which auto-detects based on OS.",
 				Optional:            true,
 			},
 			"results": schema.ListNestedAttribute{
@@ -102,7 +106,8 @@ func (d *PackageSearchDataSource) Schema(ctx context.Context, req datasource.Sch
 	}
 }
 
-func (d *PackageSearchDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *PackageSearchDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -121,7 +126,8 @@ func (d *PackageSearchDataSource) Configure(ctx context.Context, req datasource.
 	d.providerData = providerData
 }
 
-func (d *PackageSearchDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *PackageSearchDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data PackageSearchDataSourceModel
 
 	// Read Terraform configuration data into the model

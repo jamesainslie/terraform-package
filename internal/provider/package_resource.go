@@ -79,11 +79,13 @@ type PackageResourceTimeouts struct {
 	Delete types.String `tfsdk:"delete"`
 }
 
-func (r *PackageResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *PackageResource) Metadata(
+		ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package"
 }
 
-func (r *PackageResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *PackageResource) Schema(
+		ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a package installation across different package managers (Homebrew, APT, winget, Chocolatey).",
 
@@ -96,50 +98,61 @@ func (r *PackageResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "Logical package name. This will be resolved to platform-specific names using the package registry.",
+				MarkdownDescription: "Logical package name. " +
+					"This will be resolved to platform-specific names using the package registry.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"state": schema.StringAttribute{
-				MarkdownDescription: "Desired state of the package. Valid values: 'present', 'absent'. Defaults to 'present'.",
+				MarkdownDescription: "Desired state of the package. " +
+					"Valid values: 'present', 'absent'. " +
+					"Defaults to 'present'.",
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("present"),
 			},
 			"version": schema.StringAttribute{
-				MarkdownDescription: "Desired version of the package. Supports exact versions, semantic version ranges, or glob patterns depending on the package manager. Leave empty for latest version.",
+				MarkdownDescription: "Desired version of the package. Supports exact versions, semantic version ranges, or glob patterns depending on the package manager. " +
+					"Leave empty for latest version.",
 				Optional:            true,
 			},
 			"version_actual": schema.StringAttribute{
-				MarkdownDescription: "Actual installed version of the package. This is computed and shows the real installed version.",
+				MarkdownDescription: "Actual installed version of the package. " +
+					"This is computed and shows the real installed version.",
 				Computed:            true,
 			},
 			"pin": schema.BoolAttribute{
-				MarkdownDescription: "Whether to pin/hold the package at the current version to prevent upgrades. Defaults to false.",
+				MarkdownDescription: "Whether to pin/hold the package at the current version to prevent upgrades. " +
+					"Defaults to false.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
 			},
 			"managers": schema.ListAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "Override the package manager selection. Valid values: 'auto', 'brew', 'apt', 'winget', 'choco'. Defaults to ['auto'] which auto-detects based on OS.",
+				MarkdownDescription: "Override the package manager selection. " +
+					"Valid values: 'auto', 'brew', 'apt', 'winget', 'choco'. " +
+					"Defaults to ['auto'] which auto-detects based on OS.",
 				Optional:            true,
 			},
 			"aliases": schema.MapAttribute{
 				ElementType:         types.StringType,
-				MarkdownDescription: "Platform-specific package name overrides. Keys: 'darwin', 'linux', 'windows'. Values: platform-specific package names.",
+				MarkdownDescription: "Platform-specific package name overrides. Keys: 'darwin', 'linux', 'windows'. " +
+					"Values: platform-specific package names.",
 				Optional:            true,
 			},
 			"reinstall_on_drift": schema.BoolAttribute{
-				MarkdownDescription: "If true, reinstall the package when version drift is detected. If false, only update version_actual. Defaults to true.",
+				MarkdownDescription: "If true, reinstall the package when version drift is detected. If false, only update version_actual. " +
+					"Defaults to true.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(true),
 			},
 			"hold_dependencies": schema.BoolAttribute{
-				MarkdownDescription: "Whether to hold/pin package dependencies. Defaults to false.",
+				MarkdownDescription: "Whether to hold/pin package dependencies. " +
+					"Defaults to false.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
@@ -151,19 +164,23 @@ func (r *PackageResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: "Timeout configuration for package operations.",
 				Attributes: map[string]schema.Attribute{
 					"create": schema.StringAttribute{
-						MarkdownDescription: "Timeout for package installation. Defaults to '15m'.",
+						MarkdownDescription: "Timeout for package installation. " +
+					"Defaults to '15m'.",
 						Optional:            true,
 					},
 					"read": schema.StringAttribute{
-						MarkdownDescription: "Timeout for reading package information. Defaults to '2m'.",
+						MarkdownDescription: "Timeout for reading package information. " +
+					"Defaults to '2m'.",
 						Optional:            true,
 					},
 					"update": schema.StringAttribute{
-						MarkdownDescription: "Timeout for package updates. Defaults to '15m'.",
+						MarkdownDescription: "Timeout for package updates. " +
+					"Defaults to '15m'.",
 						Optional:            true,
 					},
 					"delete": schema.StringAttribute{
-						MarkdownDescription: "Timeout for package removal. Defaults to '10m'.",
+						MarkdownDescription: "Timeout for package removal. " +
+					"Defaults to '10m'.",
 						Optional:            true,
 					},
 				},
@@ -172,7 +189,8 @@ func (r *PackageResource) Schema(ctx context.Context, req resource.SchemaRequest
 	}
 }
 
-func (r *PackageResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *PackageResource) Configure(
+		ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -191,7 +209,8 @@ func (r *PackageResource) Configure(ctx context.Context, req resource.ConfigureR
 	r.providerData = providerData
 }
 
-func (r *PackageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *PackageResource) Create(
+		ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data PackageResourceModel
 
 	// Read Terraform plan data into the model
@@ -265,7 +284,8 @@ func (r *PackageResource) Create(ctx context.Context, req resource.CreateRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *PackageResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *PackageResource) Read(
+		ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data PackageResourceModel
 
 	// Read Terraform prior state data into the model
@@ -305,7 +325,8 @@ func (r *PackageResource) Read(ctx context.Context, req resource.ReadRequest, re
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *PackageResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *PackageResource) Update(
+		ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data PackageResourceModel
 
 	// Read Terraform plan data into the model
@@ -375,7 +396,8 @@ func (r *PackageResource) Update(ctx context.Context, req resource.UpdateRequest
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *PackageResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *PackageResource) Delete(
+		ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data PackageResourceModel
 
 	// Read Terraform prior state data into the model
@@ -422,7 +444,8 @@ func (r *PackageResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 }
 
-func (r *PackageResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *PackageResource) ImportState(
+		ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Import format: "manager:package_name" or just "package_name" (auto-detect manager)
 	parts := strings.SplitN(req.ID, ":", 2)
 
@@ -452,7 +475,8 @@ func (r *PackageResource) ImportState(ctx context.Context, req resource.ImportSt
 
 // Helper methods
 
-func (r *PackageResource) resolvePackageManager(ctx context.Context, data PackageResourceModel) (adapters.PackageManager, string, error) {
+func (r *PackageResource) resolvePackageManager(
+		ctx context.Context, data PackageResourceModel) (adapters.PackageManager, string, error) {
 	// Determine which manager to use
 	managerName := "auto"
 	if !data.Managers.IsNull() && len(data.Managers.Elements()) > 0 {

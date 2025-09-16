@@ -69,11 +69,13 @@ type SecurityAdvisory struct {
 	URL         types.String `tfsdk:"url"`
 }
 
-func (d *SecurityInfoDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *SecurityInfoDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_security_info"
 }
 
-func (d *SecurityInfoDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *SecurityInfoDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves security information and advisories for a package.",
 
@@ -87,7 +89,9 @@ func (d *SecurityInfoDataSource) Schema(ctx context.Context, req datasource.Sche
 				Required:            true,
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto'.",
+				MarkdownDescription: "Package manager to query. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto'.",
 				Optional:            true,
 			},
 			"has_advisories": schema.BoolAttribute{
@@ -134,7 +138,8 @@ func (d *SecurityInfoDataSource) Schema(ctx context.Context, req datasource.Sche
 	}
 }
 
-func (d *SecurityInfoDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *SecurityInfoDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -153,7 +158,8 @@ func (d *SecurityInfoDataSource) Configure(ctx context.Context, req datasource.C
 	d.providerData = providerData
 }
 
-func (d *SecurityInfoDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *SecurityInfoDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data SecurityInfoDataSourceModel
 
 	// Read Terraform configuration data into the model

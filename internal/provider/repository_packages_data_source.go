@@ -64,11 +64,13 @@ type RepositoryPackageInfo struct {
 	Version     types.String `tfsdk:"version"`
 }
 
-func (d *RepositoryPackagesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *RepositoryPackagesDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository_packages"
 }
 
-func (d *RepositoryPackagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *RepositoryPackagesDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Lists packages available from a specific repository or tap.",
 
@@ -78,7 +80,9 @@ func (d *RepositoryPackagesDataSource) Schema(ctx context.Context, req datasourc
 				MarkdownDescription: "Data source identifier.",
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto'.",
+				MarkdownDescription: "Package manager to query. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto'.",
 				Optional:            true,
 			},
 			"repository": schema.StringAttribute{
@@ -86,7 +90,8 @@ func (d *RepositoryPackagesDataSource) Schema(ctx context.Context, req datasourc
 				Required:            true,
 			},
 			"limit": schema.Int64Attribute{
-				MarkdownDescription: "Maximum number of packages to return. Defaults to 100.",
+				MarkdownDescription: "Maximum number of packages to return. " +
+					"Defaults to 100.",
 				Optional:            true,
 			},
 			"packages": schema.ListNestedAttribute{
@@ -113,7 +118,8 @@ func (d *RepositoryPackagesDataSource) Schema(ctx context.Context, req datasourc
 	}
 }
 
-func (d *RepositoryPackagesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *RepositoryPackagesDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -132,7 +138,8 @@ func (d *RepositoryPackagesDataSource) Configure(ctx context.Context, req dataso
 	d.providerData = providerData
 }
 
-func (d *RepositoryPackagesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *RepositoryPackagesDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data RepositoryPackagesDataSourceModel
 
 	// Read Terraform configuration data into the model

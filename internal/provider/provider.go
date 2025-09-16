@@ -72,56 +72,70 @@ type ProviderData struct {
 	PrivilegeCheck bool
 }
 
-func (p *PackageProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *PackageProvider) Metadata(
+		ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "pkg"
 	resp.Version = p.version
 }
 
-func (p *PackageProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *PackageProvider) Schema(
+		ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "The pkg provider enables cross-platform package management using Homebrew, APT, winget, and Chocolatey.",
 		Attributes: map[string]schema.Attribute{
 			"default_manager": schema.StringAttribute{
-				MarkdownDescription: "Default package manager to use. Valid values: auto, brew, apt, winget, choco. Defaults to 'auto' which auto-detects based on OS.",
+				MarkdownDescription: "Default package manager to use. " +
+					"Valid values: auto, brew, apt, winget, choco. " +
+					"Defaults to 'auto' which auto-detects based on OS.",
 				Optional:            true,
 			},
 			"assume_yes": schema.BoolAttribute{
-				MarkdownDescription: "Run package operations non-interactively, assuming 'yes' to all prompts. Defaults to true.",
+				MarkdownDescription: "Run package operations non-interactively, assuming 'yes' to all prompts. " +
+					"Defaults to true.",
 				Optional:            true,
 			},
 			"sudo_enabled": schema.BoolAttribute{
-				MarkdownDescription: "Enable sudo usage for operations that require elevated privileges on Unix systems. Defaults to true.",
+				MarkdownDescription: "Enable sudo usage for operations that require elevated privileges on Unix systems. " +
+					"Defaults to true.",
 				Optional:            true,
 			},
 			"brew_path": schema.StringAttribute{
-				MarkdownDescription: "Path to the Homebrew binary. If not specified, will use default system path.",
+				MarkdownDescription: "Path to the Homebrew binary. " +
+					"If not specified, will use default system path.",
 				Optional:            true,
 			},
 			"apt_get_path": schema.StringAttribute{
-				MarkdownDescription: "Path to the apt-get binary. If not specified, will use default system path.",
+				MarkdownDescription: "Path to the apt-get binary. " +
+					"If not specified, will use default system path.",
 				Optional:            true,
 			},
 			"winget_path": schema.StringAttribute{
-				MarkdownDescription: "Path to the winget binary. If not specified, will use default system path.",
+				MarkdownDescription: "Path to the winget binary. " +
+					"If not specified, will use default system path.",
 				Optional:            true,
 			},
 			"choco_path": schema.StringAttribute{
-				MarkdownDescription: "Path to the Chocolatey binary. If not specified, will use default system path.",
+				MarkdownDescription: "Path to the Chocolatey binary. " +
+					"If not specified, will use default system path.",
 				Optional:            true,
 			},
 			"update_cache": schema.StringAttribute{
-				MarkdownDescription: "When to update package manager cache. Valid values: never, on_change, always. Defaults to 'on_change'.",
+				MarkdownDescription: "When to update package manager cache. " +
+					"Valid values: never, on_change, always. " +
+					"Defaults to 'on_change'.",
 				Optional:            true,
 			},
 			"lock_timeout": schema.StringAttribute{
-				MarkdownDescription: "Timeout for waiting on package manager locks (e.g., apt/dpkg). Defaults to '10m'.",
+				MarkdownDescription: "Timeout for waiting on package manager locks (e.g., apt/dpkg). " +
+					"Defaults to '10m'.",
 				Optional:            true,
 			},
 		},
 	}
 }
 
-func (p *PackageProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *PackageProvider) Configure(
+		ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data PackageProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

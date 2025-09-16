@@ -65,11 +65,13 @@ type InstalledPackageInfo struct {
 	Repository types.String `tfsdk:"repository"`
 }
 
-func (d *InstalledPackagesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *InstalledPackagesDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_installed_packages"
 }
 
-func (d *InstalledPackagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *InstalledPackagesDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Lists all packages installed by the package manager.",
 
@@ -79,7 +81,9 @@ func (d *InstalledPackagesDataSource) Schema(ctx context.Context, req datasource
 				MarkdownDescription: "Data source identifier.",
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto'.",
+				MarkdownDescription: "Package manager to query. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto'.",
 				Optional:            true,
 			},
 			"filter": schema.StringAttribute{
@@ -114,7 +118,8 @@ func (d *InstalledPackagesDataSource) Schema(ctx context.Context, req datasource
 	}
 }
 
-func (d *InstalledPackagesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *InstalledPackagesDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -133,7 +138,8 @@ func (d *InstalledPackagesDataSource) Configure(ctx context.Context, req datasou
 	d.providerData = providerData
 }
 
-func (d *InstalledPackagesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *InstalledPackagesDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data InstalledPackagesDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -202,7 +208,8 @@ func (d *InstalledPackagesDataSource) Read(ctx context.Context, req datasource.R
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (d *InstalledPackagesDataSource) getInstalledBrewPackages(ctx context.Context, filter string) ([]InstalledPackageInfo, error) {
+func (d *InstalledPackagesDataSource) getInstalledBrewPackages(
+		ctx context.Context, filter string) ([]InstalledPackageInfo, error) {
 	brewPath := d.providerData.Config.BrewPath.ValueString()
 	if brewPath == "" {
 		brewPath = "brew"

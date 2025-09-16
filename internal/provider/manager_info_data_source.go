@@ -60,11 +60,13 @@ type ManagerInfoDataSourceModel struct {
 	Platform        types.String `tfsdk:"platform"`
 }
 
-func (d *ManagerInfoDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *ManagerInfoDataSource) Metadata(
+		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_manager_info"
 }
 
-func (d *ManagerInfoDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *ManagerInfoDataSource) Schema(
+		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves information about package manager availability and configuration.",
 
@@ -74,7 +76,9 @@ func (d *ManagerInfoDataSource) Schema(ctx context.Context, req datasource.Schem
 				MarkdownDescription: "Data source identifier.",
 			},
 			"manager": schema.StringAttribute{
-				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto'.",
+				MarkdownDescription: "Package manager to query. " +
+					"Valid values: 'auto', 'brew'. " +
+					"Defaults to 'auto'.",
 				Optional:            true,
 			},
 			"detected_manager": schema.StringAttribute{
@@ -86,11 +90,13 @@ func (d *ManagerInfoDataSource) Schema(ctx context.Context, req datasource.Schem
 				Computed:            true,
 			},
 			"version": schema.StringAttribute{
-				MarkdownDescription: "Version of the package manager. Empty if not available.",
+				MarkdownDescription: "Version of the package manager. " +
+					"Empty if not available.",
 				Computed:            true,
 			},
 			"path": schema.StringAttribute{
-				MarkdownDescription: "Path to the package manager binary. Empty if not available.",
+				MarkdownDescription: "Path to the package manager binary. " +
+					"Empty if not available.",
 				Computed:            true,
 			},
 			"platform": schema.StringAttribute{
@@ -101,7 +107,8 @@ func (d *ManagerInfoDataSource) Schema(ctx context.Context, req datasource.Schem
 	}
 }
 
-func (d *ManagerInfoDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *ManagerInfoDataSource) Configure(
+		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -120,7 +127,8 @@ func (d *ManagerInfoDataSource) Configure(ctx context.Context, req datasource.Co
 	d.providerData = providerData
 }
 
-func (d *ManagerInfoDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *ManagerInfoDataSource) Read(
+		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data ManagerInfoDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -179,7 +187,8 @@ func (d *ManagerInfoDataSource) Read(ctx context.Context, req datasource.ReadReq
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (d *ManagerInfoDataSource) getBrewInfo(ctx context.Context, data *ManagerInfoDataSourceModel, _ *datasource.ReadResponse) {
+func (d *ManagerInfoDataSource) getBrewInfo(
+		ctx context.Context, data *ManagerInfoDataSourceModel, _ *datasource.ReadResponse) {
 	brewPath := d.providerData.Config.BrewPath.ValueString()
 	manager := brew.NewBrewAdapter(d.providerData.Executor, brewPath)
 
