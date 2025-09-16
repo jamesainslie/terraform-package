@@ -226,7 +226,7 @@ func TestSystemExecutor_PrepareCommand(t *testing.T) {
 			}
 
 			// For sudo commands, verify arguments are properly structured
-			if test.opts.UseSudo && runtime.GOOS != "windows" {
+			if test.opts.UseSudo && runtime.GOOS != osWindows {
 				if len(finalArgs) < 2 {
 					t.Error("Expected sudo command to have at least 2 arguments")
 				}

@@ -36,6 +36,12 @@ import (
 	"github.com/geico-private/terraform-provider-pkg/internal/executor"
 )
 
+const (
+	managerAuto    = "auto" 
+	managerBrew    = "brew"
+	platformDarwin = "darwin"
+)
+
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &DependenciesDataSource{}
 
@@ -162,21 +168,21 @@ func (d *DependenciesDataSource) Read(
 	}
 
 	// Determine package manager
-	managerName := "auto"
+	managerName := managerAuto
 	if !data.Manager.IsNull() {
 		managerName = data.Manager.ValueString()
 	}
 
 	// Auto-detect manager based on OS (Phase 2: only macOS supported)
-	if managerName == "auto" {
-		if runtime.GOOS != "darwin" {
+	if managerName == managerAuto {
+		if runtime.GOOS != platformDarwin {
 			resp.Diagnostics.AddError(
 				"Unsupported Operating System",
 				fmt.Sprintf("Only macOS (darwin) is supported in Phase 2, got: %s", runtime.GOOS),
 			)
 			return
 		}
-		managerName = "brew"
+		managerName = managerBrew
 	}
 
 	// Only support brew in Phase 2

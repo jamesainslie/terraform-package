@@ -309,8 +309,11 @@ func (b *BrewAdapter) Search(ctx context.Context, query string) ([]adapters.Pack
 	}
 
 	// Search casks
-	caskResults, _ := b.searchType(ctx, query, true)
-	// If cask search fails, we just won't include cask results
+	caskResults, err := b.searchType(ctx, query, true)
+	if err != nil {
+		// If cask search fails, we just won't include cask results
+		caskResults = []adapters.PackageInfo{}
+	}
 
 	// Combine results
 	formulaResults = append(formulaResults, caskResults...)

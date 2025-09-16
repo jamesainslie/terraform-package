@@ -574,14 +574,20 @@ func (r *PackageResource) readPackageState(ctx context.Context, manager adapters
 
 func (r *PackageResource) getTimeout(timeoutStr types.String, defaultTimeout string) time.Duration {
 	if timeoutStr.IsNull() || timeoutStr.ValueString() == "" {
-		timeout, _ := time.ParseDuration(defaultTimeout)
+		timeout, err := time.ParseDuration(defaultTimeout)
+		if err != nil {
+			timeout = 5 * time.Minute // Hard fallback
+		}
 		return timeout
 	}
 
 	timeout, err := time.ParseDuration(timeoutStr.ValueString())
 	if err != nil {
 		// Fall back to default if parsing fails
-		timeout, _ = time.ParseDuration(defaultTimeout)
+		timeout, err = time.ParseDuration(defaultTimeout)
+		if err != nil {
+			timeout = 5 * time.Minute // Hard fallback
+		}
 		return timeout
 	}
 
