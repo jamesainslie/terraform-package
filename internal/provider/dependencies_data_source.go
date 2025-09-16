@@ -68,13 +68,13 @@ type DependencyInfo struct {
 
 // Metadata returns the data source type name.
 func (d *DependenciesDataSource) Metadata(
-		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_dependencies"
 }
 
 // Schema defines the data source schema.
 func (d *DependenciesDataSource) Schema(
-		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+		_ context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves dependency information for a package.",
 
@@ -129,7 +129,7 @@ func (d *DependenciesDataSource) Schema(
 
 // Configure configures the data source with provider data.
 func (d *DependenciesDataSource) Configure(
-		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

@@ -83,13 +83,13 @@ type PackageResourceTimeouts struct {
 
 // Metadata returns the resource type name.
 func (r *PackageResource) Metadata(
-		ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+		_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package"
 }
 
 // Schema defines the resource schema.
 func (r *PackageResource) Schema(
-		ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+		_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a package installation across different package managers (Homebrew, APT, winget, Chocolatey).",
 
@@ -195,7 +195,7 @@ func (r *PackageResource) Schema(
 
 // Configure configures the resource with provider data.
 func (r *PackageResource) Configure(
-		ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+		_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

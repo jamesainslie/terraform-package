@@ -58,13 +58,13 @@ type VersionHistoryDataSourceModel struct {
 
 // Metadata returns the data source type name.
 func (d *VersionHistoryDataSource) Metadata(
-		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_version_history"
 }
 
 // Schema defines the data source schema.
 func (d *VersionHistoryDataSource) Schema(
-		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+		_ context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves available versions for a package.",
 
@@ -94,7 +94,7 @@ func (d *VersionHistoryDataSource) Schema(
 
 // Configure configures the data source with provider data.
 func (d *VersionHistoryDataSource) Configure(
-		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return

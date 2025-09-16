@@ -154,7 +154,7 @@ func TestIsCommandAvailable(t *testing.T) {
 	// Test with a command that should exist on all systems
 	var testCmd string
 	switch runtime.GOOS {
-	case "windows":
+	case osWindows:
 		testCmd = "cmd"
 	default:
 		testCmd = "sh"
@@ -281,7 +281,7 @@ func TestDetectPrivilegeEscalation(t *testing.T) {
 	ctx := context.Background()
 
 	switch runtime.GOOS {
-	case "windows":
+	case osWindows:
 		// On Windows, should return an error as it's not implemented
 		canElevate, err := DetectPrivilegeEscalation(ctx)
 		if err == nil {

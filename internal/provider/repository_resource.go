@@ -70,13 +70,13 @@ type RepositoryResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *RepositoryResource) Metadata(
-		ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+		_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repo"
 }
 
 // Schema defines the resource schema.
 func (r *RepositoryResource) Schema(
-		ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+		_ context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages package repositories (Homebrew taps, APT repositories, etc.).",
 
@@ -131,7 +131,7 @@ func (r *RepositoryResource) Schema(
 
 // Configure configures the resource with provider data.
 func (r *RepositoryResource) Configure(
-		ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+		_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -313,7 +313,7 @@ func (r *RepositoryResource) ImportState(
 
 func (r *RepositoryResource) getRepositoryManager(_ context.Context, managerName string) (adapters.RepositoryManager, error) {
 	// Only support Homebrew in Phase 2
-	if managerName != "brew" {
+	if managerName != managerBrew {
 		return nil, fmt.Errorf("only 'brew' manager is supported in Phase 2, got: %s", managerName)
 	}
 

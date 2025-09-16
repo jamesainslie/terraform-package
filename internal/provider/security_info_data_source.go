@@ -72,13 +72,13 @@ type SecurityAdvisory struct {
 
 // Metadata returns the data source type name.
 func (d *SecurityInfoDataSource) Metadata(
-		ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_security_info"
 }
 
 // Schema defines the data source schema.
 func (d *SecurityInfoDataSource) Schema(
-		ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+		_ context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves security information and advisories for a package.",
 
@@ -143,7 +143,7 @@ func (d *SecurityInfoDataSource) Schema(
 
 // Configure configures the data source with provider data.
 func (d *SecurityInfoDataSource) Configure(
-		ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -179,8 +179,8 @@ func (d *SecurityInfoDataSource) Read(
 	}
 
 	// Auto-detect manager based on OS (Phase 2: only macOS supported)
-	if managerName == "auto" {
-		if runtime.GOOS != "darwin" {
+	if managerName == managerAuto {
+		if runtime.GOOS != platformDarwin {
 			resp.Diagnostics.AddError(
 				"Unsupported Operating System",
 				fmt.Sprintf("Only macOS (darwin) is supported in Phase 2, got: %s", runtime.GOOS),
