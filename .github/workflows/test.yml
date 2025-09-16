@@ -57,7 +57,7 @@ jobs:
       - name: Run linters
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.60.0
+          version: v1.54.2
           args: --timeout=5m
 
   # Generate documentation and verify it's up to date
@@ -277,9 +277,9 @@ jobs:
           cache: true
           
       - name: Run Gosec Security Scanner
-        uses: securecodewarrior/github-action-gosec@master
-        with:
-          args: './...'
+        run: |
+          go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
+          gosec ./...
           
       - name: Run govulncheck
         run: |

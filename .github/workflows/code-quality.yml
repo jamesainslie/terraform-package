@@ -34,7 +34,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.60.0
+          version: v1.54.2
           args: --timeout=10m --issues-exit-code=1
           
       - name: Run go vet
