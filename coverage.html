@@ -1,0 +1,725 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>executor: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/geico-private/terraform-provider-pkg/internal/executor/system_executor.go (55.1%)</option>
+				
+				<option value="file1">github.com/geico-private/terraform-provider-pkg/internal/provider/errors.go (0.0%)</option>
+				
+				<option value="file2">github.com/geico-private/terraform-provider-pkg/internal/provider/provider.go (4.7%)</option>
+				
+				<option value="file3">github.com/geico-private/terraform-provider-pkg/internal/registry/registry.go (92.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package executor
+
+import (
+        "bytes"
+        "context"
+        "fmt"
+        "log"
+        "os"
+        "os/exec"
+        "runtime"
+        "strings"
+        "time"
+)
+
+// SystemExecutor implements the Executor interface using os/exec.
+type SystemExecutor struct {
+        logger *log.Logger
+}
+
+// NewSystemExecutor creates a new SystemExecutor.
+func NewSystemExecutor() *SystemExecutor <span class="cov8" title="1">{
+        return &amp;SystemExecutor{
+                logger: log.New(os.Stderr, "[executor] ", log.LstdFlags),
+        }
+}</span>
+
+// Run executes a command with the given options.
+func (e *SystemExecutor) Run(ctx context.Context, command string, args []string, opts ExecOpts) (ExecResult, error) <span class="cov8" title="1">{
+        // Set default timeout if not specified
+        if opts.Timeout == 0 </span><span class="cov0" title="0">{
+                opts.Timeout = 5 * time.Minute
+        }</span>
+
+        // Create context with timeout
+        <span class="cov8" title="1">ctx, cancel := context.WithTimeout(ctx, opts.Timeout)
+        defer cancel()
+
+        // Prepare command with sudo if needed
+        finalCmd, finalArgs := e.prepareCommand(command, args, opts)
+
+        // Create the command
+        cmd := exec.CommandContext(ctx, finalCmd, finalArgs...)
+
+        // Set working directory if specified
+        if opts.WorkDir != "" </span><span class="cov0" title="0">{
+                cmd.Dir = opts.WorkDir
+        }</span>
+
+        // Set environment variables
+        <span class="cov8" title="1">if len(opts.Env) &gt; 0 </span><span class="cov0" title="0">{
+                cmd.Env = append(os.Environ(), opts.Env...)
+        }</span>
+
+        // Capture stdout and stderr
+        <span class="cov8" title="1">var stdout, stderr bytes.Buffer
+        cmd.Stdout = &amp;stdout
+        cmd.Stderr = &amp;stderr
+
+        // Log the command being executed (without sensitive info)
+        e.logger.Printf("Executing command: %s %s", finalCmd, strings.Join(finalArgs, " "))
+
+        // Execute the command
+        err := cmd.Run()
+
+        result := ExecResult{
+                Stdout:   stdout.String(),
+                Stderr:   stderr.String(),
+                ExitCode: 0,
+        }
+
+        // Get exit code if command failed
+        if err != nil </span><span class="cov8" title="1">{
+                if exitError, ok := err.(*exec.ExitError); ok </span><span class="cov8" title="1">{
+                        result.ExitCode = exitError.ExitCode()
+                }</span> else<span class="cov0" title="0"> {
+                        // Other error (e.g., command not found, context timeout)
+                        result.ExitCode = -1
+                }</span>
+        }
+
+        // Log results (truncated for readability)
+        <span class="cov8" title="1">e.logger.Printf("Command completed with exit code: %d", result.ExitCode)
+        if result.ExitCode != 0 </span><span class="cov8" title="1">{
+                e.logger.Printf("Command stderr: %s", e.truncateOutput(result.Stderr, 500))
+        }</span>
+
+        <span class="cov8" title="1">return result, err</span>
+}
+
+// prepareCommand prepares the final command and arguments, adding sudo if needed.
+func (e *SystemExecutor) prepareCommand(command string, args []string, opts ExecOpts) (string, []string) <span class="cov8" title="1">{
+        if !opts.UseSudo </span><span class="cov8" title="1">{
+                return command, args
+        }</span>
+
+        // Only use sudo on Unix-like systems
+        <span class="cov0" title="0">if runtime.GOOS == "windows" </span><span class="cov0" title="0">{
+                e.logger.Printf("Warning: sudo requested on Windows, ignoring")
+                return command, args
+        }</span>
+
+        // Prepare sudo command
+        <span class="cov0" title="0">sudoArgs := []string{"-n"} // Non-interactive mode
+        if opts.NonInteractive </span><span class="cov0" title="0">{
+                sudoArgs = append(sudoArgs, "--")
+        }</span>
+        <span class="cov0" title="0">sudoArgs = append(sudoArgs, command)
+        sudoArgs = append(sudoArgs, args...)
+
+        return "sudo", sudoArgs</span>
+}
+
+// truncateOutput truncates output to a maximum length for logging.
+func (e *SystemExecutor) truncateOutput(output string, maxLen int) string <span class="cov8" title="1">{
+        if len(output) &lt;= maxLen </span><span class="cov8" title="1">{
+                return output
+        }</span>
+        <span class="cov0" title="0">return output[:maxLen] + "... (truncated)"</span>
+}
+
+// IsCommandAvailable checks if a command is available in the system PATH.
+func IsCommandAvailable(ctx context.Context, command string) bool <span class="cov8" title="1">{
+        _, err := exec.LookPath(command)
+        return err == nil
+}</span>
+
+// DetectPrivilegeEscalation detects if privilege escalation is available.
+func DetectPrivilegeEscalation(ctx context.Context) (bool, error) <span class="cov0" title="0">{
+        switch runtime.GOOS </span>{
+        case "windows":<span class="cov0" title="0">
+                // On Windows, check if running as administrator
+                // This is a simplified check - in production, you'd use Windows APIs
+                return false, fmt.Errorf("windows privilege detection not implemented")</span>
+
+        case "darwin", "linux":<span class="cov0" title="0">
+                // Check if sudo is available and configured for non-interactive use
+                if !IsCommandAvailable(ctx, "sudo") </span><span class="cov0" title="0">{
+                        return false, fmt.Errorf("sudo command not available")
+                }</span>
+
+                // Test sudo with non-interactive flag
+                <span class="cov0" title="0">cmd := exec.CommandContext(ctx, "sudo", "-n", "true")
+                err := cmd.Run()
+                return err == nil, nil</span>
+
+        default:<span class="cov0" title="0">
+                return false, fmt.Errorf("unsupported operating system: %s", runtime.GOOS)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package provider
+
+import (
+        "fmt"
+
+        "github.com/hashicorp/terraform-plugin-framework/diag"
+)
+
+// PackageError represents a package management error.
+type PackageError struct {
+        Operation string
+        Package   string
+        Manager   string
+        Cause     error
+        ExitCode  int
+}
+
+func (e *PackageError) Error() string <span class="cov0" title="0">{
+        return fmt.Sprintf("package %s failed for package %s using %s: %v (exit code: %d)",
+                e.Operation, e.Package, e.Manager, e.Cause, e.ExitCode)
+}</span>
+
+// NewPackageError creates a new PackageError.
+func NewPackageError(operation, packageName, manager string, cause error, exitCode int) *PackageError <span class="cov0" title="0">{
+        return &amp;PackageError{
+                Operation: operation,
+                Package:   packageName,
+                Manager:   manager,
+                Cause:     cause,
+                ExitCode:  exitCode,
+        }
+}</span>
+
+// PrivilegeError represents a privilege/permission error.
+type PrivilegeError struct {
+        Operation string
+        Message   string
+        Guidance  string
+}
+
+func (e *PrivilegeError) Error() string <span class="cov0" title="0">{
+        if e.Guidance != "" </span><span class="cov0" title="0">{
+                return fmt.Sprintf("%s operation failed: %s. Guidance: %s", e.Operation, e.Message, e.Guidance)
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("%s operation failed: %s", e.Operation, e.Message)</span>
+}
+
+// NewPrivilegeError creates a new PrivilegeError.
+func NewPrivilegeError(operation, message, guidance string) *PrivilegeError <span class="cov0" title="0">{
+        return &amp;PrivilegeError{
+                Operation: operation,
+                Message:   message,
+                Guidance:  guidance,
+        }
+}</span>
+
+// DiagnosticHelpers provides utilities for creating Terraform diagnostics.
+type DiagnosticHelpers struct{}
+
+// NewDiagnosticHelpers creates a new DiagnosticHelpers instance.
+func NewDiagnosticHelpers() *DiagnosticHelpers <span class="cov0" title="0">{
+        return &amp;DiagnosticHelpers{}
+}</span>
+
+// ErrorDiagnostic creates an error diagnostic from an error.
+func (d *DiagnosticHelpers) ErrorDiagnostic(summary string, err error) diag.Diagnostic <span class="cov0" title="0">{
+        return diag.NewErrorDiagnostic(summary, err.Error())
+}</span>
+
+// WarningDiagnostic creates a warning diagnostic.
+func (d *DiagnosticHelpers) WarningDiagnostic(summary, detail string) diag.Diagnostic <span class="cov0" title="0">{
+        return diag.NewWarningDiagnostic(summary, detail)
+}</span>
+
+// PackageErrorDiagnostic creates a diagnostic from a PackageError.
+func (d *DiagnosticHelpers) PackageErrorDiagnostic(err *PackageError) diag.Diagnostic <span class="cov0" title="0">{
+        summary := fmt.Sprintf("Package %s Failed", err.Operation)
+        detail := fmt.Sprintf("Failed to %s package '%s' using %s manager. Exit code: %d. Error: %v",
+                err.Operation, err.Package, err.Manager, err.ExitCode, err.Cause)
+        return diag.NewErrorDiagnostic(summary, detail)
+}</span>
+
+// PrivilegeErrorDiagnostic creates a diagnostic from a PrivilegeError.
+func (d *DiagnosticHelpers) PrivilegeErrorDiagnostic(err *PrivilegeError) diag.Diagnostic <span class="cov0" title="0">{
+        summary := "Insufficient Privileges"
+        detail := fmt.Sprintf("Operation '%s' requires elevated privileges: %s", err.Operation, err.Message)
+        if err.Guidance != "" </span><span class="cov0" title="0">{
+                detail += fmt.Sprintf("\n\nGuidance: %s", err.Guidance)
+        }</span>
+        <span class="cov0" title="0">return diag.NewErrorDiagnostic(summary, detail)</span>
+}
+
+// ValidationErrorDiagnostic creates a validation error diagnostic.
+func (d *DiagnosticHelpers) ValidationErrorDiagnostic(field, message string) diag.Diagnostic <span class="cov0" title="0">{
+        summary := fmt.Sprintf("Invalid %s", field)
+        return diag.NewErrorDiagnostic(summary, message)
+}</span>
+
+// NotFoundWarningDiagnostic creates a warning for when a package is not found.
+func (d *DiagnosticHelpers) NotFoundWarningDiagnostic(packageName, manager string) diag.Diagnostic <span class="cov0" title="0">{
+        summary := "Package Not Found"
+        detail := fmt.Sprintf("Package '%s' was not found in %s. It may have been removed outside of Terraform.", packageName, manager)
+        return diag.NewWarningDiagnostic(summary, detail)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package provider
+
+import (
+        "context"
+        "runtime"
+
+        "github.com/hashicorp/terraform-plugin-framework/datasource"
+        "github.com/hashicorp/terraform-plugin-framework/function"
+        "github.com/hashicorp/terraform-plugin-framework/provider"
+        "github.com/hashicorp/terraform-plugin-framework/provider/schema"
+        "github.com/hashicorp/terraform-plugin-framework/resource"
+        "github.com/hashicorp/terraform-plugin-framework/types"
+
+        "github.com/geico-private/terraform-provider-pkg/internal/executor"
+        "github.com/geico-private/terraform-provider-pkg/internal/registry"
+)
+
+// Ensure PackageProvider satisfies various provider interfaces.
+var _ provider.Provider = &amp;PackageProvider{}
+var _ provider.ProviderWithFunctions = &amp;PackageProvider{}
+
+// PackageProvider defines the provider implementation.
+type PackageProvider struct {
+        // version is set to the provider version on release, "dev" when the
+        // provider is built and ran locally, and "test" when running acceptance
+        // testing.
+        version string
+}
+
+// PackageProviderModel describes the provider data model.
+type PackageProviderModel struct {
+        DefaultManager types.String `tfsdk:"default_manager"`
+        AssumeYes      types.Bool   `tfsdk:"assume_yes"`
+        SudoEnabled    types.Bool   `tfsdk:"sudo_enabled"`
+        BrewPath       types.String `tfsdk:"brew_path"`
+        AptGetPath     types.String `tfsdk:"apt_get_path"`
+        WingetPath     types.String `tfsdk:"winget_path"`
+        ChocoPath      types.String `tfsdk:"choco_path"`
+        UpdateCache    types.String `tfsdk:"update_cache"`
+        LockTimeout    types.String `tfsdk:"lock_timeout"`
+}
+
+// ProviderData holds the configured provider data that will be passed to resources and data sources.
+type ProviderData struct {
+        Executor       executor.Executor
+        Registry       registry.PackageRegistry
+        Config         *PackageProviderModel
+        DiagHelpers    *DiagnosticHelpers
+        DetectedOS     string
+        PrivilegeCheck bool
+}
+
+func (p *PackageProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) <span class="cov0" title="0">{
+        resp.TypeName = "pkg"
+        resp.Version = p.version
+}</span>
+
+func (p *PackageProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) <span class="cov0" title="0">{
+        resp.Schema = schema.Schema{
+                MarkdownDescription: "The pkg provider enables cross-platform package management using Homebrew, APT, winget, and Chocolatey.",
+                Attributes: map[string]schema.Attribute{
+                        "default_manager": schema.StringAttribute{
+                                MarkdownDescription: "Default package manager to use. Valid values: auto, brew, apt, winget, choco. Defaults to 'auto' which auto-detects based on OS.",
+                                Optional:            true,
+                        },
+                        "assume_yes": schema.BoolAttribute{
+                                MarkdownDescription: "Run package operations non-interactively, assuming 'yes' to all prompts. Defaults to true.",
+                                Optional:            true,
+                        },
+                        "sudo_enabled": schema.BoolAttribute{
+                                MarkdownDescription: "Enable sudo usage for operations that require elevated privileges on Unix systems. Defaults to true.",
+                                Optional:            true,
+                        },
+                        "brew_path": schema.StringAttribute{
+                                MarkdownDescription: "Path to the Homebrew binary. If not specified, will use default system path.",
+                                Optional:            true,
+                        },
+                        "apt_get_path": schema.StringAttribute{
+                                MarkdownDescription: "Path to the apt-get binary. If not specified, will use default system path.",
+                                Optional:            true,
+                        },
+                        "winget_path": schema.StringAttribute{
+                                MarkdownDescription: "Path to the winget binary. If not specified, will use default system path.",
+                                Optional:            true,
+                        },
+                        "choco_path": schema.StringAttribute{
+                                MarkdownDescription: "Path to the Chocolatey binary. If not specified, will use default system path.",
+                                Optional:            true,
+                        },
+                        "update_cache": schema.StringAttribute{
+                                MarkdownDescription: "When to update package manager cache. Valid values: never, on_change, always. Defaults to 'on_change'.",
+                                Optional:            true,
+                        },
+                        "lock_timeout": schema.StringAttribute{
+                                MarkdownDescription: "Timeout for waiting on package manager locks (e.g., apt/dpkg). Defaults to '10m'.",
+                                Optional:            true,
+                        },
+                },
+        }
+}</span>
+
+func (p *PackageProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) <span class="cov0" title="0">{
+        var data PackageProviderModel
+
+        resp.Diagnostics.Append(req.Config.Get(ctx, &amp;data)...)
+
+        if resp.Diagnostics.HasError() </span><span class="cov0" title="0">{
+                return
+        }</span>
+
+        // Set defaults for optional values
+        <span class="cov0" title="0">if data.DefaultManager.IsNull() </span><span class="cov0" title="0">{
+                data.DefaultManager = types.StringValue("auto")
+        }</span>
+        <span class="cov0" title="0">if data.AssumeYes.IsNull() </span><span class="cov0" title="0">{
+                data.AssumeYes = types.BoolValue(true)
+        }</span>
+        <span class="cov0" title="0">if data.SudoEnabled.IsNull() </span><span class="cov0" title="0">{
+                data.SudoEnabled = types.BoolValue(true)
+        }</span>
+        <span class="cov0" title="0">if data.UpdateCache.IsNull() </span><span class="cov0" title="0">{
+                data.UpdateCache = types.StringValue("on_change")
+        }</span>
+        <span class="cov0" title="0">if data.LockTimeout.IsNull() </span><span class="cov0" title="0">{
+                data.LockTimeout = types.StringValue("10m")
+        }</span>
+
+        // Validate configuration values
+        <span class="cov0" title="0">validManagers := map[string]bool{
+                "auto": true, "brew": true, "apt": true, "winget": true, "choco": true,
+        }
+        if !validManagers[data.DefaultManager.ValueString()] </span><span class="cov0" title="0">{
+                resp.Diagnostics.AddError(
+                        "Invalid default_manager",
+                        "default_manager must be one of: auto, brew, apt, winget, choco",
+                )
+                return
+        }</span>
+
+        <span class="cov0" title="0">validCacheOptions := map[string]bool{
+                "never": true, "on_change": true, "always": true,
+        }
+        if !validCacheOptions[data.UpdateCache.ValueString()] </span><span class="cov0" title="0">{
+                resp.Diagnostics.AddError(
+                        "Invalid update_cache",
+                        "update_cache must be one of: never, on_change, always",
+                )
+                return
+        }</span>
+
+        // Create executor and registry
+        <span class="cov0" title="0">exec := executor.NewSystemExecutor()
+        reg := registry.NewDefaultRegistry()
+        diagHelpers := NewDiagnosticHelpers()
+
+        // Detect OS and perform privilege check
+        detectedOS := runtime.GOOS
+        privilegeCheck := false
+        if data.SudoEnabled.ValueBool() </span><span class="cov0" title="0">{
+                canElevate, err := executor.DetectPrivilegeEscalation(ctx)
+                if err != nil </span><span class="cov0" title="0">{
+                        // Log warning but don't fail - privilege might not be needed
+                        resp.Diagnostics.AddWarning(
+                                "Privilege Detection Failed",
+                                "Could not detect privilege escalation capability: "+err.Error(),
+                        )
+                }</span>
+                <span class="cov0" title="0">privilegeCheck = canElevate</span>
+        }
+
+        // Create provider data
+        <span class="cov0" title="0">providerData := &amp;ProviderData{
+                Executor:       exec,
+                Registry:       reg,
+                Config:         &amp;data,
+                DiagHelpers:    diagHelpers,
+                DetectedOS:     detectedOS,
+                PrivilegeCheck: privilegeCheck,
+        }
+
+        resp.DataSourceData = providerData
+        resp.ResourceData = providerData</span>
+}
+
+func (p *PackageProvider) Resources(ctx context.Context) []func() resource.Resource <span class="cov0" title="0">{
+        return []func() resource.Resource{
+                // TODO: Add package resources in Phase 2
+                // NewPackageResource,
+                // NewRepositoryResource,
+        }
+}</span>
+
+func (p *PackageProvider) DataSources(ctx context.Context) []func() datasource.DataSource <span class="cov0" title="0">{
+        return []func() datasource.DataSource{
+                // TODO: Add data sources in Phase 2
+                // NewPackageInfoDataSource,
+                // NewPackageSearchDataSource,
+        }
+}</span>
+
+func (p *PackageProvider) Functions(ctx context.Context) []func() function.Function <span class="cov0" title="0">{
+        return []func() function.Function{
+                // TODO: Add functions if needed in later phases
+        }
+}</span>
+
+func New(version string) func() provider.Provider <span class="cov8" title="1">{
+        return func() provider.Provider </span><span class="cov8" title="1">{
+                return &amp;PackageProvider{
+                        version: version,
+                }
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package registry
+
+import (
+        "context"
+        "runtime"
+)
+
+// PackageMapping represents cross-platform package name mappings.
+type PackageMapping struct {
+        LogicalName string
+        Darwin      string // macOS/Homebrew
+        Linux       string // Linux/APT
+        Windows     string // Windows/winget
+}
+
+// PackageRegistry defines the interface for package name resolution.
+type PackageRegistry interface {
+        // ResolvePackageName resolves a logical package name to platform-specific name
+        ResolvePackageName(ctx context.Context, logicalName string, platform string) (string, error)
+
+        // GetPackageMapping retrieves the full mapping for a logical package name
+        GetPackageMapping(ctx context.Context, logicalName string) (*PackageMapping, error)
+
+        // ListPackages returns all available package mappings
+        ListPackages(ctx context.Context) ([]PackageMapping, error)
+
+        // AddPackageMapping adds or updates a package mapping
+        AddPackageMapping(ctx context.Context, mapping PackageMapping) error
+}
+
+// DefaultRegistry provides a default implementation with embedded mappings.
+type DefaultRegistry struct {
+        mappings map[string]PackageMapping
+}
+
+// NewDefaultRegistry creates a new default registry with common package mappings.
+func NewDefaultRegistry() *DefaultRegistry <span class="cov8" title="1">{
+        return &amp;DefaultRegistry{
+                mappings: getDefaultMappings(),
+        }
+}</span>
+
+// ResolvePackageName resolves a logical package name for the current platform.
+func (r *DefaultRegistry) ResolvePackageName(ctx context.Context, logicalName string, platform string) (string, error) <span class="cov8" title="1">{
+        if platform == "" </span><span class="cov0" title="0">{
+                platform = runtime.GOOS
+        }</span>
+
+        <span class="cov8" title="1">mapping, exists := r.mappings[logicalName]
+        if !exists </span><span class="cov8" title="1">{
+                // If no mapping exists, return the logical name as-is
+                return logicalName, nil
+        }</span>
+
+        <span class="cov8" title="1">switch platform </span>{
+        case "darwin":<span class="cov8" title="1">
+                if mapping.Darwin != "" </span><span class="cov8" title="1">{
+                        return mapping.Darwin, nil
+                }</span>
+        case "linux":<span class="cov8" title="1">
+                if mapping.Linux != "" </span><span class="cov8" title="1">{
+                        return mapping.Linux, nil
+                }</span>
+        case "windows":<span class="cov8" title="1">
+                if mapping.Windows != "" </span><span class="cov8" title="1">{
+                        return mapping.Windows, nil
+                }</span>
+        }
+
+        // Fallback to logical name if platform-specific mapping not found
+        <span class="cov0" title="0">return logicalName, nil</span>
+}
+
+// GetPackageMapping retrieves the full mapping for a logical package name.
+func (r *DefaultRegistry) GetPackageMapping(ctx context.Context, logicalName string) (*PackageMapping, error) <span class="cov8" title="1">{
+        mapping, exists := r.mappings[logicalName]
+        if !exists </span><span class="cov8" title="1">{
+                return nil, nil
+        }</span>
+        <span class="cov8" title="1">return &amp;mapping, nil</span>
+}
+
+// ListPackages returns all available package mappings.
+func (r *DefaultRegistry) ListPackages(ctx context.Context) ([]PackageMapping, error) <span class="cov8" title="1">{
+        var packages []PackageMapping
+        for _, mapping := range r.mappings </span><span class="cov8" title="1">{
+                packages = append(packages, mapping)
+        }</span>
+        <span class="cov8" title="1">return packages, nil</span>
+}
+
+// AddPackageMapping adds or updates a package mapping.
+func (r *DefaultRegistry) AddPackageMapping(ctx context.Context, mapping PackageMapping) error <span class="cov8" title="1">{
+        r.mappings[mapping.LogicalName] = mapping
+        return nil
+}</span>
+
+// getDefaultMappings returns the default package name mappings.
+func getDefaultMappings() map[string]PackageMapping <span class="cov8" title="1">{
+        return map[string]PackageMapping{
+                "git": {
+                        LogicalName: "git",
+                        Darwin:      "git",
+                        Linux:       "git",
+                        Windows:     "Git.Git",
+                },
+                "docker": {
+                        LogicalName: "docker",
+                        Darwin:      "colima", // or docker-desktop
+                        Linux:       "docker.io",
+                        Windows:     "Docker.DockerDesktop",
+                },
+                "nodejs": {
+                        LogicalName: "nodejs",
+                        Darwin:      "node",
+                        Linux:       "nodejs",
+                        Windows:     "OpenJS.NodeJS",
+                },
+                "python": {
+                        LogicalName: "python",
+                        Darwin:      "python@3.12",
+                        Linux:       "python3",
+                        Windows:     "Python.Python.3.12",
+                },
+                "jq": {
+                        LogicalName: "jq",
+                        Darwin:      "jq",
+                        Linux:       "jq",
+                        Windows:     "jqlang.jq",
+                },
+        }
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
