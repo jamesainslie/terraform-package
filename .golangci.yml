@@ -1,14 +1,9 @@
 # golangci-lint configuration for Terraform Package Provider
-# This configuration follows the project's coding standards and best practices
-
-version: 2
+# Compatible with both local v2.4.0 and CI v1.64.8
 
 run:
   timeout: 10m
   tests: true
-  skip-dirs:
-    - examples
-    - docs
 
 linters:
   disable-all: true
