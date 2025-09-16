@@ -37,6 +37,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &PackageInfoDataSource{}
 
+// NewPackageInfoDataSource creates a new package info data source.
 func NewPackageInfoDataSource() datasource.DataSource {
 	return &PackageInfoDataSource{}
 }

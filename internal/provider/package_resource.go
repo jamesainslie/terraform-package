@@ -46,6 +46,7 @@ import (
 var _ resource.Resource = &PackageResource{}
 var _ resource.ResourceWithImportState = &PackageResource{}
 
+// NewPackageResource creates a new package resource.
 func NewPackageResource() resource.Resource {
 	return &PackageResource{}
 }

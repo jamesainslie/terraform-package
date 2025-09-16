@@ -39,6 +39,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &OutdatedPackagesDataSource{}
 
+// NewOutdatedPackagesDataSource creates a new outdated packages data source.
 func NewOutdatedPackagesDataSource() datasource.DataSource {
 	return &OutdatedPackagesDataSource{}
 }

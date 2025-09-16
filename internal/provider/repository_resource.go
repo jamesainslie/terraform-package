@@ -48,6 +48,7 @@ const (
 var _ resource.Resource = &RepositoryResource{}
 var _ resource.ResourceWithImportState = &RepositoryResource{}
 
+// NewRepositoryResource creates a new repository resource.
 func NewRepositoryResource() resource.Resource {
 	return &RepositoryResource{}
 }

@@ -40,6 +40,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &InstalledPackagesDataSource{}
 
+// NewInstalledPackagesDataSource creates a new installed packages data source.
 func NewInstalledPackagesDataSource() datasource.DataSource {
 	return &InstalledPackagesDataSource{}
 }

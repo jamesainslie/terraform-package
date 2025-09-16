@@ -218,14 +218,14 @@ func (p *PackageProvider) Configure(
 	resp.ResourceData = providerData
 }
 
-func (p *PackageProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *PackageProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewPackageResource,
 		NewRepositoryResource,
 	}
 }
 
-func (p *PackageProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *PackageProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewPackageInfoDataSource,
 		NewPackageSearchDataSource,
@@ -240,7 +240,7 @@ func (p *PackageProvider) DataSources(ctx context.Context) []func() datasource.D
 	}
 }
 
-func (p *PackageProvider) Functions(ctx context.Context) []func() function.Function {
+func (p *PackageProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{
 		// No functions implemented - provider uses resources and data sources
 	}

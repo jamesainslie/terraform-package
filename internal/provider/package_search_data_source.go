@@ -38,6 +38,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &PackageSearchDataSource{}
 
+// NewPackageSearchDataSource creates a new package search data source.
 func NewPackageSearchDataSource() datasource.DataSource {
 	return &PackageSearchDataSource{}
 }

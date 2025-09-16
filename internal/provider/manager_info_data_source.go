@@ -40,6 +40,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &ManagerInfoDataSource{}
 
+// NewManagerInfoDataSource creates a new manager info data source.
 func NewManagerInfoDataSource() datasource.DataSource {
 	return &ManagerInfoDataSource{}
 }

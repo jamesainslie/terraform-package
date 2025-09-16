@@ -38,6 +38,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &VersionHistoryDataSource{}
 
+// NewVersionHistoryDataSource creates a new version history data source.
 func NewVersionHistoryDataSource() datasource.DataSource {
 	return &VersionHistoryDataSource{}
 }

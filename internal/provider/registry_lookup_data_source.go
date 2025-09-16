@@ -34,6 +34,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &RegistryLookupDataSource{}
 
+// NewRegistryLookupDataSource creates a new registry lookup data source.
 func NewRegistryLookupDataSource() datasource.DataSource {
 	return &RegistryLookupDataSource{}
 }

@@ -39,6 +39,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &DependenciesDataSource{}
 
+// NewDependenciesDataSource creates a new dependencies data source.
 func NewDependenciesDataSource() datasource.DataSource {
 	return &DependenciesDataSource{}
 }

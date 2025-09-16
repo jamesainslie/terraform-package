@@ -39,6 +39,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ datasource.DataSource = &RepositoryPackagesDataSource{}
 
+// NewRepositoryPackagesDataSource creates a new repository packages data source.
 func NewRepositoryPackagesDataSource() datasource.DataSource {
 	return &RepositoryPackagesDataSource{}
 }
