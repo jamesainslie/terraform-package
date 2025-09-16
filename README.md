@@ -2,11 +2,11 @@
 
 A cross-platform Terraform provider for managing packages across macOS (Homebrew), Linux (APT), and Windows (winget/Chocolatey) with unified resource definitions and consistent behavior.
 
-[![Tests](https://github.com/jamesainslie_geico/terraform-package/workflows/Tests/badge.svg)](https://github.com/jamesainslie_geico/terraform-package/actions)
-[![Code Quality](https://github.com/jamesainslie_geico/terraform-package/workflows/Code%20Quality/badge.svg)](https://github.com/jamesainslie_geico/terraform-package/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/jamesainslie_geico/terraform-package)](https://goreportcard.com/report/github.com/jamesainslie_geico/terraform-package)
+[![Tests](https://github.com/jamesainslie/terraform-package/workflows/Tests/badge.svg)](https://github.com/jamesainslie/terraform-package/actions)
+[![Code Quality](https://github.com/jamesainslie/terraform-package/workflows/Code%20Quality/badge.svg)](https://github.com/jamesainslie/terraform-package/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jamesainslie/terraform-package)](https://goreportcard.com/report/github.com/jamesainslie/terraform-package)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/github/v/release/jamesainslie_geico/terraform-package)](https://github.com/jamesainslie_geico/terraform-package/releases)
+[![Release](https://img.shields.io/github/v/release/jamesainslie/terraform-package)](https://github.com/jamesainslie/terraform-package/releases)
 
 ## Features
 
@@ -177,7 +177,7 @@ See the [`examples/`](./examples/) directory for complete usage examples:
 
 ```bash
 # Clone the repository
-git clone https://github.com/jamesainslie_geico/terraform-package.git
+git clone https://github.com/jamesainslie/terraform-package.git
 cd terraform-package
 
 # Build the provider
@@ -269,8 +269,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Documentation**: [Provider Documentation](./docs/)
 - **Examples**: [Usage Examples](./examples/)
-- **Issues**: [GitHub Issues](https://github.com/jamesainslie_geico/terraform-package/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jamesainslie_geico/terraform-package/discussions)
+- **Issues**: [GitHub Issues](https://github.com/jamesainslie/terraform-package/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jamesainslie/terraform-package/discussions)
 
 ## Acknowledgments
 
