@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+// Package brew implements the Homebrew package manager adapter.
 package brew
 
 import (
@@ -147,12 +148,12 @@ func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bo
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return nil, fmt.Errorf("failed to get package info for %s: %v", name, err)
+		return nil, fmt.Errorf("failed to get package info for %s: %w", name, err)
 	}
 
 	var infos []brewInfo
 	if err := json.Unmarshal([]byte(result.Stdout), &infos); err != nil {
-		return nil, fmt.Errorf("failed to parse brew info JSON: %v", err)
+		return nil, fmt.Errorf("failed to parse brew info JSON: %w", err)
 	}
 
 	if len(infos) == 0 {
@@ -217,7 +218,7 @@ func (b *BrewAdapter) Install(ctx context.Context, name, version string) error {
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return fmt.Errorf("failed to install %s: exit code %d, error: %v, stderr: %s",
+		return fmt.Errorf("failed to install %s: exit code %d, error: %w, stderr: %s",
 			packageName, result.ExitCode, err, result.Stderr)
 	}
 
@@ -244,7 +245,7 @@ func (b *BrewAdapter) Remove(ctx context.Context, name string) error {
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return fmt.Errorf("failed to uninstall %s: exit code %d, error: %v, stderr: %s",
+		return fmt.Errorf("failed to uninstall %s: exit code %d, error: %w, stderr: %s",
 			name, result.ExitCode, err, result.Stderr)
 	}
 
@@ -278,7 +279,7 @@ func (b *BrewAdapter) Pin(ctx context.Context, name string, pin bool) error {
 		if !pin {
 			action = "unpin"
 		}
-		return fmt.Errorf("failed to %s %s: exit code %d, error: %v, stderr: %s",
+		return fmt.Errorf("failed to %s %s: exit code %d, error: %w, stderr: %s",
 			action, name, result.ExitCode, err, result.Stderr)
 	}
 
@@ -292,7 +293,7 @@ func (b *BrewAdapter) UpdateCache(ctx context.Context) error {
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return fmt.Errorf("failed to update brew cache: exit code %d, error: %v, stderr: %s",
+		return fmt.Errorf("failed to update brew cache: exit code %d, error: %w, stderr: %s",
 			result.ExitCode, err, result.Stderr)
 	}
 
@@ -329,7 +330,7 @@ func (b *BrewAdapter) searchType(ctx context.Context, query string, isCask bool)
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return nil, fmt.Errorf("failed to search packages: exit code %d, error: %v", result.ExitCode, err)
+		return nil, fmt.Errorf("failed to search packages: exit code %d, error: %w", result.ExitCode, err)
 	}
 
 	var packages []adapters.PackageInfo

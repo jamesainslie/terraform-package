@@ -68,7 +68,7 @@ func (b *BrewRepositoryManager) AddRepository(ctx context.Context, name, uri, gp
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return fmt.Errorf("failed to add tap %s: exit code %d, error: %v, stderr: %s",
+		return fmt.Errorf("failed to add tap %s: exit code %d, error: %w, stderr: %s",
 			tapName, result.ExitCode, err, result.Stderr)
 	}
 
@@ -82,7 +82,7 @@ func (b *BrewRepositoryManager) RemoveRepository(ctx context.Context, name strin
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return fmt.Errorf("failed to remove tap %s: exit code %d, error: %v, stderr: %s",
+		return fmt.Errorf("failed to remove tap %s: exit code %d, error: %w, stderr: %s",
 			name, result.ExitCode, err, result.Stderr)
 	}
 
@@ -96,7 +96,7 @@ func (b *BrewRepositoryManager) ListRepositories(ctx context.Context) ([]adapter
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return nil, fmt.Errorf("failed to list taps: exit code %d, error: %v, stderr: %s",
+		return nil, fmt.Errorf("failed to list taps: exit code %d, error: %w, stderr: %s",
 			result.ExitCode, err, result.Stderr)
 	}
 

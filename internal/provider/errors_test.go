@@ -48,7 +48,7 @@ func TestPackageError(t *testing.T) {
 		t.Errorf("Expected exit code 1, got %d", err.ExitCode)
 	}
 
-	if err.Cause != cause {
+	if !errors.Is(err.Cause, cause) {
 		t.Errorf("Expected cause to be the original error")
 	}
 

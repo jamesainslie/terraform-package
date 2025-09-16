@@ -124,7 +124,8 @@ func (d *InstalledPackagesDataSource) Configure(ctx context.Context, req datasou
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.",
+				req.ProviderData),
 		)
 		return
 	}
@@ -218,7 +219,7 @@ func (d *InstalledPackagesDataSource) getInstalledBrewPackages(ctx context.Conte
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return nil, fmt.Errorf("failed to list installed packages: exit code %d, error: %v", result.ExitCode, err)
+		return nil, fmt.Errorf("failed to list installed packages: exit code %d, error: %w", result.ExitCode, err)
 	}
 
 	var packages []InstalledPackageInfo

@@ -87,7 +87,8 @@ func (d *DependenciesDataSource) Schema(ctx context.Context, req datasource.Sche
 				Optional:            true,
 			},
 			"type": schema.StringAttribute{
-				MarkdownDescription: "Type of dependencies to retrieve. Valid values: 'runtime', 'build', 'optional', 'all'. Defaults to 'runtime'.",
+				MarkdownDescription: "Type of dependencies to retrieve. Valid values: 'runtime', 'build', " +
+					"'optional', 'all'. Defaults to 'runtime'.",
 				Optional:            true,
 			},
 			"dependencies": schema.ListNestedAttribute{
@@ -128,7 +129,8 @@ func (d *DependenciesDataSource) Configure(ctx context.Context, req datasource.C
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.",
+				req.ProviderData),
 		)
 		return
 	}
@@ -225,13 +227,13 @@ func (d *DependenciesDataSource) getBrewDependencies(ctx context.Context, packag
 	})
 
 	if err != nil || result.ExitCode != 0 {
-		return nil, fmt.Errorf("failed to get package info: exit code %d, error: %v", result.ExitCode, err)
+		return nil, fmt.Errorf("failed to get package info: exit code %d, error: %w", result.ExitCode, err)
 	}
 
 	// Parse JSON response
 	var infos []map[string]interface{}
 	if err := json.Unmarshal([]byte(result.Stdout), &infos); err != nil {
-		return nil, fmt.Errorf("failed to parse brew info JSON: %v", err)
+		return nil, fmt.Errorf("failed to parse brew info JSON: %w", err)
 	}
 
 	if len(infos) == 0 {

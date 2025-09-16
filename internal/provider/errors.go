@@ -121,6 +121,7 @@ func (d *DiagnosticHelpers) ValidationErrorDiagnostic(field, message string) dia
 // NotFoundWarningDiagnostic creates a warning for when a package is not found.
 func (d *DiagnosticHelpers) NotFoundWarningDiagnostic(packageName, manager string) diag.Diagnostic {
 	summary := "Package Not Found"
-	detail := fmt.Sprintf("Package '%s' was not found in %s. It may have been removed outside of Terraform.", packageName, manager)
+	detail := fmt.Sprintf("Package '%s' was not found in %s. It may have been removed outside of Terraform.",
+		packageName, manager)
 	return diag.NewWarningDiagnostic(summary, detail)
 }

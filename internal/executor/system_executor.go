@@ -25,6 +25,7 @@ package executor
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -92,7 +93,8 @@ func (e *SystemExecutor) Run(ctx context.Context, command string, args []string,
 
 	// Get exit code if command failed
 	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
 			result.ExitCode = exitError.ExitCode()
 		} else {
 			// Other error (e.g., command not found, context timeout)
@@ -141,7 +143,7 @@ func (e *SystemExecutor) truncateOutput(output string, maxLen int) string {
 }
 
 // IsCommandAvailable checks if a command is available in the system PATH.
-func IsCommandAvailable(ctx context.Context, command string) bool {
+func IsCommandAvailable(_ context.Context, command string) bool {
 	_, err := exec.LookPath(command)
 	return err == nil
 }

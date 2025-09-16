@@ -1,0 +1,530 @@
+internal/adapters/brew/adapter.go:138:1: calculated cyclomatic complexity for function getPackageInfo is 11, max is 10 (cyclop)
+func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bool) (*adapters.PackageInfo, error) {
+^
+internal/executor/executor_test.go:276:1: calculated cyclomatic complexity for function TestDetectPrivilegeEscalation is 11, max is 10 (cyclop)
+func TestDetectPrivilegeEscalation(t *testing.T) {
+^
+internal/provider/package_info_data_source.go:125:1: calculated cyclomatic complexity for function Read is 13, max is 10 (cyclop)
+func (d *PackageInfoDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+^
+internal/provider/package_resource.go:453:1: calculated cyclomatic complexity for function resolvePackageManager is 19, max is 10 (cyclop)
+func (r *PackageResource) resolvePackageManager(ctx context.Context, data PackageResourceModel) (adapters.PackageManager, string, error) {
+^
+internal/provider/repository_packages_data_source.go:209:1: calculated cyclomatic complexity for function getRepositoryBrewPackages is 12, max is 10 (cyclop)
+func (d *RepositoryPackagesDataSource) getRepositoryBrewPackages(ctx context.Context, repository string, limit int64) ([]RepositoryPackageInfo, error) {
+^
+internal/adapters/brew/adapter.go:150:73: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+		return nil, fmt.Errorf("failed to get package info for %s: %v", name, err)
+		                                                                      ^
+internal/adapters/brew/adapter.go:155:64: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+		return nil, fmt.Errorf("failed to parse brew info JSON: %v", err)
+		                                                             ^
+internal/adapters/brew/adapter.go:221:34: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+			packageName, result.ExitCode, err, result.Stderr)
+			                              ^
+internal/adapters/brew/adapter.go:248:27: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+			name, result.ExitCode, err, result.Stderr)
+			                       ^
+internal/adapters/brew/adapter.go:282:35: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+			action, name, result.ExitCode, err, result.Stderr)
+			                               ^
+internal/adapters/brew/adapter.go:296:21: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+			result.ExitCode, err, result.Stderr)
+			                 ^
+internal/adapters/brew/adapter.go:332:97: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+		return nil, fmt.Errorf("failed to search packages: exit code %d, error: %v", result.ExitCode, err)
+		                                                                                              ^
+internal/adapters/brew/repository.go:72:30: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+			tapName, result.ExitCode, err, result.Stderr)
+			                          ^
+internal/adapters/brew/repository.go:86:27: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+			name, result.ExitCode, err, result.Stderr)
+			                       ^
+internal/adapters/brew/repository.go:100:21: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+			result.ExitCode, err, result.Stderr)
+			                 ^
+internal/executor/system_executor.go:95:23: type assertion on error will fail on wrapped errors. Use errors.As to check for specific errors (errorlint)
+		if exitError, ok := err.(*exec.ExitError); ok {
+		                    ^
+internal/provider/dependencies_data_source.go:228:98: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+		return nil, fmt.Errorf("failed to get package info: exit code %d, error: %v", result.ExitCode, err)
+		                                                                                               ^
+internal/provider/dependencies_data_source.go:234:64: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+		return nil, fmt.Errorf("failed to parse brew info JSON: %v", err)
+		                                                             ^
+internal/provider/errors_test.go:51:5: comparing with != will fail on wrapped errors. Use errors.Is to check for a specific error (errorlint)
+	if err.Cause != cause {
+	   ^
+internal/provider/installed_packages_data_source.go:221:105: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+		return nil, fmt.Errorf("failed to list installed packages: exit code %d, error: %v", result.ExitCode, err)
+		                                                                                                      ^
+internal/provider/outdated_packages_data_source.go:210:104: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+		return nil, fmt.Errorf("failed to list outdated packages: exit code %d, error: %v", result.ExitCode, err)
+		                                                                                                     ^
+internal/provider/repository_packages_data_source.go:222:108: non-wrapping format verb for fmt.Errorf. Use `%w` to format errors (errorlint)
+		return nil, fmt.Errorf("failed to search repository packages: exit code %d, error: %v", result.ExitCode, err)
+		                                                                                                         ^
+internal/executor/executor_test.go:169:6: Function 'TestSystemExecutor_PrepareCommand' is too long (63 > 60) (funlen)
+func TestSystemExecutor_PrepareCommand(t *testing.T) {
+     ^
+internal/provider/dependencies_data_source.go:139:34: Function 'Read' is too long (65 > 60) (funlen)
+func (d *DependenciesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+                                 ^
+internal/provider/package_search_data_source.go:123:35: Function 'Read' is too long (76 > 60) (funlen)
+func (d *PackageSearchDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+                                  ^
+internal/provider/repository_packages_data_source.go:134:40: Function 'Read' is too long (62 > 60) (funlen)
+func (d *RepositoryPackagesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+                                       ^
+internal/provider/security_info_data_source.go:151:34: Function 'Read' is too long (61 > 60) (funlen)
+func (d *SecurityInfoDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+                                 ^
+internal/provider/dependencies_data_source.go:216:1: cognitive complexity 33 of func `(*DependenciesDataSource).getBrewDependencies` is high (> 30) (gocognit)
+func (d *DependenciesDataSource) getBrewDependencies(ctx context.Context, packageName, depType string) ([]DependencyInfo, error) {
+^
+internal/provider/version_history_data_source.go:162:1: cognitive complexity 44 of func `(*VersionHistoryDataSource).getBrewVersionHistory` is high (> 30) (gocognit)
+func (d *VersionHistoryDataSource) getBrewVersionHistory(ctx context.Context, packageName string) []string {
+^
+internal/adapters/brew/repository.go:44:14: string `brew` has 3 occurrences, make it a constant (goconst)
+		brewPath = "brew"
+		           ^
+internal/executor/executor_test.go:104:21: string `windows` has 7 occurrences, make it a constant (goconst)
+	if runtime.GOOS == "windows" {
+	                   ^
+internal/provider/repository_resource.go:274:16: string `brew` has 30 occurrences, make it a constant (goconst)
+	if manager != "brew" {
+	              ^
+internal/provider/repository_resource.go:298:21: string `darwin` has 20 occurrences, make it a constant (goconst)
+	if runtime.GOOS != "darwin" {
+	                   ^
+internal/provider/security_info_data_source.go:161:17: string `auto` has 20 occurrences, make it a constant (goconst)
+	managerName := "auto"
+	               ^
+internal/adapters/brew/adapter.go:315:16: appendAssign: append result not assigned to the same slice (gocritic)
+	allResults := append(formulaResults, caskResults...)
+	              ^
+internal/provider/package_resource.go:428:2: ifElseChain: rewrite if-else to switch statement (gocritic)
+	if len(parts) == 1 {
+	^
+internal/executor/system_executor.go:64:9: G204: Subprocess launched with variable (gosec)
+	cmd := exec.CommandContext(ctx, finalCmd, finalArgs...)
+	       ^
+internal/provider/dependencies_data_source.go:90:1: The line is 137 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Type of dependencies to retrieve. Valid values: 'runtime', 'build', 'optional', 'all'. Defaults to 'runtime'.",
+^
+internal/provider/dependencies_data_source.go:131:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/errors.go:124:1: The line is 128 characters long, which exceeds the maximum of 120 characters. (lll)
+	detail := fmt.Sprintf("Package '%s' was not found in %s. It may have been removed outside of Terraform.", packageName, manager)
+^
+internal/provider/installed_packages_data_source.go:127:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/installed_packages_data_source.go:135:1: The line is 124 characters long, which exceeds the maximum of 120 characters. (lll)
+func (d *InstalledPackagesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+^
+internal/provider/installed_packages_data_source.go:204:1: The line is 132 characters long, which exceeds the maximum of 120 characters. (lll)
+func (d *InstalledPackagesDataSource) getInstalledBrewPackages(ctx context.Context, filter string) ([]InstalledPackageInfo, error) {
+^
+internal/provider/manager_info_data_source.go:114:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/manager_info_data_source.go:181:1: The line is 128 characters long, which exceeds the maximum of 120 characters. (lll)
+func (d *ManagerInfoDataSource) getBrewInfo(ctx context.Context, data *ManagerInfoDataSourceModel, _ *datasource.ReadResponse) {
+^
+internal/provider/outdated_packages_data_source.go:121:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/outdated_packages_data_source.go:129:1: The line is 123 characters long, which exceeds the maximum of 120 characters. (lll)
+func (d *OutdatedPackagesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+^
+internal/provider/package_info_data_source.go:79:1: The line is 134 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Package manager to query. Valid values: 'auto', 'brew'. Defaults to 'auto' which auto-detects based on OS.",
+^
+internal/provider/package_info_data_source.go:117:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/package_resource.go:88:1: The line is 127 characters long, which exceeds the maximum of 120 characters. (lll)
+		MarkdownDescription: "Manages a package installation across different package managers (Homebrew, APT, winget, Chocolatey).",
+^
+internal/provider/package_resource.go:99:1: The line is 126 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Logical package name. This will be resolved to platform-specific names using the package registry.",
+^
+internal/provider/package_resource.go:112:1: The line is 192 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Desired version of the package. Supports exact versions, semantic version ranges, or glob patterns depending on the package manager. Leave empty for latest version.",
+^
+internal/provider/package_resource.go:116:1: The line is 123 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Actual installed version of the package. This is computed and shows the real installed version.",
+^
+internal/provider/package_resource.go:120:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Whether to pin/hold the package at the current version to prevent upgrades. Defaults to false.",
+^
+internal/provider/package_resource.go:127:1: The line is 176 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Override the package manager selection. Valid values: 'auto', 'brew', 'apt', 'winget', 'choco'. Defaults to ['auto'] which auto-detects based on OS.",
+^
+internal/provider/package_resource.go:132:1: The line is 146 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Platform-specific package name overrides. Keys: 'darwin', 'linux', 'windows'. Values: platform-specific package names.",
+^
+internal/provider/package_resource.go:136:1: The line is 146 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "If true, reinstall the package when version drift is detected. If false, only update version_actual. Defaults to true.",
+^
+internal/provider/package_resource.go:185:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/package_resource.go:521:1: The line is 152 characters long, which exceeds the maximum of 120 characters. (lll)
+func (r *PackageResource) readPackageState(ctx context.Context, manager adapters.PackageManager, packageName string, data *PackageResourceModel) error {
+^
+internal/provider/package_search_data_source.go:82:1: The line is 135 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Package manager to search. Valid values: 'auto', 'brew'. Defaults to 'auto' which auto-detects based on OS.",
+^
+internal/provider/package_search_data_source.go:115:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/provider.go:82:1: The line is 129 characters long, which exceeds the maximum of 120 characters. (lll)
+		MarkdownDescription: "The pkg provider enables cross-platform package management using Homebrew, APT, winget, and Chocolatey.",
+^
+internal/provider/provider.go:85:1: The line is 156 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Default package manager to use. Valid values: auto, brew, apt, winget, choco. Defaults to 'auto' which auto-detects based on OS.",
+^
+internal/provider/provider.go:93:1: The line is 128 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Enable sudo usage for operations that require elevated privileges on Unix systems. Defaults to true.",
+^
+internal/provider/provider.go:113:1: The line is 130 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "When to update package manager cache. Valid values: never, on_change, always. Defaults to 'on_change'.",
+^
+internal/provider/registry_lookup_data_source.go:103:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/registry_lookup_data_source.go:111:1: The line is 121 characters long, which exceeds the maximum of 120 characters. (lll)
+func (d *RegistryLookupDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+^
+internal/provider/repository_packages_data_source.go:126:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/repository_packages_data_source.go:217:1: The line is 128 characters long, which exceeds the maximum of 120 characters. (lll)
+	result, err := d.providerData.Executor.Run(ctx, brewPath, []string{"search", "--formula", repository + "/"}, executor.ExecOpts{
+^
+internal/provider/repository_resource.go:82:1: The line is 148 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Package manager for this repository. Valid values: 'brew', 'apt', 'winget', 'choco'. Currently only 'brew' is supported.",
+^
+internal/provider/repository_resource.go:96:1: The line is 152 characters long, which exceeds the maximum of 120 characters. (lll)
+				MarkdownDescription: "Repository URI. For Homebrew taps, this is the tap name (e.g., 'homebrew/cask-fonts'). For APT, this is the repository line.",
+^
+internal/provider/repository_resource.go:127:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/repository_resource.go:212:1: The line is 121 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Repository '%s' was not found. It may have been removed outside of Terraform.", data.Name.ValueString()),
+^
+internal/provider/repository_resource.go:291:1: The line is 126 characters long, which exceeds the maximum of 120 characters. (lll)
+func (r *RepositoryResource) getRepositoryManager(_ context.Context, managerName string) (adapters.RepositoryManager, error) {
+^
+internal/provider/security_info_data_source.go:143:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/security_info_data_source.go:219:1: The line is 169 characters long, which exceeds the maximum of 120 characters. (lll)
+		"Security advisory checking is not fully implemented for Homebrew. This data source returns empty results and could be enhanced to integrate with security databases.",
+^
+internal/provider/version_history_data_source.go:98:1: The line is 122 characters long, which exceeds the maximum of 120 characters. (lll)
+			fmt.Sprintf("Expected *ProviderData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+^
+internal/provider/version_history_data_source.go:106:1: The line is 121 characters long, which exceeds the maximum of 120 characters. (lll)
+func (d *VersionHistoryDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+^
+internal/adapters/brew/repository.go:103:2: Consider pre-allocating `repositories` (prealloc)
+	var repositories []adapters.RepositoryInfo
+	^
+internal/provider/installed_packages_data_source.go:224:2: Consider pre-allocating `packages` (prealloc)
+	var packages []InstalledPackageInfo
+	^
+internal/registry/registry.go:107:2: Consider pre-allocating `packages` (prealloc)
+	var packages []PackageMapping
+	^
+internal/adapters/brew/adapter.go:23:1: package-comments: should have a package comment (revive)
+package brew
+^
+internal/adapters/brew/adapter.go:40:6: exported: type name will be used as brew.BrewAdapter by other packages, and that stutters; consider calling this Adapter (revive)
+type BrewAdapter struct {
+     ^
+internal/adapters/brew/repository.go:36:6: exported: type name will be used as brew.BrewRepositoryManager by other packages, and that stutters; consider calling this RepositoryManager (revive)
+type BrewRepositoryManager struct {
+     ^
+internal/adapters/interfaces.go:23:1: package-comments: should have a package comment (revive)
+package adapters
+^
+internal/executor/executor.go:23:1: package-comments: should have a package comment (revive)
+package executor
+^
+internal/executor/system_executor.go:144:25: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func IsCommandAvailable(ctx context.Context, command string) bool {
+                        ^
+internal/provider/acceptance_test.go:23:1: package-comments: should have a package comment (revive)
+package provider
+^
+internal/provider/dependencies_data_source.go:42:1: exported: exported function NewDependenciesDataSource should have comment or be unexported (revive)
+func NewDependenciesDataSource() datasource.DataSource {
+^
+internal/provider/dependencies_data_source.go:68:43: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *DependenciesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                          ^
+internal/provider/dependencies_data_source.go:72:41: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *DependenciesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                        ^
+internal/provider/dependencies_data_source.go:121:44: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *DependenciesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                           ^
+internal/provider/installed_packages_data_source.go:43:1: exported: exported function NewInstalledPackagesDataSource should have comment or be unexported (revive)
+func NewInstalledPackagesDataSource() datasource.DataSource {
+^
+internal/provider/installed_packages_data_source.go:68:48: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *InstalledPackagesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                               ^
+internal/provider/installed_packages_data_source.go:72:46: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *InstalledPackagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                             ^
+internal/provider/installed_packages_data_source.go:117:49: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *InstalledPackagesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                                ^
+internal/provider/manager_info_data_source.go:43:1: exported: exported function NewManagerInfoDataSource should have comment or be unexported (revive)
+func NewManagerInfoDataSource() datasource.DataSource {
+^
+internal/provider/manager_info_data_source.go:63:42: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *ManagerInfoDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                         ^
+internal/provider/manager_info_data_source.go:67:40: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *ManagerInfoDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                       ^
+internal/provider/manager_info_data_source.go:104:43: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *ManagerInfoDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                          ^
+internal/provider/outdated_packages_data_source.go:42:1: exported: exported function NewOutdatedPackagesDataSource should have comment or be unexported (revive)
+func NewOutdatedPackagesDataSource() datasource.DataSource {
+^
+internal/provider/outdated_packages_data_source.go:66:47: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *OutdatedPackagesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                              ^
+internal/provider/outdated_packages_data_source.go:70:45: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *OutdatedPackagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                            ^
+internal/provider/outdated_packages_data_source.go:111:48: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *OutdatedPackagesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                               ^
+internal/provider/package_info_data_source.go:40:1: exported: exported function NewPackageInfoDataSource should have comment or be unexported (revive)
+func NewPackageInfoDataSource() datasource.DataSource {
+^
+internal/provider/package_info_data_source.go:61:42: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *PackageInfoDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                         ^
+internal/provider/package_info_data_source.go:65:40: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *PackageInfoDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                       ^
+internal/provider/package_info_data_source.go:107:43: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *PackageInfoDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                          ^
+internal/provider/package_resource.go:49:1: exported: exported function NewPackageResource should have comment or be unexported (revive)
+func NewPackageResource() resource.Resource {
+^
+internal/provider/package_resource.go:75:6: exported: exported type PackageResourceTimeouts should have comment or be unexported (revive)
+type PackageResourceTimeouts struct {
+     ^
+internal/provider/package_resource.go:82:36: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *PackageResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+                                   ^
+internal/provider/package_resource.go:86:34: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *PackageResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+                                 ^
+internal/provider/package_resource.go:175:37: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *PackageResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+                                    ^
+internal/provider/package_resource.go:193:1: exported: exported method PackageResource.Create should have comment or be unexported (revive)
+func (r *PackageResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+^
+internal/provider/package_resource.go:307:1: exported: exported method PackageResource.Update should have comment or be unexported (revive)
+func (r *PackageResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+^
+internal/provider/package_resource.go:377:1: exported: exported method PackageResource.Delete should have comment or be unexported (revive)
+func (r *PackageResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+^
+internal/provider/package_resource.go:424:1: exported: exported method PackageResource.ImportState should have comment or be unexported (revive)
+func (r *PackageResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+^
+internal/provider/package_search_data_source.go:41:1: exported: exported function NewPackageSearchDataSource should have comment or be unexported (revive)
+func NewPackageSearchDataSource() datasource.DataSource {
+^
+internal/provider/package_search_data_source.go:64:44: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *PackageSearchDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                           ^
+internal/provider/package_search_data_source.go:68:42: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *PackageSearchDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                         ^
+internal/provider/package_search_data_source.go:105:45: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *PackageSearchDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                            ^
+internal/provider/provider.go:66:6: exported: type name will be used as provider.ProviderData by other packages, and that stutters; consider calling this Data (revive)
+type ProviderData struct {
+     ^
+internal/provider/provider.go:75:36: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (p *PackageProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+                                   ^
+internal/provider/provider.go:80:34: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (p *PackageProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+                                 ^
+internal/provider/provider.go:124:1: exported: exported method PackageProvider.Configure should have comment or be unexported (revive)
+func (p *PackageProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+^
+internal/provider/provider.go:207:37: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (p *PackageProvider) Resources(ctx context.Context) []func() resource.Resource {
+                                    ^
+internal/provider/provider.go:214:39: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (p *PackageProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+                                      ^
+internal/provider/provider.go:229:37: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (p *PackageProvider) Functions(ctx context.Context) []func() function.Function {
+                                    ^
+internal/provider/provider.go:235:1: exported: exported function New should have comment or be unexported (revive)
+func New(version string) func() provider.Provider {
+^
+internal/provider/registry_lookup_data_source.go:37:1: exported: exported function NewRegistryLookupDataSource should have comment or be unexported (revive)
+func NewRegistryLookupDataSource() datasource.DataSource {
+^
+internal/provider/registry_lookup_data_source.go:56:45: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *RegistryLookupDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                            ^
+internal/provider/registry_lookup_data_source.go:60:43: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *RegistryLookupDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                          ^
+internal/provider/registry_lookup_data_source.go:93:46: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *RegistryLookupDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                             ^
+internal/provider/repository_packages_data_source.go:42:1: exported: exported function NewRepositoryPackagesDataSource should have comment or be unexported (revive)
+func NewRepositoryPackagesDataSource() datasource.DataSource {
+^
+internal/provider/repository_packages_data_source.go:67:49: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *RepositoryPackagesDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                                ^
+internal/provider/repository_packages_data_source.go:71:47: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *RepositoryPackagesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                              ^
+internal/provider/repository_packages_data_source.go:116:50: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *RepositoryPackagesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                                 ^
+internal/provider/repository_resource.go:46:1: exported: exported function NewRepositoryResource should have comment or be unexported (revive)
+func NewRepositoryResource() resource.Resource {
+^
+internal/provider/repository_resource.go:65:39: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *RepositoryResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+                                      ^
+internal/provider/repository_resource.go:69:37: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *RepositoryResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+                                    ^
+internal/provider/repository_resource.go:117:40: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *RepositoryResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+                                       ^
+internal/provider/repository_resource.go:135:1: exported: exported method RepositoryResource.Create should have comment or be unexported (revive)
+func (r *RepositoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+^
+internal/provider/repository_resource.go:222:37: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *RepositoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+                                    ^
+internal/provider/repository_resource.go:231:1: exported: exported method RepositoryResource.Delete should have comment or be unexported (revive)
+func (r *RepositoryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+^
+internal/provider/repository_resource.go:258:1: exported: exported method RepositoryResource.ImportState should have comment or be unexported (revive)
+func (r *RepositoryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+^
+internal/provider/security_info_data_source.go:39:1: exported: exported function NewSecurityInfoDataSource should have comment or be unexported (revive)
+func NewSecurityInfoDataSource() datasource.DataSource {
+^
+internal/provider/security_info_data_source.go:68:43: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *SecurityInfoDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                          ^
+internal/provider/security_info_data_source.go:72:41: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *SecurityInfoDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                        ^
+internal/provider/security_info_data_source.go:133:44: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *SecurityInfoDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                           ^
+internal/provider/version_history_data_source.go:41:1: exported: exported function NewVersionHistoryDataSource should have comment or be unexported (revive)
+func NewVersionHistoryDataSource() datasource.DataSource {
+^
+internal/provider/version_history_data_source.go:58:45: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *VersionHistoryDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+                                            ^
+internal/provider/version_history_data_source.go:62:43: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *VersionHistoryDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+                                          ^
+internal/provider/version_history_data_source.go:88:46: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (d *VersionHistoryDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+                                             ^
+internal/registry/registry.go:23:1: package-comments: should have a package comment (revive)
+package registry
+^
+internal/registry/registry.go:66:46: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *DefaultRegistry) ResolvePackageName(ctx context.Context, logicalName string, platform string) (string, error) {
+                                             ^
+internal/registry/registry.go:97:45: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *DefaultRegistry) GetPackageMapping(ctx context.Context, logicalName string) (*PackageMapping, error) {
+                                            ^
+internal/registry/registry.go:106:40: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *DefaultRegistry) ListPackages(ctx context.Context) ([]PackageMapping, error) {
+                                       ^
+internal/registry/registry.go:115:45: unused-parameter: parameter 'ctx' seems to be unused, consider removing or renaming it as _ (revive)
+func (r *DefaultRegistry) AddPackageMapping(ctx context.Context, mapping PackageMapping) error {
+                                            ^
+main.go:23:1: package-comments: should have a package comment (revive)
+package main
+^
+main.go:37:10: var-declaration: should omit type string from declaration of var version; it will be inferred from the right-hand side (revive)
+	version string = "dev"
+	        ^
+internal/registry/registry_test.go:71:5: SA5011(related information): this check suggests that the pointer can be nil (staticcheck)
+	if mapping == nil {
+	   ^
+internal/registry/registry_test.go:75:13: SA5011: possible nil pointer dereference (staticcheck)
+	if mapping.LogicalName != "git" {
+	           ^
+internal/registry/registry_test.go:139:5: SA5011(related information): this check suggests that the pointer can be nil (staticcheck)
+	if retrieved == nil {
+	   ^
+internal/registry/registry_test.go:143:15: SA5011: possible nil pointer dereference (staticcheck)
+	if retrieved.Darwin != "testpkg-mac" {
+	             ^
+internal/provider/package_resource_test.go:50:2: variable name 'r' is too short for the scope of its usage (varnamelen)
+	r := &PackageResource{}
+	^
+internal/provider/package_resource_test.go:66:2: variable name 'r' is too short for the scope of its usage (varnamelen)
+	r := &PackageResource{}
+	^
+internal/provider/package_resource_test.go:113:2: variable name 'r' is too short for the scope of its usage (varnamelen)
+	r := &PackageResource{}
+	^
+internal/provider/package_resource_test.go:158:2: variable name 'r' is too short for the scope of its usage (varnamelen)
+	r := &PackageResource{}
+	^
+internal/provider/provider_test.go:55:2: variable name 'p' is too short for the scope of its usage (varnamelen)
+	p := New("test")()
+	^
+internal/provider/provider_test.go:82:2: variable name 'p' is too short for the scope of its usage (varnamelen)
+	p := New("test")()
+	^
+internal/executor/system_executor.go:109:17: error returned from external package is unwrapped: sig: func (*os/exec.Cmd).Run() error (wrapcheck)
+	return result, err
+	               ^
+internal/provider/package_resource.go:524:10: error returned from interface method should be wrapped: sig: func (github.com/geico-private/terraform-provider-pkg/internal/adapters.PackageManager).DetectInstalled(ctx context.Context, name string) (*github.com/geico-private/terraform-provider-pkg/internal/adapters.PackageInfo, error) (wrapcheck)
+		return err
+		       ^
+172 issues:
+* cyclop: 5
+* errorlint: 17
+* funlen: 5
+* gocognit: 2
+* goconst: 5
+* gocritic: 2
+* gosec: 1
+* lll: 41
+* prealloc: 3
+* revive: 79
+* staticcheck: 4
+* varnamelen: 6
+* wrapcheck: 2
