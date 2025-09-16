@@ -29,9 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Final CI issues resolution
 - Resolve final goconst and godot issues
 - Final remaining issues and CI improvements
+- Synchronize golangci-lint versions between local and CI
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
