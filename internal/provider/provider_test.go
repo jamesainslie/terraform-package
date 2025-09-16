@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/provider"
-	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 )
 
 // testAccProtoV6ProviderFactories are used to instantiate a provider during
@@ -137,4 +136,3 @@ func TestPackageProvider_Functions(t *testing.T) {
 		t.Fatal("Provider should be of type *PackageProvider")
 	}
 }
-
