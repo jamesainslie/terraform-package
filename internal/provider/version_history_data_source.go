@@ -59,14 +59,14 @@ type VersionHistoryDataSourceModel struct {
 // Metadata returns the data source type name.
 // Metadata returns the data source type name.
 func (d *VersionHistoryDataSource) Metadata(
-		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_version_history"
 }
 
 // Schema defines the data source schema.
 // Schema defines the data source schema.
 func (d *VersionHistoryDataSource) Schema(
-		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves available versions for a package.",
 
@@ -83,7 +83,7 @@ func (d *VersionHistoryDataSource) Schema(
 				MarkdownDescription: "Package manager to query. " +
 					"Valid values: 'auto', 'brew'. " +
 					"Defaults to 'auto'.",
-				Optional:            true,
+				Optional: true,
 			},
 			"versions": schema.ListAttribute{
 				ElementType:         types.StringType,
@@ -97,7 +97,7 @@ func (d *VersionHistoryDataSource) Schema(
 // Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *VersionHistoryDataSource) Configure(
-		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -117,7 +117,7 @@ func (d *VersionHistoryDataSource) Configure(
 }
 
 func (d *VersionHistoryDataSource) Read(
-		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data VersionHistoryDataSourceModel
 
 	// Read Terraform configuration data into the model

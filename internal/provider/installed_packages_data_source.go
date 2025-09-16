@@ -69,14 +69,14 @@ type InstalledPackageInfo struct {
 // Metadata returns the data source type name.
 // Metadata returns the data source type name.
 func (d *InstalledPackagesDataSource) Metadata(
-		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_installed_packages"
 }
 
 // Schema defines the data source schema.
 // Schema defines the data source schema.
 func (d *InstalledPackagesDataSource) Schema(
-		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Lists all packages installed by the package manager.",
 
@@ -89,7 +89,7 @@ func (d *InstalledPackagesDataSource) Schema(
 				MarkdownDescription: "Package manager to query. " +
 					"Valid values: 'auto', 'brew'. " +
 					"Defaults to 'auto'.",
-				Optional:            true,
+				Optional: true,
 			},
 			"filter": schema.StringAttribute{
 				MarkdownDescription: "Optional filter pattern to match package names (supports glob patterns).",
@@ -126,7 +126,7 @@ func (d *InstalledPackagesDataSource) Schema(
 // Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *InstalledPackagesDataSource) Configure(
-		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -146,7 +146,7 @@ func (d *InstalledPackagesDataSource) Configure(
 }
 
 func (d *InstalledPackagesDataSource) Read(
-		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data InstalledPackagesDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -216,7 +216,7 @@ func (d *InstalledPackagesDataSource) Read(
 }
 
 func (d *InstalledPackagesDataSource) getInstalledBrewPackages(
-		ctx context.Context, filter string) ([]InstalledPackageInfo, error) {
+	ctx context.Context, filter string) ([]InstalledPackageInfo, error) {
 	brewPath := d.providerData.Config.BrewPath.ValueString()
 	if brewPath == "" {
 		brewPath = "brew"

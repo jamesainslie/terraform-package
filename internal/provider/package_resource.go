@@ -83,13 +83,13 @@ type PackageResourceTimeouts struct {
 
 // Metadata returns the resource type name.
 func (r *PackageResource) Metadata(
-		_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package"
 }
 
 // Schema defines the resource schema.
 func (r *PackageResource) Schema(
-		_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a package installation across different package managers (Homebrew, APT, winget, Chocolatey).",
 
@@ -104,7 +104,7 @@ func (r *PackageResource) Schema(
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Logical package name. " +
 					"This will be resolved to platform-specific names using the package registry.",
-				Required:            true,
+				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -113,53 +113,53 @@ func (r *PackageResource) Schema(
 				MarkdownDescription: "Desired state of the package. " +
 					"Valid values: 'present', 'absent'. " +
 					"Defaults to 'present'.",
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("present"),
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("present"),
 			},
 			"version": schema.StringAttribute{
 				MarkdownDescription: "Desired version of the package. Supports exact versions, semantic version ranges, or glob patterns depending on the package manager. " +
 					"Leave empty for latest version.",
-				Optional:            true,
+				Optional: true,
 			},
 			"version_actual": schema.StringAttribute{
 				MarkdownDescription: "Actual installed version of the package. " +
 					"This is computed and shows the real installed version.",
-				Computed:            true,
+				Computed: true,
 			},
 			"pin": schema.BoolAttribute{
 				MarkdownDescription: "Whether to pin/hold the package at the current version to prevent upgrades. " +
 					"Defaults to false.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
 			},
 			"managers": schema.ListAttribute{
-				ElementType:         types.StringType,
+				ElementType: types.StringType,
 				MarkdownDescription: "Override the package manager selection. " +
 					"Valid values: 'auto', 'brew', 'apt', 'winget', 'choco'. " +
 					"Defaults to ['auto'] which auto-detects based on OS.",
-				Optional:            true,
+				Optional: true,
 			},
 			"aliases": schema.MapAttribute{
-				ElementType:         types.StringType,
+				ElementType: types.StringType,
 				MarkdownDescription: "Platform-specific package name overrides. Keys: 'darwin', 'linux', 'windows'. " +
 					"Values: platform-specific package names.",
-				Optional:            true,
+				Optional: true,
 			},
 			"reinstall_on_drift": schema.BoolAttribute{
 				MarkdownDescription: "If true, reinstall the package when version drift is detected. If false, only update version_actual. " +
 					"Defaults to true.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(true),
 			},
 			"hold_dependencies": schema.BoolAttribute{
 				MarkdownDescription: "Whether to hold/pin package dependencies. " +
 					"Defaults to false.",
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
 			},
 		},
 
@@ -169,23 +169,23 @@ func (r *PackageResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"create": schema.StringAttribute{
 						MarkdownDescription: "Timeout for package installation. " +
-					"Defaults to '15m'.",
-						Optional:            true,
+							"Defaults to '15m'.",
+						Optional: true,
 					},
 					"read": schema.StringAttribute{
 						MarkdownDescription: "Timeout for reading package information. " +
-					"Defaults to '2m'.",
-						Optional:            true,
+							"Defaults to '2m'.",
+						Optional: true,
 					},
 					"update": schema.StringAttribute{
 						MarkdownDescription: "Timeout for package updates. " +
-					"Defaults to '15m'.",
-						Optional:            true,
+							"Defaults to '15m'.",
+						Optional: true,
 					},
 					"delete": schema.StringAttribute{
 						MarkdownDescription: "Timeout for package removal. " +
-					"Defaults to '10m'.",
-						Optional:            true,
+							"Defaults to '10m'.",
+						Optional: true,
 					},
 				},
 			},
@@ -195,7 +195,7 @@ func (r *PackageResource) Schema(
 
 // Configure configures the resource with provider data.
 func (r *PackageResource) Configure(
-		_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -216,7 +216,7 @@ func (r *PackageResource) Configure(
 
 // Create creates a new resource.
 func (r *PackageResource) Create(
-		ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data PackageResourceModel
 
 	// Read Terraform plan data into the model
@@ -291,7 +291,7 @@ func (r *PackageResource) Create(
 }
 
 func (r *PackageResource) Read(
-		ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data PackageResourceModel
 
 	// Read Terraform prior state data into the model
@@ -333,7 +333,7 @@ func (r *PackageResource) Read(
 
 // Update updates an existing resource.
 func (r *PackageResource) Update(
-		ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data PackageResourceModel
 
 	// Read Terraform plan data into the model
@@ -405,7 +405,7 @@ func (r *PackageResource) Update(
 
 // Delete removes a resource.
 func (r *PackageResource) Delete(
-		ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data PackageResourceModel
 
 	// Read Terraform prior state data into the model
@@ -454,7 +454,7 @@ func (r *PackageResource) Delete(
 
 // ImportState imports an existing resource.
 func (r *PackageResource) ImportState(
-		ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Import format: "manager:package_name" or just "package_name" (auto-detect manager)
 	parts := strings.SplitN(req.ID, ":", 2)
 
@@ -485,7 +485,7 @@ func (r *PackageResource) ImportState(
 // Helper methods
 
 func (r *PackageResource) resolvePackageManager(
-		ctx context.Context, data PackageResourceModel) (adapters.PackageManager, string, error) {
+	ctx context.Context, data PackageResourceModel) (adapters.PackageManager, string, error) {
 	// Determine which manager to use
 	managerName := "auto"
 	if !data.Managers.IsNull() && len(data.Managers.Elements()) > 0 {

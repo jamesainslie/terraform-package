@@ -73,14 +73,14 @@ type SecurityAdvisory struct {
 // Metadata returns the data source type name.
 // Metadata returns the data source type name.
 func (d *SecurityInfoDataSource) Metadata(
-		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_security_info"
 }
 
 // Schema defines the data source schema.
 // Schema defines the data source schema.
 func (d *SecurityInfoDataSource) Schema(
-		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves security information and advisories for a package.",
 
@@ -97,7 +97,7 @@ func (d *SecurityInfoDataSource) Schema(
 				MarkdownDescription: "Package manager to query. " +
 					"Valid values: 'auto', 'brew'. " +
 					"Defaults to 'auto'.",
-				Optional:            true,
+				Optional: true,
 			},
 			"has_advisories": schema.BoolAttribute{
 				MarkdownDescription: "Whether the package has any known security advisories.",
@@ -146,7 +146,7 @@ func (d *SecurityInfoDataSource) Schema(
 // Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *SecurityInfoDataSource) Configure(
-		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -166,7 +166,7 @@ func (d *SecurityInfoDataSource) Configure(
 }
 
 func (d *SecurityInfoDataSource) Read(
-		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data SecurityInfoDataSourceModel
 
 	// Read Terraform configuration data into the model

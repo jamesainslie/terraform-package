@@ -62,14 +62,14 @@ type PackageInfoDataSourceModel struct {
 // Metadata returns the data source type name.
 // Metadata returns the data source type name.
 func (d *PackageInfoDataSource) Metadata(
-		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package_info"
 }
 
 // Schema defines the data source schema.
 // Schema defines the data source schema.
 func (d *PackageInfoDataSource) Schema(
-		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves information about a package from the package manager.",
 
@@ -86,7 +86,7 @@ func (d *PackageInfoDataSource) Schema(
 				MarkdownDescription: "Package manager to query. " +
 					"Valid values: 'auto', 'brew'. " +
 					"Defaults to 'auto' which auto-detects based on OS.",
-				Optional:            true,
+				Optional: true,
 			},
 			"installed": schema.BoolAttribute{
 				MarkdownDescription: "Whether the package is currently installed.",
@@ -95,7 +95,7 @@ func (d *PackageInfoDataSource) Schema(
 			"version": schema.StringAttribute{
 				MarkdownDescription: "Currently installed version of the package. " +
 					"Empty if not installed.",
-				Computed:            true,
+				Computed: true,
 			},
 			"available_versions": schema.ListAttribute{
 				ElementType:         types.StringType,
@@ -117,7 +117,7 @@ func (d *PackageInfoDataSource) Schema(
 // Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *PackageInfoDataSource) Configure(
-		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -137,7 +137,7 @@ func (d *PackageInfoDataSource) Configure(
 }
 
 func (d *PackageInfoDataSource) Read(
-		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data PackageInfoDataSourceModel
 
 	// Read Terraform configuration data into the model

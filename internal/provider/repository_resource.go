@@ -40,7 +40,7 @@ import (
 )
 
 const (
-	managerBrew   = "brew"
+	managerBrew    = "brew"
 	platformDarwin = "darwin"
 )
 
@@ -70,13 +70,13 @@ type RepositoryResourceModel struct {
 
 // Metadata returns the resource type name.
 func (r *RepositoryResource) Metadata(
-		_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repo"
 }
 
 // Schema defines the resource schema.
 func (r *RepositoryResource) Schema(
-		_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages package repositories (Homebrew taps, APT repositories, etc.).",
 
@@ -92,7 +92,7 @@ func (r *RepositoryResource) Schema(
 				MarkdownDescription: "Package manager for this repository. " +
 					"Valid values: 'brew', 'apt', 'winget', 'choco'. " +
 					"Currently only 'brew' is supported.",
-				Required:            true,
+				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -107,7 +107,7 @@ func (r *RepositoryResource) Schema(
 			"uri": schema.StringAttribute{
 				MarkdownDescription: "Repository URI. For Homebrew taps, this is the tap name (e.g., 'homebrew/cask-fonts'). " +
 					"For APT, this is the repository line.",
-				Required:            true,
+				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -115,7 +115,7 @@ func (r *RepositoryResource) Schema(
 			"gpg_key": schema.StringAttribute{
 				MarkdownDescription: "GPG key URL or content for repository verification. " +
 					"Not used for Homebrew taps.",
-				Optional:            true,
+				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -123,7 +123,7 @@ func (r *RepositoryResource) Schema(
 			"enabled": schema.BoolAttribute{
 				MarkdownDescription: "Whether the repository is enabled. " +
 					"This is computed for most package managers.",
-				Computed:            true,
+				Computed: true,
 			},
 		},
 	}
@@ -131,7 +131,7 @@ func (r *RepositoryResource) Schema(
 
 // Configure configures the resource with provider data.
 func (r *RepositoryResource) Configure(
-		_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -152,7 +152,7 @@ func (r *RepositoryResource) Configure(
 
 // Create creates a new resource.
 func (r *RepositoryResource) Create(
-		ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data RepositoryResourceModel
 
 	// Read Terraform plan data into the model
@@ -190,7 +190,7 @@ func (r *RepositoryResource) Create(
 }
 
 func (r *RepositoryResource) Read(
-		ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data RepositoryResourceModel
 
 	// Read Terraform prior state data into the model
@@ -242,7 +242,7 @@ func (r *RepositoryResource) Read(
 
 // Update updates an existing resource.
 func (r *RepositoryResource) Update(
-		_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
+	_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
 	// For most package managers, repositories are immutable
 	// Any changes require replacement (handled by plan modifiers)
 	resp.Diagnostics.AddError(
@@ -253,7 +253,7 @@ func (r *RepositoryResource) Update(
 
 // Delete removes a resource.
 func (r *RepositoryResource) Delete(
-		ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data RepositoryResourceModel
 
 	// Read Terraform prior state data into the model
@@ -282,7 +282,7 @@ func (r *RepositoryResource) Delete(
 
 // ImportState imports an existing resource.
 func (r *RepositoryResource) ImportState(
-		ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Import format: "manager:repository_name"
 	parts := strings.SplitN(req.ID, ":", 2)
 

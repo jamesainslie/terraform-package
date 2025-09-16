@@ -74,14 +74,14 @@ type ProviderData struct {
 
 // Metadata returns the provider metadata.
 func (p *PackageProvider) Metadata(
-		_ context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+	_ context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "pkg"
 	resp.Version = p.version
 }
 
 // Schema returns the provider schema.
 func (p *PackageProvider) Schema(
-		_ context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+	_ context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "The pkg provider enables cross-platform package management using Homebrew, APT, winget, and Chocolatey.",
 		Attributes: map[string]schema.Attribute{
@@ -89,48 +89,48 @@ func (p *PackageProvider) Schema(
 				MarkdownDescription: "Default package manager to use. " +
 					"Valid values: auto, brew, apt, winget, choco. " +
 					"Defaults to 'auto' which auto-detects based on OS.",
-				Optional:            true,
+				Optional: true,
 			},
 			"assume_yes": schema.BoolAttribute{
 				MarkdownDescription: "Run package operations non-interactively, assuming 'yes' to all prompts. " +
 					"Defaults to true.",
-				Optional:            true,
+				Optional: true,
 			},
 			"sudo_enabled": schema.BoolAttribute{
 				MarkdownDescription: "Enable sudo usage for operations that require elevated privileges on Unix systems. " +
 					"Defaults to true.",
-				Optional:            true,
+				Optional: true,
 			},
 			"brew_path": schema.StringAttribute{
 				MarkdownDescription: "Path to the Homebrew binary. " +
 					"If not specified, will use default system path.",
-				Optional:            true,
+				Optional: true,
 			},
 			"apt_get_path": schema.StringAttribute{
 				MarkdownDescription: "Path to the apt-get binary. " +
 					"If not specified, will use default system path.",
-				Optional:            true,
+				Optional: true,
 			},
 			"winget_path": schema.StringAttribute{
 				MarkdownDescription: "Path to the winget binary. " +
 					"If not specified, will use default system path.",
-				Optional:            true,
+				Optional: true,
 			},
 			"choco_path": schema.StringAttribute{
 				MarkdownDescription: "Path to the Chocolatey binary. " +
 					"If not specified, will use default system path.",
-				Optional:            true,
+				Optional: true,
 			},
 			"update_cache": schema.StringAttribute{
 				MarkdownDescription: "When to update package manager cache. " +
 					"Valid values: never, on_change, always. " +
 					"Defaults to 'on_change'.",
-				Optional:            true,
+				Optional: true,
 			},
 			"lock_timeout": schema.StringAttribute{
 				MarkdownDescription: "Timeout for waiting on package manager locks (e.g., apt/dpkg). " +
 					"Defaults to '10m'.",
-				Optional:            true,
+				Optional: true,
 			},
 		},
 	}
@@ -138,7 +138,7 @@ func (p *PackageProvider) Schema(
 
 // Configure configures the provider with user settings.
 func (p *PackageProvider) Configure(
-		ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data PackageProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

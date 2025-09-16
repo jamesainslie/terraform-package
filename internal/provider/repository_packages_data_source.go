@@ -68,14 +68,14 @@ type RepositoryPackageInfo struct {
 // Metadata returns the data source type name.
 // Metadata returns the data source type name.
 func (d *RepositoryPackagesDataSource) Metadata(
-		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_repository_packages"
 }
 
 // Schema defines the data source schema.
 // Schema defines the data source schema.
 func (d *RepositoryPackagesDataSource) Schema(
-		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Lists packages available from a specific repository or tap.",
 
@@ -88,7 +88,7 @@ func (d *RepositoryPackagesDataSource) Schema(
 				MarkdownDescription: "Package manager to query. " +
 					"Valid values: 'auto', 'brew'. " +
 					"Defaults to 'auto'.",
-				Optional:            true,
+				Optional: true,
 			},
 			"repository": schema.StringAttribute{
 				MarkdownDescription: "Repository or tap name to list packages from (e.g., 'homebrew/cask-fonts').",
@@ -97,7 +97,7 @@ func (d *RepositoryPackagesDataSource) Schema(
 			"limit": schema.Int64Attribute{
 				MarkdownDescription: "Maximum number of packages to return. " +
 					"Defaults to 100.",
-				Optional:            true,
+				Optional: true,
 			},
 			"packages": schema.ListNestedAttribute{
 				MarkdownDescription: "List of packages available from the repository.",
@@ -126,7 +126,7 @@ func (d *RepositoryPackagesDataSource) Schema(
 // Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *RepositoryPackagesDataSource) Configure(
-		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -146,7 +146,7 @@ func (d *RepositoryPackagesDataSource) Configure(
 }
 
 func (d *RepositoryPackagesDataSource) Read(
-		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data RepositoryPackagesDataSourceModel
 
 	// Read Terraform configuration data into the model

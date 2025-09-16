@@ -65,14 +65,14 @@ type PackageSearchResult struct {
 // Metadata returns the data source type name.
 // Metadata returns the data source type name.
 func (d *PackageSearchDataSource) Metadata(
-		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_package_search"
 }
 
 // Schema defines the data source schema.
 // Schema defines the data source schema.
 func (d *PackageSearchDataSource) Schema(
-		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Searches for packages in the package manager catalog.",
 
@@ -89,7 +89,7 @@ func (d *PackageSearchDataSource) Schema(
 				MarkdownDescription: "Package manager to search. " +
 					"Valid values: 'auto', 'brew'. " +
 					"Defaults to 'auto' which auto-detects based on OS.",
-				Optional:            true,
+				Optional: true,
 			},
 			"results": schema.ListNestedAttribute{
 				MarkdownDescription: "List of packages matching the search query.",
@@ -114,7 +114,7 @@ func (d *PackageSearchDataSource) Schema(
 // Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *PackageSearchDataSource) Configure(
-		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -134,7 +134,7 @@ func (d *PackageSearchDataSource) Configure(
 }
 
 func (d *PackageSearchDataSource) Read(
-		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data PackageSearchDataSourceModel
 
 	// Read Terraform configuration data into the model

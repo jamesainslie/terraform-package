@@ -64,14 +64,14 @@ type ManagerInfoDataSourceModel struct {
 // Metadata returns the data source type name.
 // Metadata returns the data source type name.
 func (d *ManagerInfoDataSource) Metadata(
-		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_manager_info"
 }
 
 // Schema defines the data source schema.
 // Schema defines the data source schema.
 func (d *ManagerInfoDataSource) Schema(
-		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves information about package manager availability and configuration.",
 
@@ -84,7 +84,7 @@ func (d *ManagerInfoDataSource) Schema(
 				MarkdownDescription: "Package manager to query. " +
 					"Valid values: 'auto', 'brew'. " +
 					"Defaults to 'auto'.",
-				Optional:            true,
+				Optional: true,
 			},
 			"detected_manager": schema.StringAttribute{
 				MarkdownDescription: "The actual package manager that was detected or specified.",
@@ -97,12 +97,12 @@ func (d *ManagerInfoDataSource) Schema(
 			"version": schema.StringAttribute{
 				MarkdownDescription: "Version of the package manager. " +
 					"Empty if not available.",
-				Computed:            true,
+				Computed: true,
 			},
 			"path": schema.StringAttribute{
 				MarkdownDescription: "Path to the package manager binary. " +
 					"Empty if not available.",
-				Computed:            true,
+				Computed: true,
 			},
 			"platform": schema.StringAttribute{
 				MarkdownDescription: "Current operating system platform.",
@@ -115,7 +115,7 @@ func (d *ManagerInfoDataSource) Schema(
 // Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *ManagerInfoDataSource) Configure(
-		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -135,7 +135,7 @@ func (d *ManagerInfoDataSource) Configure(
 }
 
 func (d *ManagerInfoDataSource) Read(
-		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data ManagerInfoDataSourceModel
 
 	// Read Terraform configuration data into the model
@@ -195,7 +195,7 @@ func (d *ManagerInfoDataSource) Read(
 }
 
 func (d *ManagerInfoDataSource) getBrewInfo(
-		ctx context.Context, data *ManagerInfoDataSourceModel, _ *datasource.ReadResponse) {
+	ctx context.Context, data *ManagerInfoDataSourceModel, _ *datasource.ReadResponse) {
 	brewPath := d.providerData.Config.BrewPath.ValueString()
 	manager := brew.NewBrewAdapter(d.providerData.Executor, brewPath)
 

@@ -67,14 +67,14 @@ type OutdatedPackageInfo struct {
 // Metadata returns the data source type name.
 // Metadata returns the data source type name.
 func (d *OutdatedPackagesDataSource) Metadata(
-		_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_outdated_packages"
 }
 
 // Schema defines the data source schema.
 // Schema defines the data source schema.
 func (d *OutdatedPackagesDataSource) Schema(
-		_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Lists packages that have available updates.",
 
@@ -87,7 +87,7 @@ func (d *OutdatedPackagesDataSource) Schema(
 				MarkdownDescription: "Package manager to query. " +
 					"Valid values: 'auto', 'brew'. " +
 					"Defaults to 'auto'.",
-				Optional:            true,
+				Optional: true,
 			},
 			"packages": schema.ListNestedAttribute{
 				MarkdownDescription: "List of packages with available updates.",
@@ -120,7 +120,7 @@ func (d *OutdatedPackagesDataSource) Schema(
 // Configure configures the data source with provider data.
 // Configure configures the data source with provider data.
 func (d *OutdatedPackagesDataSource) Configure(
-		_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+	_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
@@ -140,7 +140,7 @@ func (d *OutdatedPackagesDataSource) Configure(
 }
 
 func (d *OutdatedPackagesDataSource) Read(
-		ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data OutdatedPackagesDataSourceModel
 
 	// Read Terraform configuration data into the model
