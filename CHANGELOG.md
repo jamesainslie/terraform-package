@@ -45,41 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 📚 Documentation
 
-<<<<<<< HEAD
 - Initial project documentation and setup
-=======
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
-- Update CHANGELOG.md
->>>>>>> 3e1483ad7716263976bb3efe71dd92e59e8e8e33
+- Automated changelog updates
 
 ### ⚙️ Miscellaneous Tasks
 
