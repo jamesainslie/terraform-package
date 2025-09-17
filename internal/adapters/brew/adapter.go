@@ -139,9 +139,10 @@ func (b *BrewAdapter) DetectInstalled(ctx context.Context, name string) (*adapte
 func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bool) (*adapters.PackageInfo, error) {
 	args := []string{"info"}
 	if isCask {
-		args = append(args, "--cask")
+		args = append(args, "--json=v2", "--cask", name)
+	} else {
+		args = append(args, "--json", name)
 	}
-	args = append(args, "--json", name)
 
 	result, err := b.executor.Run(ctx, b.brewPath, args, executor.ExecOpts{
 		Timeout: 30 * time.Second,
@@ -151,16 +152,52 @@ func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bo
 		return nil, fmt.Errorf("failed to get package info for %s: %w", name, err)
 	}
 
-	var infos []brewInfo
-	if err := json.Unmarshal([]byte(result.Stdout), &infos); err != nil {
-		return nil, fmt.Errorf("failed to parse brew info JSON: %w", err)
-	}
+	var info brewInfo
+	
+	if isCask {
+		// Parse v2 JSON format for casks
+		var v2Response struct {
+			Casks []map[string]interface{} `json:"casks"`
+		}
+		if err := json.Unmarshal([]byte(result.Stdout), &v2Response); err != nil {
+			return nil, fmt.Errorf("failed to parse brew info v2 JSON: %w", err)
+		}
+		
+		if len(v2Response.Casks) == 0 {
+			return nil, fmt.Errorf("no cask info found for %s", name)
+		}
+		
+		cask := v2Response.Casks[0]
+		info = brewInfo{
+			Name:     getStringValue(cask, "token"),
+			FullName: getStringValue(cask, "full_token"),
+			Tap:      getStringValue(cask, "tap"),
+			Desc:     getStringValue(cask, "desc"),
+			Homepage: getStringValue(cask, "homepage"),
+		}
+		
+		// Handle version for casks
+		if version, ok := cask["version"].(string); ok {
+			info.Versions = versions{Stable: version}
+		}
+		
+		// Handle installed status for casks
+		if installed := cask["installed"]; installed != nil {
+			info.Installed = []installedVersion{{Version: info.Versions.Stable}}
+		}
+	} else {
+		// Parse v1 JSON format for formulae
+		var infos []brewInfo
+		if err := json.Unmarshal([]byte(result.Stdout), &infos); err != nil {
+			return nil, fmt.Errorf("failed to parse brew info JSON: %w", err)
+		}
 
-	if len(infos) == 0 {
-		return nil, fmt.Errorf("no package info found for %s", name)
-	}
+		if len(infos) == 0 {
+			return nil, fmt.Errorf("no package info found for %s", name)
+		}
 
-	info := infos[0]
+		info = infos[0]
+	}
 
 	packageInfo := &adapters.PackageInfo{
 		Name:      info.Name,
@@ -373,8 +410,8 @@ func (b *BrewAdapter) Info(ctx context.Context, name string) (*adapters.PackageI
 
 // isCask determines if a package is a cask or formula.
 func (b *BrewAdapter) isCask(ctx context.Context, name string) (bool, error) {
-	// Try to get info as cask first
-	result, err := b.executor.Run(ctx, b.brewPath, []string{"info", "--json", "--cask", name}, executor.ExecOpts{
+	// Try to get info as cask first - use correct syntax with --json=v2 --cask
+	result, err := b.executor.Run(ctx, b.brewPath, []string{"info", "--json=v2", "--cask", name}, executor.ExecOpts{
 		Timeout: 30 * time.Second,
 	})
 
@@ -393,4 +430,12 @@ func (b *BrewAdapter) isCask(ctx context.Context, name string) (bool, error) {
 	}
 
 	return false, fmt.Errorf("package %s not found", name)
+}
+
+// getStringValue safely extracts a string value from a map[string]interface{}
+func getStringValue(m map[string]interface{}, key string) string {
+	if val, ok := m[key].(string); ok {
+		return val
+	}
+	return ""
 }
