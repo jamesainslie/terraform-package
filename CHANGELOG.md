@@ -37,9 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ULTIMATE ROBUST SOLUTION - no config file, pure defaults
 - Use working versions and correct gosec installation
 - Update goreleaser configuration to remove deprecated format settings
+- Resolve CI issues for Go 1.23.7 compatibility
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
