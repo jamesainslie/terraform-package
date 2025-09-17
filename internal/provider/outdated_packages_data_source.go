@@ -217,7 +217,7 @@ func (d *OutdatedPackagesDataSource) getOutdatedBrewPackages(ctx context.Context
 
 	// Get list of outdated packages
 	result, err := d.providerData.Executor.Run(ctx, brewPath, []string{"outdated", "--verbose"}, executor.ExecOpts{
-		Timeout: 120,
+		Timeout: 5 * time.Minute,
 	})
 
 	if err != nil || result.ExitCode != 0 {

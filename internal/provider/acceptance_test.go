@@ -147,7 +147,7 @@ func TestAccPackageSearchDataSource(t *testing.T) {
 			{
 				Config: testAccPackageSearchDataSourceConfig(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.pkg_package_search.test", "query", "hello"),
+					resource.TestCheckResourceAttr("data.pkg_package_search.test", "query", "jq"),
 					resource.TestCheckResourceAttr("data.pkg_package_search.test", "manager", "brew"),
 					resource.TestCheckResourceAttrSet("data.pkg_package_search.test", "results.#"),
 				),

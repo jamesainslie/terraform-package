@@ -243,7 +243,7 @@ func (d *DependenciesDataSource) getBrewDependencies(ctx context.Context, packag
 
 	// Get detailed package information with dependencies
 	result, err := d.providerData.Executor.Run(ctx, brewPath, []string{"info", "--json", packageName}, executor.ExecOpts{
-		Timeout: 30,
+		Timeout: 2 * time.Minute,
 	})
 
 	if err != nil || result.ExitCode != 0 {

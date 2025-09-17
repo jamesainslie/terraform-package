@@ -229,7 +229,7 @@ func (d *InstalledPackagesDataSource) getInstalledBrewPackages(
 	}
 
 	result, err := d.providerData.Executor.Run(ctx, brewPath, args, executor.ExecOpts{
-		Timeout: 60,
+		Timeout: 5 * time.Minute,
 	})
 
 	if err != nil || result.ExitCode != 0 {
