@@ -39,9 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update goreleaser configuration to remove deprecated format settings
 - Resolve CI issues for Go 1.23.7 compatibility
 - Correct gosec repository URL and add GOPROXY for documentation generation
+- Add nosec comment for expected G204 finding in executor
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
