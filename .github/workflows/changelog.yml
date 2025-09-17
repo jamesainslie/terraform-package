@@ -2,21 +2,22 @@
 name: Changelog
 
 on:
-  push:
-    branches: [main]
   release:
     types: [published]
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  # Update changelog on main branch pushes
+  # Update changelog on version tags
   update-changelog:
     name: Update Changelog
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     timeout-minutes: 10
     steps:
       - name: Checkout
