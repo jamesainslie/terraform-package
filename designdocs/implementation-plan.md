@@ -293,7 +293,7 @@ Each phase must meet the following criteria before proceeding:
 
 ### External Dependencies
 - Terraform Plugin Framework v1.x
-- Go 1.21+ development environment
+- Go 1.25.1+ development environment
 - GTS Go client library
 - Access to test environments for all target platforms
 

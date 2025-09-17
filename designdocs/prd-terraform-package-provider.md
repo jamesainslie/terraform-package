@@ -98,7 +98,7 @@ Create a unified, declarative interface for package management that enables infr
 #### NFR4: Compatibility
 - **NFR4.1**: Support for Terraform 1.0+ with Plugin Framework v1.x
 - **NFR4.2**: Backward compatibility within major versions
-- **NFR4.3**: Support for Go 1.21+ for development
+- **NFR4.3**: Support for Go 1.25.1+ for development
 
 #### NFR5: Security
 - **NFR5.1**: No sensitive data logging or exposure

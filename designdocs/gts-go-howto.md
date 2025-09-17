@@ -11,7 +11,7 @@ It focuses on the Go client in this repo: `github.com/geico-private/gts/clients/
 ---
 
 ### Prerequisites
-- Go 1.21+ recommended (uses `log/slog`)
+- Go 1.25.1+ recommended (uses `log/slog`)
 - Access to an OTLP (OpenTelemetry) collector at `host:4317` (e.g., Local Titan Sandbox or otel-tui)
 
 Add the dependency:

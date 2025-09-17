@@ -31,7 +31,7 @@ This project adheres to a code of conduct. By participating, you are expected to
 
 ### Prerequisites
 
-- **Go 1.21+** (we use Go 1.23.7)
+- **Go 1.25.1+**
 - **Terraform 1.5+** for testing
 - **Platform-specific package managers**:
   - macOS: Homebrew (`brew`)

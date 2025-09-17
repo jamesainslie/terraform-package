@@ -28,6 +28,7 @@
 // operation, you will see expected stderr messages like:
 //   - "Error: Cask 'jq' is unavailable: No Cask with this name exists."
 //   - "Error: No available formula with the name 'firefox'"
+//
 // These messages are NORMAL and indicate the detection logic is working correctly.
 // The adapter tries both types and uses whichever succeeds.
 package brew

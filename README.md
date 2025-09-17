@@ -169,7 +169,7 @@ See the [`examples/`](./examples/) directory for complete usage examples:
 
 ### Prerequisites
 
-- Go 1.21+
+- Go 1.25.1+
 - Terraform 1.5+
 - Platform-specific package managers (brew, apt, winget, choco)
 
