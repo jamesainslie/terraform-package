@@ -1,0 +1,83 @@
+version: 2
+project_name: orc
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: orc
+    main: ./cmd/orc
+    binary: orc
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/jamesainslie/orc/internal/version.Version={{.Version}}
+      - -X github.com/jamesainslie/orc/internal/version.Commit={{.Commit}}
+      - -X github.com/jamesainslie/orc/internal/version.Date={{.Date}}
+      - -X github.com/jamesainslie/orc/internal/version.BuiltBy=goreleaser
+      - -X github.com/jamesainslie/orc/internal/version.BuildTime={{.Date}}
+
+archives:
+  - id: orc-archive
+    name_template: >-
+      {{ .ProjectName }}_
+      {{ .Version }}_
+      {{ .Os }}_
+      {{ if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}
+    builds:
+      - orc
+    files:
+      - README.md
+      - LICENSE*
+      - CHANGELOG.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+  groups:
+    - title: 'New Features'
+      regexp: '^.*feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^.*fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: 'Performance Improvements'
+      regexp: '^.*perf(\(.+\))??!?:.+$'
+      order: 2
+    - title: 'Documentation Updates'
+      regexp: '^.*docs(\(.+\))??!?:.+$'
+      order: 3
+    - title: 'Other Changes'
+      order: 999
+
+sboms:
+  - artifacts: archive
+
+# Artifactory configuration for publishing releases (matching basset)
+artifactories:
+  - name: production
+    target: "{{ .Env.ARTIFACTORY_URL }}{{ .Env.ARTIFACTORY_REPO }}/orc/binaries/{{ .Version }}"
+    custom_headers:
+      Authorization: "Bearer {{ .Env.ARTIFACTORY_TOKEN }}"

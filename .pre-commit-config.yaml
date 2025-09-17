@@ -1,0 +1,76 @@
+# Pre-commit configuration for GIO
+# See https://pre-commit.com for more information
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Go-specific hooks
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      # Format Go code
+      - id: go-fmt
+      - id: go-imports
+      - id: go-mod-tidy
+
+      # Security and quality checks
+      - id: go-unit-tests
+      - id: go-build
+
+  # Local Go vet hook
+  - repo: local
+    hooks:
+      - id: go-vet
+        name: go-vet
+        entry: go vet
+        language: system
+        files: \.go$
+        args: ['./...']
+        pass_filenames: false
+
+  # Additional Go linting with golangci-lint (local)
+  - repo: local
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint
+        entry: golangci-lint run --fix
+        language: system
+        files: \.go$
+        pass_filenames: false
+
+  # Local shell script linting
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        files: \.sh$
+        args: [-e, SC1091, -e, SC2034]
+
+# Configuration for specific tools
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
