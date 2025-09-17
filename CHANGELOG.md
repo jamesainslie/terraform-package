@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add nosec comment for expected G204 finding in executor
 - Resolve remaining CI issues for full pipeline success
 - Improve acceptance test reliability for macOS Homebrew tests
+- Resolve acceptance test failures and timeout issues
+- Add missing time imports for timeout duration constants
 
 ### 📚 Documentation
 
