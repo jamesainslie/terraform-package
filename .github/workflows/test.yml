@@ -119,7 +119,8 @@ jobs:
           
       - name: Generate documentation
         env:
-          GOPROXY: direct
+          GOPROXY: https://proxy.golang.org,direct
+          GOSUMDB: sum.golang.org
         run: make generate
         
       - name: Check for differences

@@ -24,6 +24,7 @@ package executor
 
 import (
 	"context"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -77,7 +78,18 @@ func TestSystemExecutor_RunWithWorkDir(t *testing.T) {
 	// Create a temporary directory for testing
 	tmpDir := t.TempDir()
 
-	result, err := executor.Run(ctx, "pwd", []string{}, ExecOpts{
+	// Use platform-appropriate command to get current directory
+	var cmd string
+	var args []string
+	if runtime.GOOS == "windows" {
+		cmd = "cmd"
+		args = []string{"/C", "cd"}
+	} else {
+		cmd = "pwd"
+		args = []string{}
+	}
+
+	result, err := executor.Run(ctx, cmd, args, ExecOpts{
 		WorkDir: tmpDir,
 		Timeout: 5 * time.Second,
 	})
@@ -90,9 +102,23 @@ func TestSystemExecutor_RunWithWorkDir(t *testing.T) {
 		t.Errorf("Expected exit code 0, got %d", result.ExitCode)
 	}
 
-	// Output should contain the temp directory path
-	if !strings.Contains(result.Stdout, tmpDir) {
-		t.Errorf("Expected stdout to contain %s, got %s", tmpDir, result.Stdout)
+	// Clean up the output and normalize paths for comparison
+	actualPath := strings.TrimSpace(result.Stdout)
+
+	// Convert paths to absolute and clean them for comparison
+	expectedPath, err := filepath.Abs(tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to get absolute path: %v", err)
+	}
+
+	actualPath, err = filepath.Abs(actualPath)
+	if err != nil {
+		t.Fatalf("Failed to get absolute path for actual: %v", err)
+	}
+
+	// Compare cleaned paths
+	if !strings.EqualFold(filepath.Clean(actualPath), filepath.Clean(expectedPath)) {
+		t.Errorf("Expected working directory %s, got %s", expectedPath, actualPath)
 	}
 }
 
