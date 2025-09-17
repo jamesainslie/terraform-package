@@ -47,6 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resolve CHANGELOG.md merge conflict
 - Correct Windows package name assertion in registry lookup test
 - Improve test strictness and brew cask command syntax
+- Resolve brew command syntax issues and optimize test performance
+- Update brew cask commands to use JSON v2 format
+- Handle force untap when packages are installed from tap
+- Disable cache updates in tests to prevent GitHub auth requests
+- Correct GitHub status badge URLs to match actual workflow names
 
 ### 📚 Documentation
 
@@ -86,6 +91,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
+- Update CHANGELOG.md
+- Add comprehensive comments explaining expected Homebrew detection errors
 
 ### ⚙️ Miscellaneous Tasks
 
