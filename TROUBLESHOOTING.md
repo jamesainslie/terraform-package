@@ -47,6 +47,26 @@ Error: Incompatible provider version
 
 ### Package Manager Issues
 
+#### Expected Error Messages (Homebrew)
+
+When using the Homebrew adapter, you may see error messages like these in logs or test output:
+
+```
+Error: Cask 'jq' is unavailable: No Cask with this name exists.
+Error: No available formula with the name 'firefox'
+```
+
+**This is NORMAL behavior** - these are not actual errors! The Homebrew adapter implements dual-type detection because packages can be either:
+- **Formulae**: Command-line tools (like `jq`, `git`, `curl`)  
+- **Casks**: GUI applications (like `firefox`, `chrome`, `vscode`)
+
+The adapter automatically tries both types to determine which one applies:
+1. First tries as a cask → May get "cask unavailable" error for formulae
+2. Then tries as a formula → May get "formula unavailable" error for casks
+3. Uses whichever succeeds
+
+These stderr messages indicate the detection logic is working correctly and should be ignored.
+
 #### Issue: Package manager not available
 ```
 Error: package manager brew is not available on this system

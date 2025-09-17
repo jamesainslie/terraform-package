@@ -37,6 +37,12 @@ func TestAccPackageResource_Hello(t *testing.T) {
 		t.Skip("Skipping Homebrew test on non-macOS platform")
 	}
 
+	// NOTE: During this test, you will see expected stderr messages like:
+	// "Error: Cask 'jq' is unavailable: No Cask with this name exists."
+	// This is NORMAL behavior - the brew adapter tries both cask and formula
+	// detection to determine the correct package type. These error messages
+	// indicate the detection logic is working correctly.
+
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{

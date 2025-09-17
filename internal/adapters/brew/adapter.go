@@ -21,6 +21,15 @@
 // SOFTWARE.
 
 // Package brew implements the Homebrew package manager adapter.
+//
+// IMPORTANT NOTE ABOUT ERROR MESSAGES:
+// This adapter implements Homebrew's dual-type detection logic since packages can be
+// either formulae (command-line tools) or casks (GUI applications). During normal
+// operation, you will see expected stderr messages like:
+//   - "Error: Cask 'jq' is unavailable: No Cask with this name exists."
+//   - "Error: No available formula with the name 'firefox'"
+// These messages are NORMAL and indicate the detection logic is working correctly.
+// The adapter tries both types and uses whichever succeeds.
 package brew
 
 import (
@@ -117,11 +126,16 @@ type dependency struct {
 }
 
 // DetectInstalled checks if a package is installed and returns its information.
+// This method implements Homebrew's dual-type detection logic since packages can be
+// either formulae (command-line tools) or casks (GUI applications).
 func (b *BrewAdapter) DetectInstalled(ctx context.Context, name string) (*adapters.PackageInfo, error) {
 	// First try as formula, then as cask
+	// Note: This will produce expected "stderr" messages when the wrong type is tried
+	// (e.g., "Error: Cask 'jq' is unavailable" when jq is actually a formula)
+	// These messages are normal and indicate the detection logic is working correctly
 	info, err := b.getPackageInfo(ctx, name, false)
 	if err != nil {
-		// Try as cask
+		// Try as cask - this may also produce expected error messages
 		info, err = b.getPackageInfo(ctx, name, true)
 		if err != nil {
 			// Both formula and cask failed, package not found
@@ -409,8 +423,14 @@ func (b *BrewAdapter) Info(ctx context.Context, name string) (*adapters.PackageI
 }
 
 // isCask determines if a package is a cask or formula.
+// This method tries both package types to determine the correct one.
+// IMPORTANT: This function will generate expected stderr messages during normal operation:
+// - "Error: Cask 'package' is unavailable" when testing if a formula is a cask
+// - "Error: No available formula" when testing if a cask is a formula
+// These error messages are NORMAL and indicate the detection process is working correctly.
 func (b *BrewAdapter) isCask(ctx context.Context, name string) (bool, error) {
 	// Try to get info as cask first - use correct syntax with --json=v2 --cask
+	// NOTE: This will produce stderr like "Error: Cask 'jq' is unavailable" for formulae - this is expected!
 	result, err := b.executor.Run(ctx, b.brewPath, []string{"info", "--json=v2", "--cask", name}, executor.ExecOpts{
 		Timeout: 30 * time.Second,
 	})
@@ -420,7 +440,7 @@ func (b *BrewAdapter) isCask(ctx context.Context, name string) (bool, error) {
 		return true, nil
 	}
 
-	// Try as formula
+	// Try as formula - this may also produce expected error messages for casks
 	result, err = b.executor.Run(ctx, b.brewPath, []string{"info", "--json", name}, executor.ExecOpts{
 		Timeout: 30 * time.Second,
 	})
