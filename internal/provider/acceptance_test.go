@@ -308,6 +308,7 @@ func testAccPackageResourceConfig(name, state string) string {
 provider "pkg" {
   default_manager = "brew"
   assume_yes      = true
+  update_cache    = "never"
 }
 
 resource "pkg_package" "test" {
@@ -322,6 +323,7 @@ func testAccPackageResourceConfigWithPin(name, state string, pin bool) string {
 provider "pkg" {
   default_manager = "brew"
   assume_yes      = true
+  update_cache    = "never"
 }
 
 resource "pkg_package" "test" {
@@ -336,6 +338,7 @@ func testAccManagerInfoDataSourceConfig() string {
 	return `
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 data "pkg_manager_info" "test" {
@@ -348,6 +351,7 @@ func testAccRegistryLookupDataSourceConfig() string {
 	return `
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 data "pkg_registry_lookup" "test" {
@@ -360,6 +364,7 @@ func testAccPackageInfoDataSourceConfig() string {
 	return `
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 data "pkg_package_info" "test" {
@@ -373,6 +378,7 @@ func testAccPackageSearchDataSourceConfig() string {
 	return `
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 data "pkg_package_search" "test" {
@@ -386,6 +392,7 @@ func testAccInstalledPackagesDataSourceConfig() string {
 	return `
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 data "pkg_installed_packages" "test" {
@@ -399,6 +406,7 @@ func testAccOutdatedPackagesDataSourceConfig() string {
 	return `
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 data "pkg_outdated_packages" "test" {
@@ -411,6 +419,7 @@ func testAccVersionHistoryDataSourceConfig() string {
 	return `
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 data "pkg_version_history" "test" {
@@ -424,6 +433,7 @@ func testAccDependenciesDataSourceConfig() string {
 	return `
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 data "pkg_dependencies" "test" {
@@ -438,6 +448,7 @@ func testAccRepositoryResourceConfig(tapName string) string {
 	return fmt.Sprintf(`
 provider "pkg" {
   default_manager = "brew"
+  update_cache    = "never"
 }
 
 resource "pkg_repo" "test" {

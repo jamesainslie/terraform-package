@@ -94,7 +94,7 @@ func (b *BrewRepositoryManager) RemoveRepository(ctx context.Context, name strin
 				Timeout: 60 * time.Second,
 			})
 		}
-		
+
 		if err != nil || result.ExitCode != 0 {
 			return fmt.Errorf("failed to remove tap %s: exit code %d, error: %w, stderr: %s",
 				name, result.ExitCode, err, result.Stderr)
