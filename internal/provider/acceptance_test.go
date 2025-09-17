@@ -42,9 +42,9 @@ func TestAccPackageResource_Hello(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccPackageResourceConfig("hello", "present"),
+				Config: testAccPackageResourceConfig("jq", "present"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("pkg_package.test", "name", "hello"),
+					resource.TestCheckResourceAttr("pkg_package.test", "name", "jq"),
 					resource.TestCheckResourceAttr("pkg_package.test", "state", "present"),
 					resource.TestCheckResourceAttrSet("pkg_package.test", "id"),
 					resource.TestCheckResourceAttrSet("pkg_package.test", "version_actual"),
@@ -52,18 +52,18 @@ func TestAccPackageResource_Hello(t *testing.T) {
 			},
 			// Update testing (change pin status)
 			{
-				Config: testAccPackageResourceConfigWithPin("hello", "present", true),
+				Config: testAccPackageResourceConfigWithPin("jq", "present", true),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("pkg_package.test", "name", "hello"),
+					resource.TestCheckResourceAttr("pkg_package.test", "name", "jq"),
 					resource.TestCheckResourceAttr("pkg_package.test", "state", "present"),
 					resource.TestCheckResourceAttr("pkg_package.test", "pin", "true"),
 				),
 			},
 			// Delete testing
 			{
-				Config: testAccPackageResourceConfig("hello", "absent"),
+				Config: testAccPackageResourceConfig("jq", "absent"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("pkg_package.test", "name", "hello"),
+					resource.TestCheckResourceAttr("pkg_package.test", "name", "jq"),
 					resource.TestCheckResourceAttr("pkg_package.test", "state", "absent"),
 				),
 			},
@@ -101,11 +101,11 @@ func TestAccRegistryLookupDataSource(t *testing.T) {
 			{
 				Config: testAccRegistryLookupDataSourceConfig(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "logical_name", "hello"),
+					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "logical_name", "jq"),
 					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "found", "true"),
-					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "darwin", "hello"),
-					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "linux", "hello"),
-					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "windows", "hello"),
+					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "darwin", "jq"),
+					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "linux", "jq"),
+					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "windows", "jq"),
 				),
 			},
 		},
@@ -124,7 +124,7 @@ func TestAccPackageInfoDataSource(t *testing.T) {
 			{
 				Config: testAccPackageInfoDataSourceConfig(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.pkg_package_info.test", "name", "hello"),
+					resource.TestCheckResourceAttr("data.pkg_package_info.test", "name", "jq"),
 					resource.TestCheckResourceAttr("data.pkg_package_info.test", "manager", "brew"),
 					resource.TestCheckResourceAttrSet("data.pkg_package_info.test", "installed"),
 					resource.TestCheckResourceAttrSet("data.pkg_package_info.test", "available_versions.#"),
@@ -208,7 +208,7 @@ func TestAccVersionHistoryDataSource(t *testing.T) {
 			{
 				Config: testAccVersionHistoryDataSourceConfig(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.pkg_version_history.test", "name", "hello"),
+					resource.TestCheckResourceAttr("data.pkg_version_history.test", "name", "jq"),
 					resource.TestCheckResourceAttr("data.pkg_version_history.test", "manager", "brew"),
 					resource.TestCheckResourceAttrSet("data.pkg_version_history.test", "versions.#"),
 				),
@@ -250,11 +250,11 @@ func TestAccRepositoryResource_Tap(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccRepositoryResourceConfig("homebrew/cask-fonts"),
+				Config: testAccRepositoryResourceConfig("homebrew/cask"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("pkg_repo.test", "manager", "brew"),
-					resource.TestCheckResourceAttr("pkg_repo.test", "name", "homebrew/cask-fonts"),
-					resource.TestCheckResourceAttr("pkg_repo.test", "uri", "homebrew/cask-fonts"),
+					resource.TestCheckResourceAttr("pkg_repo.test", "name", "homebrew/cask"),
+					resource.TestCheckResourceAttr("pkg_repo.test", "uri", "homebrew/cask"),
 					resource.TestCheckResourceAttrSet("pkg_repo.test", "id"),
 					resource.TestCheckResourceAttr("pkg_repo.test", "enabled", "true"),
 				),
@@ -264,7 +264,7 @@ func TestAccRepositoryResource_Tap(t *testing.T) {
 				ResourceName:      "pkg_repo.test",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "brew:homebrew/cask-fonts",
+				ImportStateId:     "brew:homebrew/cask",
 			},
 		},
 	})
@@ -318,7 +318,7 @@ provider "pkg" {
 }
 
 data "pkg_registry_lookup" "test" {
-  logical_name = "hello"
+  logical_name = "jq"
 }
 `
 }
@@ -330,7 +330,7 @@ provider "pkg" {
 }
 
 data "pkg_package_info" "test" {
-  name    = "hello"
+  name    = "jq"
   manager = "brew"
 }
 `
@@ -343,7 +343,7 @@ provider "pkg" {
 }
 
 data "pkg_package_search" "test" {
-  query   = "hello"
+  query   = "jq"
   manager = "brew"
 }
 `
@@ -380,7 +380,7 @@ provider "pkg" {
 }
 
 data "pkg_version_history" "test" {
-  name    = "hello"
+  name    = "jq"
   manager = "brew"
 }
 `

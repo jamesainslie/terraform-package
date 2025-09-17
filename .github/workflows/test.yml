@@ -211,8 +211,11 @@ jobs:
         if: always()
         run: |
           # Clean up any test packages that might have been left behind
-          brew uninstall hello --ignore-dependencies || true
-          brew untap homebrew/cask-fonts || true
+          # Unpin before uninstalling to avoid pin-related errors
+          brew unpin jq --ignore-dependencies || true
+          brew uninstall jq --ignore-dependencies || true
+          # Clean up test repositories
+          brew untap homebrew/cask || true
 
   # Future: Acceptance tests for Linux (APT) - Phase 3
   acceptance-tests-linux:
