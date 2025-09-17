@@ -41,9 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correct gosec repository URL and add GOPROXY for documentation generation
 - Add nosec comment for expected G204 finding in executor
 - Resolve remaining CI issues for full pipeline success
+- Improve acceptance test reliability for macOS Homebrew tests
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
