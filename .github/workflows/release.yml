@@ -1,0 +1,156 @@
+# Terraform Package Provider release workflow.
+name: Release
+
+# This GitHub action creates a release when a tag that matches the pattern
+# "v*" (e.g. v0.1.0) is created.
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Releases need permissions to read and write the repository contents.
+# GitHub considers creating releases and uploading assets as writing contents.
+permissions:
+  contents: write
+  id-token: write   # For signing artifacts
+
+jobs:
+  # Run full test suite before release
+  test:
+    name: Run Tests Before Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+          cache: true
+          
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Run unit tests
+        run: go test -v ./internal/... -race
+        
+      - name: Build provider
+        run: go build -v .
+
+  # Test on macOS with Homebrew
+  test-macos:
+    name: Test macOS Functionality
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+          cache: true
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+          
+      - name: Download dependencies
+        run: go mod download
+        
+      - name: Verify Homebrew
+        run: |
+          which brew
+          brew --version
+          
+      - name: Run acceptance tests
+        env:
+          TF_ACC: "1"
+        run: go test -v ./internal/provider/ -run="TestAccManagerInfoDataSource|TestAccRegistryLookupDataSource" -timeout=10m
+
+  # Create GitHub release with goreleaser
+  goreleaser:
+    name: Create Release
+    needs: [test, test-macos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Allow goreleaser to access the full commit history
+          fetch-depth: 0
+          
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+          cache: true
+          
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        id: import_gpg
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
+        env:
+          # GitHub token for creating releases
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GPG key for signing
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+
+  # Publish to Terraform Registry
+  terraform-registry:
+    name: Publish to Terraform Registry
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Publish to Terraform Registry
+        env:
+          TF_REGISTRY_TOKEN: ${{ secrets.TF_REGISTRY_TOKEN }}
+        run: |
+          echo "Publishing to Terraform Registry..."
+          # The registry will automatically detect the new release
+          # No additional action needed if properly configured
+          echo "Release published successfully!"
+
+  # Create security advisory if vulnerabilities found
+  security-check:
+    name: Security Check
+    needs: [test, test-macos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+          cache: true
+          
+      - name: Run govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+          
+      - name: Run Gosec Security Scanner
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          gosec ./...

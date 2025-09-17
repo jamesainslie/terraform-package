@@ -1,0 +1,212 @@
+---
+page_title: "pkg Provider"
+subcategory: ""
+description: |-
+  Cross-platform package management provider for Terraform
+---
+
+# pkg Provider
+
+The `pkg` provider enables cross-platform package management using Homebrew (macOS), APT (Linux), winget (Windows), and Chocolatey (Windows) through a unified Terraform interface.
+
+## Features
+
+- **Cross-Platform**: Unified package management across macOS, Linux, and Windows
+- **Smart Resolution**: Automatic package name mapping and manager detection  
+- **Version Management**: Support for exact versions, ranges, and pinning
+- **State Management**: Drift detection and automatic remediation
+- **Repository Support**: Custom package repositories and taps
+- **Comprehensive Discovery**: Rich data sources for package information
+- **Security-First**: Proper privilege handling and validation
+
+## Current Support Status
+
+| Platform | Package Manager | Status | Phase |
+|----------|----------------|---------|-------|
+| macOS    | Homebrew       | ✅ Complete | Phase 2 |
+| Linux    | APT            | 🔄 Planned | Phase 3 |
+| Windows  | winget         | 🔄 Planned | Phase 4 |
+| Windows  | Chocolatey     | 🔄 Planned | Phase 4 |
+
+## Example Usage
+
+```terraform
+terraform {
+  required_providers {
+    pkg = {
+      source  = "jamesainslie/pkg"
+      version = "~> 0.1"
+    }
+  }
+}
+
+provider "pkg" {
+  default_manager = "auto"    # auto-detects based on OS
+  assume_yes      = true      # non-interactive mode
+  sudo_enabled    = true      # enable privilege escalation
+  update_cache    = "on_change"
+}
+
+# Install a package
+resource "pkg_package" "git" {
+  name    = "git"
+  state   = "present"
+  version = "2.42.*"
+  pin     = false
+}
+
+# Add a custom repository
+resource "pkg_repo" "fonts" {
+  manager = "brew"
+  name    = "homebrew/cask-fonts"
+  uri     = "homebrew/cask-fonts"
+}
+
+# Get package information
+data "pkg_package_info" "git_info" {
+  name = "git"
+}
+
+# Search for packages
+data "pkg_package_search" "fonts" {
+  query = "font"
+}
+```
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Configuration Examples
+
+### Basic Configuration
+
+```terraform
+provider "pkg" {
+  default_manager = "auto"
+  assume_yes      = true
+}
+```
+
+### Advanced Configuration
+
+```terraform
+provider "pkg" {
+  default_manager = "brew"
+  assume_yes      = true
+  sudo_enabled    = true
+  update_cache    = "on_change"
+  lock_timeout    = "10m"
+  
+  # Custom binary paths
+  brew_path    = "/opt/homebrew/bin/brew"
+  apt_get_path = "/usr/bin/apt-get"
+}
+```
+
+### Platform-Specific Configuration
+
+```terraform
+# macOS with Homebrew
+provider "pkg" {
+  default_manager = "brew"
+  brew_path       = "/opt/homebrew/bin/brew"
+  update_cache    = "always"
+}
+
+# Linux with APT (Phase 3)
+provider "pkg" {
+  default_manager = "apt"
+  sudo_enabled    = true
+  lock_timeout    = "15m"
+}
+
+# Windows with winget (Phase 4)
+provider "pkg" {
+  default_manager = "winget"
+  assume_yes      = true
+}
+```
+
+## Resources and Data Sources
+
+### Resources
+- [`pkg_package`](./resources/package.md) - Package management
+- [`pkg_repo`](./resources/repo.md) - Repository management
+
+### Data Sources
+- [`pkg_package_info`](./data-sources/package_info.md) - Package information
+- [`pkg_package_search`](./data-sources/package_search.md) - Package search
+- [`pkg_registry_lookup`](./data-sources/registry_lookup.md) - Name resolution
+- [`pkg_manager_info`](./data-sources/manager_info.md) - Manager information
+- [`pkg_installed_packages`](./data-sources/installed_packages.md) - Installed packages
+- [`pkg_outdated_packages`](./data-sources/outdated_packages.md) - Outdated packages
+- [`pkg_repository_packages`](./data-sources/repository_packages.md) - Repository packages
+- [`pkg_dependencies`](./data-sources/dependencies.md) - Package dependencies
+- [`pkg_version_history`](./data-sources/version_history.md) - Version history
+- [`pkg_security_info`](./data-sources/security_info.md) - Security information
+
+## Best Practices
+
+### Package Management
+- Use specific versions in production: `version = "2.42.0"`
+- Pin critical packages: `pin = true`
+- Use logical names with registry resolution
+- Test configuration changes in non-production first
+
+### Repository Management
+- Add custom repositories before installing packages
+- Use trusted repositories only
+- Verify GPG keys for APT repositories
+
+### State Management
+- Enable drift detection: `reinstall_on_drift = true`
+- Use import for existing packages: `terraform import pkg_package.existing git`
+- Regular state refresh: `terraform refresh`
+
+### Security
+- Run with minimal required privileges
+- Use non-interactive mode: `assume_yes = true`
+- Set reasonable timeouts
+- Monitor installed packages with data sources
+
+## Migration Guides
+
+### From Manual Package Management
+
+1. **Audit existing packages**:
+   ```hcl
+   data "pkg_installed_packages" "current" {}
+   ```
+
+2. **Import existing packages**:
+   ```bash
+   terraform import pkg_package.git git
+   ```
+
+3. **Define desired state**:
+   ```hcl
+   resource "pkg_package" "git" {
+     name = "git"
+     state = "present"
+   }
+   ```
+
+### From Other Tools
+
+- **From Ansible**: Convert package tasks to `pkg_package` resources
+- **From Chef/Puppet**: Convert package resources to Terraform
+- **From Scripts**: Replace installation scripts with declarative config
+
+## Troubleshooting
+
+For detailed troubleshooting, see [TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for development and contribution guidelines.
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/jamesainslie/terraform-package/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jamesainslie/terraform-package/discussions)
+- **Documentation**: [Provider Documentation](.)
+- **Security**: [Security Policy](../SECURITY.md)
