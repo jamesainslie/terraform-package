@@ -109,6 +109,8 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
+        env:
+          GOPROXY: direct
           
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -315,7 +317,7 @@ jobs:
           
       - name: Run Gosec Security Scanner
         run: |
-          go install github.com/securecodewarriors/gosec/v2/cmd/gosec@latest
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
           gosec ./...
           
       - name: Run govulncheck
