@@ -2,11 +2,11 @@
 
 A cross-platform Terraform provider for managing packages across macOS (Homebrew), Linux (APT), and Windows (winget/Chocolatey) with unified resource definitions and consistent behavior.
 
-[![Tests](https://github.com/jamesainslie/terraform-package/workflows/Tests/badge.svg)](https://github.com/jamesainslie/terraform-package/actions)
-[![Code Quality](https://github.com/jamesainslie/terraform-package/workflows/Code%20Quality/badge.svg)](https://github.com/jamesainslie/terraform-package/actions)
+[![CI/CD Pipeline](https://github.com/jamesainslie/terraform-package/workflows/CI%2FCD%20Pipeline/badge.svg?branch=main)](https://github.com/jamesainslie/terraform-package/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/jamesainslie/terraform-package)](https://goreportcard.com/report/github.com/jamesainslie/terraform-package)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Release](https://img.shields.io/github/v/release/jamesainslie/terraform-package)](https://github.com/jamesainslie/terraform-package/releases)
+[![Release](https://github.com/jamesainslie/terraform-package/workflows/Release/badge.svg?branch=main)](https://github.com/jamesainslie/terraform-package/actions)
+[![Latest Release](https://img.shields.io/github/v/release/jamesainslie/terraform-package)](https://github.com/jamesainslie/terraform-package/releases)
 
 ## Features
 
