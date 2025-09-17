@@ -105,7 +105,7 @@ func TestAccRegistryLookupDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "found", "true"),
 					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "darwin", "jq"),
 					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "linux", "jq"),
-					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "windows", "jq"),
+					resource.TestCheckResourceAttr("data.pkg_registry_lookup.test", "windows", "jqlang.jq"),
 				),
 			},
 		},
