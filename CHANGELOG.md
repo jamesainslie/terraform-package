@@ -46,9 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add missing time imports for timeout duration constants
 - Resolve CHANGELOG.md merge conflict
 - Correct Windows package name assertion in registry lookup test
+- Improve test strictness and brew cask command syntax
 
 ### 📚 Documentation
 
+- Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
 - Update CHANGELOG.md
