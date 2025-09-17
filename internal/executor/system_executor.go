@@ -62,6 +62,7 @@ func (e *SystemExecutor) Run(ctx context.Context, command string, args []string,
 	finalCmd, finalArgs := e.prepareCommand(command, args, opts)
 
 	// Create the command
+	// #nosec G204 - Command construction is controlled and validated through prepareCommand
 	cmd := exec.CommandContext(ctx, finalCmd, finalArgs...)
 
 	// Set working directory if specified
