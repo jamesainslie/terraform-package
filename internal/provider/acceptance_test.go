@@ -248,13 +248,13 @@ func TestAccRepositoryResource_Tap(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Create and Read testing
+			// Create and Read testing - Test with a third-party tap
 			{
-				Config: testAccRepositoryResourceConfig("homebrew/cask"),
+				Config: testAccRepositoryResourceConfig("jamesainslie/antimoji"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("pkg_repo.test", "manager", "brew"),
-					resource.TestCheckResourceAttr("pkg_repo.test", "name", "homebrew/cask"),
-					resource.TestCheckResourceAttr("pkg_repo.test", "uri", "homebrew/cask"),
+					resource.TestCheckResourceAttr("pkg_repo.test", "name", "jamesainslie/antimoji"),
+					resource.TestCheckResourceAttr("pkg_repo.test", "uri", "jamesainslie/antimoji"),
 					resource.TestCheckResourceAttrSet("pkg_repo.test", "id"),
 					resource.TestCheckResourceAttr("pkg_repo.test", "enabled", "true"),
 				),
@@ -264,7 +264,7 @@ func TestAccRepositoryResource_Tap(t *testing.T) {
 				ResourceName:      "pkg_repo.test",
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateId:     "brew:homebrew/cask",
+				ImportStateId:     "brew:jamesainslie/antimoji",
 			},
 		},
 	})
