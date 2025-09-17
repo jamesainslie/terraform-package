@@ -137,11 +137,11 @@ func (b *BrewAdapter) DetectInstalled(ctx context.Context, name string) (*adapte
 
 // getPackageInfo retrieves package information from Homebrew.
 func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bool) (*adapters.PackageInfo, error) {
-	args := []string{"info", "--json"}
+	args := []string{"info"}
 	if isCask {
 		args = append(args, "--cask")
 	}
-	args = append(args, name)
+	args = append(args, "--json", name)
 
 	result, err := b.executor.Run(ctx, b.brewPath, args, executor.ExecOpts{
 		Timeout: 30 * time.Second,

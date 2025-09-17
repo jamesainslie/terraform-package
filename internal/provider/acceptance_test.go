@@ -129,6 +129,13 @@ func TestAccPackageInfoDataSource(t *testing.T) {
 					resource.TestCheckResourceAttrSet("data.pkg_package_info.test", "installed"),
 					resource.TestCheckResourceAttrSet("data.pkg_package_info.test", "available_versions.#"),
 					resource.TestCheckResourceAttrSet("data.pkg_package_info.test", "repository"),
+					// Ensure we actually got valid version information
+					resource.TestCheckResourceAttrWith("data.pkg_package_info.test", "available_versions.#", func(value string) error {
+						if value == "0" {
+							return fmt.Errorf("expected at least one available version for jq, got 0")
+						}
+						return nil
+					}),
 				),
 			},
 		},
@@ -150,6 +157,15 @@ func TestAccPackageSearchDataSource(t *testing.T) {
 					resource.TestCheckResourceAttr("data.pkg_package_search.test", "query", "jq"),
 					resource.TestCheckResourceAttr("data.pkg_package_search.test", "manager", "brew"),
 					resource.TestCheckResourceAttrSet("data.pkg_package_search.test", "results.#"),
+					// Ensure search actually found the jq package
+					resource.TestCheckResourceAttrWith("data.pkg_package_search.test", "results.#", func(value string) error {
+						if value == "0" {
+							return fmt.Errorf("expected search for 'jq' to return at least one result, got 0")
+						}
+						return nil
+					}),
+					// Verify first result has valid structure
+					resource.TestCheckResourceAttrSet("data.pkg_package_search.test", "results.0.name"),
 				),
 			},
 		},
@@ -170,6 +186,23 @@ func TestAccInstalledPackagesDataSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("data.pkg_installed_packages.test", "manager", "brew"),
 					resource.TestCheckResourceAttrSet("data.pkg_installed_packages.test", "packages.#"),
+					// Ensure we can successfully get info for at least some packages
+					resource.TestCheckResourceAttrWith("data.pkg_installed_packages.test", "packages.#", func(value string) error {
+						if value == "0" {
+							return fmt.Errorf("expected at least one installed package, got 0")
+						}
+						return nil
+					}),
+					// Check that first package has valid structure
+					resource.TestCheckResourceAttrSet("data.pkg_installed_packages.test", "packages.0.name"),
+					resource.TestCheckResourceAttrSet("data.pkg_installed_packages.test", "packages.0.version"),
+					// Ensure the repository is not "unknown" (which indicates brew info failure)
+					resource.TestCheckResourceAttrWith("data.pkg_installed_packages.test", "packages.0.repository", func(value string) error {
+						if value == "unknown" {
+							return fmt.Errorf("first package has 'unknown' repository, indicating brew info command failure")
+						}
+						return nil
+					}),
 				),
 			},
 		},
