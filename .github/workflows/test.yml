@@ -28,8 +28,43 @@ on:
 # Testing only needs permissions to read the repository contents.
 permissions:
   contents: read
+  pull-requests: write  # For PR validation
 
 jobs:
+  # Validate PR title follows conventional commits (PR only)
+  pr-validation:
+    name: PR Title Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check PR title follows conventional commits
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            test
+            chore
+            ci
+            perf
+            build
+          scopes: |
+            brew
+            apt
+            winget
+            choco
+            core
+            tests
+            docs
+            ci
+          requireScope: false
+
   # Ensure project builds and passes linting
   build:
     name: Build and Lint
