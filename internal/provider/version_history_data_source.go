@@ -24,9 +24,11 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -182,9 +184,15 @@ func (d *VersionHistoryDataSource) getBrewVersionHistory(ctx context.Context, pa
 	var versions []string
 
 	// First, check for versioned formulas (e.g., python@3.9, python@3.10)
+	// Use proper timeout duration and handle context cancellation
 	result, err := d.providerData.Executor.Run(ctx, brewPath, []string{"search", packageName + "@"}, executor.ExecOpts{
-		Timeout: 30,
+		Timeout: 30 * time.Second,
 	})
+
+	// Check for context cancellation first
+	if ctx.Err() != nil {
+		return []string{}
+	}
 
 	if err == nil && result.ExitCode == 0 {
 		lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
@@ -205,32 +213,59 @@ func (d *VersionHistoryDataSource) getBrewVersionHistory(ctx context.Context, pa
 		}
 	}
 
-	// Also get the current stable version
-	result, err = d.providerData.Executor.Run(ctx, brewPath, []string{"info", packageName}, executor.ExecOpts{
-		Timeout: 30,
+	// Check for context cancellation before second command
+	if ctx.Err() != nil {
+		return versions
+	}
+
+	// Also get the current stable version using JSON output for consistency
+	result, err = d.providerData.Executor.Run(ctx, brewPath, []string{"info", "--json", packageName}, executor.ExecOpts{
+		Timeout: 30 * time.Second,
 	})
 
 	if err == nil && result.ExitCode == 0 {
-		lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
-		for _, line := range lines {
-			if strings.Contains(line, ": stable ") {
-				// Parse "package: stable X.Y.Z" format
-				parts := strings.Split(line, ": stable ")
-				if len(parts) == 2 {
-					stableVersion := strings.Fields(parts[1])[0]
+		// Try to parse JSON first for more reliable parsing
+		var infos []map[string]interface{}
+		if jsonErr := json.Unmarshal([]byte(result.Stdout), &infos); jsonErr == nil && len(infos) > 0 {
+			info := infos[0]
+			if versionsMap, ok := info["versions"].(map[string]interface{}); ok {
+				if stable, ok := versionsMap["stable"].(string); ok && stable != "" {
 					// Add stable version if not already in list
 					found := false
 					for _, v := range versions {
-						if v == stableVersion {
+						if v == stable {
 							found = true
 							break
 						}
 					}
 					if !found {
-						versions = append([]string{stableVersion}, versions...)
+						versions = append([]string{stable}, versions...)
 					}
 				}
-				break
+			}
+		} else {
+			// Fallback to text parsing if JSON fails
+			lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
+			for _, line := range lines {
+				if strings.Contains(line, ": stable ") {
+					// Parse "package: stable X.Y.Z" format
+					parts := strings.Split(line, ": stable ")
+					if len(parts) == 2 {
+						stableVersion := strings.Fields(parts[1])[0]
+						// Add stable version if not already in list
+						found := false
+						for _, v := range versions {
+							if v == stableVersion {
+								found = true
+								break
+							}
+						}
+						if !found {
+							versions = append([]string{stableVersion}, versions...)
+						}
+					}
+					break
+				}
 			}
 		}
 	}

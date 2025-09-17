@@ -374,7 +374,7 @@ func (b *BrewAdapter) Info(ctx context.Context, name string) (*adapters.PackageI
 // isCask determines if a package is a cask or formula.
 func (b *BrewAdapter) isCask(ctx context.Context, name string) (bool, error) {
 	// Try to get info as cask first
-	result, err := b.executor.Run(ctx, b.brewPath, []string{"info", "--cask", name}, executor.ExecOpts{
+	result, err := b.executor.Run(ctx, b.brewPath, []string{"info", "--json", "--cask", name}, executor.ExecOpts{
 		Timeout: 30 * time.Second,
 	})
 
@@ -384,7 +384,7 @@ func (b *BrewAdapter) isCask(ctx context.Context, name string) (bool, error) {
 	}
 
 	// Try as formula
-	result, err = b.executor.Run(ctx, b.brewPath, []string{"info", name}, executor.ExecOpts{
+	result, err = b.executor.Run(ctx, b.brewPath, []string{"info", "--json", name}, executor.ExecOpts{
 		Timeout: 30 * time.Second,
 	})
 

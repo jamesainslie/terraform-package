@@ -390,6 +390,7 @@ provider "pkg" {
 
 data "pkg_installed_packages" "test" {
   manager = "brew"
+  filter  = "git"  # Filter to only one common package for faster test execution
 }
 `
 }

@@ -207,92 +207,92 @@ jobs:
           TF_LOG: "INFO"
         run: go test -v ./internal/provider/ -timeout=30m
 
-  # Future: Acceptance tests for Linux (APT) - Phase 3
-  acceptance-tests-linux:
-    name: Acceptance Tests (Linux - APT)
-    needs: [build, unit-tests]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    if: false  # Disabled until Phase 3 implementation
-    strategy:
-      fail-fast: false
-      matrix:
-        terraform:
-          - '1.5.*'
-          - '1.8.*'
-          - '1.9.*'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # # Future: Acceptance tests for Linux (APT) - Phase 3
+  # acceptance-tests-linux:
+  #   name: Acceptance Tests (Linux - APT)
+  #   needs: [build, unit-tests]
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 30
+  #   if: false  # Disabled until Phase 3 implementation
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       terraform:
+  #         - '1.5.*'
+  #         - '1.8.*'
+  #         - '1.9.*'
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
         
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: 'go.mod'
-          cache: true
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v5
+  #       with:
+  #         go-version-file: 'go.mod'
+  #         cache: true
           
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ matrix.terraform }}
-          terraform_wrapper: false
+  #     - name: Set up Terraform
+  #       uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: ${{ matrix.terraform }}
+  #         terraform_wrapper: false
           
-      - name: Download dependencies
-        run: go mod download
+  #     - name: Download dependencies
+  #       run: go mod download
         
-      - name: Verify APT availability
-        run: |
-          which apt-get
-          apt-get --version
+  #     - name: Verify APT availability
+  #       run: |
+  #         which apt-get
+  #         apt-get --version
           
-      - name: Run acceptance tests
-        env:
-          TF_ACC: "1"
-          TF_LOG: "INFO"
-        run: go test -v ./internal/provider/ -run=".*Linux.*" -timeout=20m
+  #     - name: Run acceptance tests
+  #       env:
+  #         TF_ACC: "1"
+  #         TF_LOG: "INFO"
+  #       run: go test -v ./internal/provider/ -run=".*Linux.*" -timeout=20m
 
-  # Future: Acceptance tests for Windows (winget) - Phase 4
-  acceptance-tests-windows:
-    name: Acceptance Tests (Windows - winget)
-    needs: [build, unit-tests]
-    runs-on: windows-latest
-    timeout-minutes: 30
-    if: false  # Disabled until Phase 4 implementation
-    strategy:
-      fail-fast: false
-      matrix:
-        terraform:
-          - '1.5.*'
-          - '1.8.*'
-          - '1.9.*'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # # Future: Acceptance tests for Windows (winget) - Phase 4
+  # acceptance-tests-windows:
+  #   name: Acceptance Tests (Windows - winget)
+  #   needs: [build, unit-tests]
+  #   runs-on: windows-latest
+  #   timeout-minutes: 30
+  #   if: false  # Disabled until Phase 4 implementation
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       terraform:
+  #         - '1.5.*'
+  #         - '1.8.*'
+  #         - '1.9.*'
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
         
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: 'go.mod'
-          cache: true
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v5
+  #       with:
+  #         go-version-file: 'go.mod'
+  #         cache: true
           
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ matrix.terraform }}
-          terraform_wrapper: false
+  #     - name: Set up Terraform
+  #       uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: ${{ matrix.terraform }}
+  #         terraform_wrapper: false
           
-      - name: Download dependencies
-        run: go mod download
+  #     - name: Download dependencies
+  #       run: go mod download
         
-      - name: Verify winget availability
-        run: |
-          winget --version
+  #     - name: Verify winget availability
+  #       run: |
+  #         winget --version
           
-      - name: Run acceptance tests
-        env:
-          TF_ACC: "1"
-          TF_LOG: "INFO"
-        run: go test -v ./internal/provider/ -run=".*Windows.*" -timeout=20m
+  #     - name: Run acceptance tests
+  #       env:
+  #         TF_ACC: "1"
+  #         TF_LOG: "INFO"
+  #       run: go test -v ./internal/provider/ -run=".*Windows.*" -timeout=20m
 
   # Security scanning
   security:
