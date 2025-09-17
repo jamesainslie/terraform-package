@@ -39,7 +39,6 @@ import (
 	"github.com/geico-private/terraform-provider-pkg/internal/adapters/brew"
 )
 
-
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &RepositoryResource{}
 var _ resource.ResourceWithImportState = &RepositoryResource{}
