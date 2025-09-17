@@ -153,7 +153,7 @@ func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bo
 	}
 
 	var info brewInfo
-	
+
 	if isCask {
 		// Parse v2 JSON format for casks
 		var v2Response struct {
@@ -162,11 +162,11 @@ func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bo
 		if err := json.Unmarshal([]byte(result.Stdout), &v2Response); err != nil {
 			return nil, fmt.Errorf("failed to parse brew info v2 JSON: %w", err)
 		}
-		
+
 		if len(v2Response.Casks) == 0 {
 			return nil, fmt.Errorf("no cask info found for %s", name)
 		}
-		
+
 		cask := v2Response.Casks[0]
 		info = brewInfo{
 			Name:     getStringValue(cask, "token"),
@@ -175,12 +175,12 @@ func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bo
 			Desc:     getStringValue(cask, "desc"),
 			Homepage: getStringValue(cask, "homepage"),
 		}
-		
+
 		// Handle version for casks
 		if version, ok := cask["version"].(string); ok {
 			info.Versions = versions{Stable: version}
 		}
-		
+
 		// Handle installed status for casks
 		if installed := cask["installed"]; installed != nil {
 			info.Installed = []installedVersion{{Version: info.Versions.Stable}}

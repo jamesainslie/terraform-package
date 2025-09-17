@@ -81,13 +81,24 @@ func (b *BrewRepositoryManager) AddRepository(ctx context.Context, name, uri, gp
 
 // RemoveRepository removes a Homebrew tap.
 func (b *BrewRepositoryManager) RemoveRepository(ctx context.Context, name string) error {
+	// First try without force
 	result, err := b.executor.Run(ctx, b.brewPath, []string{"untap", name}, executor.ExecOpts{
 		Timeout: 60 * time.Second, // 1 minute for tap removal
 	})
 
+	// If it fails due to installed packages, try with --force
 	if err != nil || result.ExitCode != 0 {
-		return fmt.Errorf("failed to remove tap %s: exit code %d, error: %w, stderr: %s",
-			name, result.ExitCode, err, result.Stderr)
+		if strings.Contains(result.Stderr, "contains the following installed") {
+			// Try with force flag to remove tap even with installed packages
+			result, err = b.executor.Run(ctx, b.brewPath, []string{"untap", "--force", name}, executor.ExecOpts{
+				Timeout: 60 * time.Second,
+			})
+		}
+		
+		if err != nil || result.ExitCode != 0 {
+			return fmt.Errorf("failed to remove tap %s: exit code %d, error: %w, stderr: %s",
+				name, result.ExitCode, err, result.Stderr)
+		}
 	}
 
 	return nil
