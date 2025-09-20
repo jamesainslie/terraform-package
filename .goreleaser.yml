@@ -21,20 +21,22 @@ builds:
   ldflags:
     - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
   goos:
-    - freebsd
     - windows
     - linux
     - darwin
   goarch:
     - amd64
-    - '386'
     - arm64
   ignore:
-    - goos: darwin
-      goarch: '386'
-  binary: '{{ .ProjectName }}_v{{ .Version }}'
+    - goos: windows
+      goarch: arm64
+  binary: '{{ .ProjectName }}_{{ .Version }}'
 archives:
 - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+  format: zip
+  files:
+    - '{{ .ProjectName }}_{{ .Version }}'
+    - 'terraform-registry-manifest.json'
 checksum:
   extra_files:
     - glob: 'terraform-registry-manifest.json'
@@ -54,9 +56,12 @@ signs:
       - "--detach-sign"
       - "${artifact}"
 release:
+  mode: replace
   extra_files:
     - glob: 'terraform-registry-manifest.json'
       name_template: '{{ .ProjectName }}_{{ .Version }}_manifest.json'
+    - glob: 'docs/**'
+      name_template: '{{ .ProjectName }}_{{ .Version }}_docs.zip'
   # If you want to manually examine the release before its live, uncomment this line:
   # draft: true
 changelog:
