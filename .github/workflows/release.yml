@@ -7,6 +7,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.1.2)'
+        required: true
+        type: string
 
 # Releases need permissions to read and write the repository contents.
 # GitHub considers creating releases and uploading assets as writing contents.
@@ -23,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
         
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -47,6 +55,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
         
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -84,6 +94,7 @@ jobs:
         with:
           # Allow goreleaser to access the full commit history
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
           
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -98,6 +109,17 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           
+      - name: Validate provider schema
+        run: |
+          go build -o terraform-provider-pkg .
+          ./terraform-provider-pkg -version
+          echo "Provider schema validation completed"
+          
+      - name: Generate provider documentation
+        run: |
+          go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
+          tfplugindocs generate --provider-name pkg
+          
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -110,24 +132,6 @@ jobs:
           # GPG key for signing
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
 
-  # Publish to Terraform Registry
-  terraform-registry:
-    name: Publish to Terraform Registry
-    needs: goreleaser
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
-      - name: Publish to Terraform Registry
-        env:
-          TF_REGISTRY_TOKEN: ${{ secrets.TF_REGISTRY_TOKEN }}
-        run: |
-          echo "Publishing to Terraform Registry..."
-          # The registry will automatically detect the new release
-          # No additional action needed if properly configured
-          echo "Release published successfully!"
 
   # Create security advisory if vulnerabilities found
   security-check:
@@ -138,6 +142,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
         
       - name: Set up Go
         uses: actions/setup-go@v5

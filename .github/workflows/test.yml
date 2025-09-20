@@ -122,12 +122,21 @@ jobs:
         env:
           GOPROXY: https://proxy.golang.org,direct
           GOSUMDB: sum.golang.org
-        run: make generate
+        run: |
+          make generate
+          go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
+          tfplugindocs generate --provider-name pkg
         
       - name: Check for differences
         run: |
           git diff --compact-summary --exit-code || \
             (echo; echo "Unexpected difference in directories after code generation. Run 'make generate' command and commit."; exit 1)
+            
+      - name: Validate provider schema
+        run: |
+          go build -o terraform-provider-pkg .
+          ./terraform-provider-pkg -version
+          echo "Provider schema validation completed"
 
   # Unit tests across platforms
   unit-tests:
