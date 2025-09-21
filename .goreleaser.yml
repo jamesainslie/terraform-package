@@ -30,12 +30,11 @@ builds:
   ignore:
     - goos: windows
       goarch: arm64
-  binary: '{{ .ProjectName }}'
+  binary: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
 archives:
 - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
-  format: zip
   files:
-    - '{{ .ProjectName }}'
+    - '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}'
     - 'terraform-registry-manifest.json'
 checksum:
   extra_files:
