@@ -1,7 +1,7 @@
 # Makefile for Terraform Package Provider
 
 # Variables
-BINARY_NAME := terraform-provider-pkg
+BINARY_NAME := terraform-provider-package
 VERSION := $(shell git describe --tags --always --dirty)
 COMMIT_HASH := $(shell git rev-parse HEAD)
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
