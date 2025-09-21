@@ -34,7 +34,6 @@ builds:
 archives:
 - name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
   files:
-    - '{{ .Binary }}'
     - 'terraform-registry-manifest.json'
 checksum:
   extra_files:
