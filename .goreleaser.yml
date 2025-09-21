@@ -15,6 +15,8 @@ builds:
     # usage by users in CI/CD systems like HCP Terraform where
     # they are unable to install libraries.
     - CGO_ENABLED=0
+    # Force reproducible builds for consistent checksums across environments
+    - SOURCE_DATE_EPOCH={{ .CommitTimestamp }}
   mod_timestamp: '{{ .CommitTimestamp }}'
   flags:
     - -trimpath
