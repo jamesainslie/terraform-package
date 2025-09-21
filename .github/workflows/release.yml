@@ -120,7 +120,21 @@ jobs:
           go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
           tfplugindocs generate --provider-name pkg
           
+      - name: Check if release already exists
+        id: check_release
+        run: |
+          if gh release view ${{ github.ref_name }} >/dev/null 2>&1; then
+            echo "release_exists=true" >> $GITHUB_OUTPUT
+            echo "Release ${{ github.ref_name }} already exists, will skip GoReleaser"
+          else
+            echo "release_exists=false" >> $GITHUB_OUTPUT
+            echo "Release ${{ github.ref_name }} does not exist, proceeding with GoReleaser"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Run GoReleaser
+        if: steps.check_release.outputs.release_exists == 'false'
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
@@ -131,6 +145,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # GPG key for signing
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          
+      - name: Log existing release
+        if: steps.check_release.outputs.release_exists == 'true'
+        run: |
+          echo "ℹ️ Release ${{ github.ref_name }} already exists with the following assets:"
+          gh release view ${{ github.ref_name }} --json assets --jq '.assets[] | "  - " + .name + " (" + (.size | tostring) + " bytes)"'
+          echo "✅ Skipping GoReleaser execution to prevent duplicate asset upload failures"
+          echo "🎯 This is expected behavior when re-running releases with the same tag"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
   # Create security advisory if vulnerabilities found
