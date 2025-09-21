@@ -38,9 +38,7 @@ func TestNewPackageResource(t *testing.T) {
 	}
 
 	// Check that it implements the required interfaces
-	if _, ok := r.(resource.Resource); !ok {
-		t.Error("NewPackageResource() should implement resource.Resource")
-	}
+	// r is already of type resource.Resource from NewPackageResource(), so this check is satisfied
 
 	if _, ok := r.(resource.ResourceWithImportState); !ok {
 		t.Error("NewPackageResource() should implement resource.ResourceWithImportState")
