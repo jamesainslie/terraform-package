@@ -34,7 +34,10 @@ builds:
       goarch: arm64
   binary: '{{ .ProjectName }}'
 archives:
-- name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+- id: zip
+  format: zip
+  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+  wrap_in_directory: false
   files:
     - 'terraform-registry-manifest.json'
 checksum:
