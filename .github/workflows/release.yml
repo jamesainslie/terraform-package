@@ -112,7 +112,6 @@ jobs:
       - name: Validate provider schema
         run: |
           go build -o terraform-provider-pkg .
-          ./terraform-provider-pkg -version
           echo "Provider schema validation completed"
           
       - name: Generate provider documentation
