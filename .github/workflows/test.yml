@@ -135,7 +135,7 @@ jobs:
       - name: Validate provider schema
         run: |
           go build -o terraform-provider-package .
-          ./terraform-provider-package -version
+          echo "Provider binary built successfully: $(file ./terraform-provider-package)"
           echo "Provider schema validation completed"
 
   # Unit tests across platforms

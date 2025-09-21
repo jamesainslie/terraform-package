@@ -112,12 +112,13 @@ jobs:
       - name: Validate provider schema
         run: |
           go build -o /tmp/terraform-provider-package .
+          echo "Provider binary built successfully: $(file /tmp/terraform-provider-package)"
           echo "Provider schema validation completed"
           
       - name: Generate provider documentation
         run: |
           go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
-          tfplugindocs generate --provider-name package
+          tfplugindocs generate --provider-name pkg
           
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
