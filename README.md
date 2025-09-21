@@ -32,8 +32,8 @@ A cross-platform Terraform provider for managing packages across macOS (Homebrew
 ```hcl
 terraform {
   required_providers {
-    pkg = {
-      source  = "jamesainslie/pkg"
+    package = {
+      source  = "jamesainslie/package"
       version = "~> 0.1"
     }
   }

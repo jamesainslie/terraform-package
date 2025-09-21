@@ -33,8 +33,8 @@ The `pkg` provider enables cross-platform package management using Homebrew (mac
 ```terraform
 terraform {
   required_providers {
-    pkg = {
-      source  = "jamesainslie/pkg"
+    package = {
+      source  = "jamesainslie/package"
       version = "~> 0.1"
     }
   }

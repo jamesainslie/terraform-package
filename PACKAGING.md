@@ -12,7 +12,7 @@ The **recommended approach** for public distribution:
 
 #### **Registry Structure:**
 ```
-registry.terraform.io/jamesainslie/pkg
+registry.terraform.io/jamesainslie/package
 ├── versions/
 │   ├── 0.1.0/
 │   │   ├── download/
@@ -30,8 +30,8 @@ registry.terraform.io/jamesainslie/pkg
 ```hcl
 terraform {
   required_providers {
-    pkg = {
-      source  = "jamesainslie/pkg"
+    package = {
+      source  = "jamesainslie/package"
       version = "~> 0.1"
     }
   }
@@ -44,22 +44,22 @@ For direct downloads and pre-release testing:
 
 #### **Release Assets:**
 ```
-terraform-provider-pkg_0.1.0_darwin_amd64.zip
-terraform-provider-pkg_0.1.0_darwin_arm64.zip
-terraform-provider-pkg_0.1.0_linux_amd64.zip
-terraform-provider-pkg_0.1.0_linux_arm64.zip
-terraform-provider-pkg_0.1.0_windows_amd64.zip
-terraform-provider-pkg_0.1.0_freebsd_amd64.zip
-terraform-provider-pkg_0.1.0_SHA256SUMS
-terraform-provider-pkg_0.1.0_SHA256SUMS.sig
-terraform-provider-pkg_0.1.0_manifest.json
+terraform-provider-package_0.1.0_darwin_amd64.zip
+terraform-provider-package_0.1.0_darwin_arm64.zip
+terraform-provider-package_0.1.0_linux_amd64.zip
+terraform-provider-package_0.1.0_linux_arm64.zip
+terraform-provider-package_0.1.0_windows_amd64.zip
+terraform-provider-package_0.1.0_freebsd_amd64.zip
+terraform-provider-package_0.1.0_SHA256SUMS
+terraform-provider-package_0.1.0_SHA256SUMS.sig
+terraform-provider-package_0.1.0_manifest.json
 ```
 
 #### **Manual Installation:**
 ```bash
 # Download and extract to Terraform plugin directory
-mkdir -p ~/.terraform.d/plugins/jamesainslie/pkg/0.1.0/darwin_amd64/
-unzip terraform-provider-pkg_0.1.0_darwin_amd64.zip -d ~/.terraform.d/plugins/jamesainslie/pkg/0.1.0/darwin_amd64/
+mkdir -p ~/.terraform.d/plugins/jamesainslie/package/0.1.0/darwin_amd64/
+unzip terraform-provider-package_0.1.0_darwin_amd64.zip -d ~/.terraform.d/plugins/jamesainslie/package/0.1.0/darwin_amd64/
 ```
 
 ### 3. Local Development
@@ -71,7 +71,7 @@ For development and testing:
 # ~/.terraformrc
 provider_installation {
   dev_overrides {
-    "jamesainslie/pkg" = "/path/to/terraform-package"
+    "jamesainslie/package" = "/path/to/terraform-package"
   }
   direct {}
 }
@@ -123,8 +123,8 @@ goreleaser release --clean
 - ✅ `examples/` - Usage examples
 
 ### **Security Files:**
-- ✅ `terraform-provider-pkg_VERSION_SHA256SUMS` - Checksums
-- ✅ `terraform-provider-pkg_VERSION_SHA256SUMS.sig` - GPG signature
+- ✅ `terraform-provider-package_VERSION_SHA256SUMS` - Checksums
+- ✅ `terraform-provider-package_VERSION_SHA256SUMS.sig` - GPG signature
 - ✅ GPG public key for verification
 
 ## 🔐 Security & Signing
@@ -145,8 +145,8 @@ gpg --armor --export YOUR_EMAIL > public-key.asc
 ### **Verification Process:**
 ```bash
 # Users can verify downloads
-gpg --verify terraform-provider-pkg_0.1.0_SHA256SUMS.sig terraform-provider-pkg_0.1.0_SHA256SUMS
-sha256sum -c terraform-provider-pkg_0.1.0_SHA256SUMS
+gpg --verify terraform-provider-package_0.1.0_SHA256SUMS.sig terraform-provider-package_0.1.0_SHA256SUMS
+sha256sum -c terraform-provider-package_0.1.0_SHA256SUMS
 ```
 
 ## 📚 Documentation Packaging

@@ -3,8 +3,8 @@
 
 terraform {
   required_providers {
-    pkg = {
-      source = "jamesainslie/pkg"
+    package = {
+      source = "jamesainslie/package"
     }
   }
 }

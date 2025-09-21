@@ -117,7 +117,7 @@ jobs:
       - name: Generate provider documentation
         run: |
           go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
-          tfplugindocs generate --provider-name pkg
+          tfplugindocs generate --provider-name package
           
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6

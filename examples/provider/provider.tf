@@ -1,4 +1,4 @@
-provider "pkg" {
+provider "package" {
   # Basic configuration
   default_manager = "auto"      # auto-detects based on OS (darwin=brew, linux=apt, windows=winget)
   assume_yes      = true        # run non-interactively

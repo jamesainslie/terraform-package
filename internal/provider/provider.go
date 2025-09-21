@@ -83,7 +83,7 @@ func (p *PackageProvider) Metadata(
 func (p *PackageProvider) Schema(
 	_ context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The pkg provider enables cross-platform package management using Homebrew, APT, winget, and Chocolatey.",
+		MarkdownDescription: "The package provider enables cross-platform package management using Homebrew, APT, winget, and Chocolatey.",
 		Attributes: map[string]schema.Attribute{
 			"default_manager": schema.StringAttribute{
 				MarkdownDescription: "Default package manager to use. " +

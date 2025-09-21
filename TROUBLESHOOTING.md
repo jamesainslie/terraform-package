@@ -16,8 +16,8 @@ Error: Failed to query available provider packages
    ```hcl
    terraform {
      required_providers {
-       pkg = {
-         source = "jamesainslie/pkg"  # Correct namespace
+       package = {
+         source = "jamesainslie/package"  # Correct namespace
          version = "~> 0.1"
        }
      }
@@ -29,7 +29,7 @@ Error: Failed to query available provider packages
    # ~/.terraformrc
    provider_installation {
      dev_overrides {
-       "jamesainslie/pkg" = "/path/to/terraform-provider-pkg"
+       "jamesainslie/package" = "/path/to/terraform-provider-package"
      }
      direct {}
    }

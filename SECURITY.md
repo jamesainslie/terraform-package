@@ -68,7 +68,7 @@ Please include the following information:
 ### Provider Configuration
 
 ```hcl
-provider "pkg" {
+provider "package" {
   # Enable non-interactive mode (recommended)
   assume_yes = true
   

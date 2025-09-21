@@ -11,7 +11,7 @@ LDFLAGS := -ldflags "-s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT_HA
 
 # Terraform provider installation paths
 TERRAFORM_PLUGINS_DIR := ~/.terraform.d/plugins
-LOCAL_PROVIDER_PATH := $(TERRAFORM_PLUGINS_DIR)/jamesainslie/pkg/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)
+LOCAL_PROVIDER_PATH := $(TERRAFORM_PLUGINS_DIR)/jamesainslie/package/$(VERSION)/$(shell go env GOOS)_$(shell go env GOARCH)
 
 # Default target
 .DEFAULT_GOAL := help

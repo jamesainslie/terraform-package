@@ -48,7 +48,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/jamesainslie/pkg",
+		Address: "registry.terraform.io/jamesainslie/package",
 		Debug:   debug,
 	}
 
