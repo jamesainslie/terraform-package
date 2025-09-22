@@ -29,6 +29,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -779,6 +780,21 @@ func (r *PackageResource) readPackageState(ctx context.Context, manager adapters
 		data.VersionActual = types.StringValue(info.Version)
 	} else {
 		data.VersionActual = types.StringValue("")
+	}
+
+	// Set computed state tracking fields to avoid "unknown value" errors
+	if data.InstallationSource.IsUnknown() {
+		data.InstallationSource = types.StringValue(manager.GetManagerName())
+	}
+	
+	if data.DependencyTree.IsUnknown() {
+		// Set to empty map if not tracking dependencies
+		data.DependencyTree = types.MapValueMust(types.StringType, map[string]attr.Value{})
+	}
+	
+	if data.LastAccess.IsUnknown() {
+		// Set to empty string if not tracking usage
+		data.LastAccess = types.StringValue("")
 	}
 
 	// Don't override the configured state and pin values
