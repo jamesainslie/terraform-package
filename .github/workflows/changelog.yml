@@ -7,6 +7,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag version to generate changelog for'
+        required: true
+        default: 'v0.2.0'
 
 permissions:
   contents: write
@@ -17,7 +23,7 @@ jobs:
   update-changelog:
     name: Update Changelog
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || github.event_name == 'workflow_dispatch'
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -25,14 +31,21 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref }}
           
-      - name: Generate changelog
-        uses: orhun/git-cliff-action@v4
+      - name: Generate changelog with retry
+        uses: nick-fields/retry@v3
         with:
-          config: .cliff.toml
-          args: --verbose --unreleased --tag 0.1.0
-        env:
-          OUTPUT: CHANGELOG.md
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            # Use git-cliff action with retry logic
+            docker run --rm -v "${PWD}":/workdir -w /workdir \
+              orhunp/git-cliff:2.10.0 \
+              --config .cliff.toml \
+              --verbose --unreleased --tag 0.1.0 \
+              --output CHANGELOG.md
         
       - name: Commit changelog directly to main
         run: |
@@ -40,14 +53,28 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
+          # Determine the tag name
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="${{ github.event.inputs.tag }}"
+          else
+            TAG_NAME="${{ github.ref_name }}"
+          fi
+          
           # Check if CHANGELOG.md was modified
           if git diff --quiet CHANGELOG.md; then
             echo "No changelog changes detected, skipping commit"
           else
             echo "Changelog changes detected, committing to main"
+            
+            # Switch to main branch if we're on a detached HEAD (tag)
+            if [ "$(git symbolic-ref -q HEAD)" = "" ]; then
+              git checkout main
+              git pull origin main
+            fi
+            
             git add CHANGELOG.md
-            git commit -m "docs: update CHANGELOG.md for ${{ github.ref_name }}"
-            git push origin HEAD:main
+            git commit -m "docs: update CHANGELOG.md for ${TAG_NAME}"
+            git push origin main
           fi
 
   # Create release notes on new releases
