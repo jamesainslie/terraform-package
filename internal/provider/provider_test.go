@@ -160,13 +160,13 @@ func TestPackageProvider_Schema_ErrorHandling(t *testing.T) {
 
 	// Check that error handling attributes exist
 	errorHandlingAttrs := []string{
-		"retry_count", "retry_delay", "fail_on_download", 
+		"retry_count", "retry_delay", "fail_on_download",
 		"cleanup_on_error", "verify_downloads", "checksum_validation",
 	}
 
 	for _, attr := range errorHandlingAttrs {
 		if _, exists := schema.Attributes[attr]; !exists {
-			t.Error("Schema should include '"+attr+"' attribute for error handling")
+			t.Error("Schema should include '" + attr + "' attribute for error handling")
 		}
 	}
 }
@@ -175,7 +175,7 @@ func TestPackageProvider_Schema_ErrorHandling(t *testing.T) {
 func TestPackageProviderModel_ErrorHandling(t *testing.T) {
 	// Create a model instance to verify the struct includes error handling fields
 	model := PackageProviderModel{
-		DefaultManager:      types.StringValue("brew"),
+		DefaultManager:     types.StringValue("brew"),
 		AssumeYes:          types.BoolValue(true),
 		RetryCount:         types.Int64Value(3),
 		RetryDelay:         types.StringValue("30s"),

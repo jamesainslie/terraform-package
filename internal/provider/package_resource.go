@@ -73,7 +73,7 @@ type PackageResourceModel struct {
 	Dependencies       types.List   `tfsdk:"dependencies"`
 	InstallPriority    types.Int64  `tfsdk:"install_priority"`
 	DependencyStrategy types.String `tfsdk:"dependency_strategy"`
-	
+
 	// Enhanced State Tracking
 	TrackMetadata      types.Bool   `tfsdk:"track_metadata"`
 	TrackDependencies  types.Bool   `tfsdk:"track_dependencies"`
@@ -84,7 +84,7 @@ type PackageResourceModel struct {
 
 	// Timeouts
 	Timeouts *PackageResourceTimeouts `tfsdk:"timeouts"`
-	
+
 	// Drift Detection Configuration
 	DriftDetection *DriftDetectionConfig `tfsdk:"drift_detection"`
 }
@@ -112,10 +112,10 @@ type DependencyResolution struct {
 
 // DriftDetectionConfig defines drift detection configuration.
 type DriftDetectionConfig struct {
-	CheckVersion     types.Bool   `tfsdk:"check_version"`
-	CheckIntegrity   types.Bool   `tfsdk:"check_integrity"`
-	CheckDependencies types.Bool  `tfsdk:"check_dependencies"`
-	Remediation      types.String `tfsdk:"remediation"`
+	CheckVersion      types.Bool   `tfsdk:"check_version"`
+	CheckIntegrity    types.Bool   `tfsdk:"check_integrity"`
+	CheckDependencies types.Bool   `tfsdk:"check_dependencies"`
+	Remediation       types.String `tfsdk:"remediation"`
 }
 
 // PackageState represents the state of a package.
@@ -128,11 +128,11 @@ type PackageState struct {
 
 // DriftInfo contains information about detected drift.
 type DriftInfo struct {
-	HasVersionDrift    bool
-	HasIntegrityDrift  bool
-	HasDependencyDrift bool
-	CurrentVersion     string
-	DesiredVersion     string
+	HasVersionDrift     bool
+	HasIntegrityDrift   bool
+	HasDependencyDrift  bool
+	CurrentVersion      string
+	DesiredVersion      string
 	RemediationStrategy string
 }
 
@@ -418,13 +418,13 @@ func (r *PackageResource) Create(
 				dependencies = append(dependencies, strElem.ValueString())
 			}
 		}
-		
+
 		// Get dependency strategy
 		strategy := "install_missing"
 		if !data.DependencyStrategy.IsNull() {
 			strategy = data.DependencyStrategy.ValueString()
 		}
-		
+
 		// Resolve dependencies
 		resolution, err := r.resolveDependencies(createCtx, dependencies, strategy)
 		if err != nil {
@@ -434,7 +434,7 @@ func (r *PackageResource) Create(
 			)
 			return
 		}
-		
+
 		// Check for circular dependencies
 		if len(resolution.Circular) > 0 {
 			resp.Diagnostics.AddError(
@@ -443,7 +443,7 @@ func (r *PackageResource) Create(
 			)
 			return
 		}
-		
+
 		// Install dependencies in order based on strategy
 		if strategy == "install_missing" {
 			for _, dep := range resolution.InstallOrder {
@@ -462,7 +462,7 @@ func (r *PackageResource) Create(
 	// Install the main package with specified type
 	version := data.Version.ValueString()
 	packageType := r.getPackageType(data.PackageType)
-	
+
 	if err := manager.InstallWithType(createCtx, packageName, version, packageType); err != nil {
 		resp.Diagnostics.AddError(
 			"Package Installation Failed",
@@ -929,10 +929,10 @@ func (r *PackageResource) detectVersionDrift(current, desired PackageState) Drif
 		CurrentVersion: current.Version,
 		DesiredVersion: desired.Version,
 	}
-	
+
 	// Simple version comparison for now
 	drift.HasVersionDrift = current.Version != desired.Version
-	
+
 	return drift
 }
 
@@ -942,13 +942,13 @@ func (r *PackageResource) detectIntegrityDrift(packagePath, expectedChecksum str
 		ExpectedChecksum: expectedChecksum,
 		ActualChecksum:   "", // Would be computed from file
 	}
-	
+
 	// In a real implementation, we would:
 	// 1. Calculate checksum of the package file
 	// 2. Compare with expected checksum
 	// For now, assume no drift
 	drift.HasDrift = false
-	
+
 	return drift
 }
 

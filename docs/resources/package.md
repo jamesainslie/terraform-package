@@ -22,18 +22,40 @@ Manages a package installation across different package managers (Homebrew, APT,
 ### Optional
 
 - `aliases` (Map of String) Platform-specific package name overrides. Keys: 'darwin', 'linux', 'windows'. Values: platform-specific package names.
+- `dependencies` (List of String) List of package names that must be installed before this package. Dependencies will be resolved based on the dependency_strategy setting.
+- `dependency_strategy` (String) Strategy for handling dependencies. Valid values: 'install_missing', 'require_existing', 'ignore'. Defaults to 'install_missing'.
+- `drift_detection` (Block, Optional) Configuration for drift detection and remediation. (see [below for nested schema](#nestedblock--drift_detection))
 - `hold_dependencies` (Boolean) Whether to hold/pin package dependencies. Defaults to false.
+- `install_priority` (Number) Installation priority for dependency ordering. Higher numbers are installed first. Defaults to 0.
 - `managers` (List of String) Override the package manager selection. Valid values: 'auto', 'brew', 'apt', 'winget', 'choco'. Defaults to ['auto'] which auto-detects based on OS.
+- `package_type` (String) Type of package to install. Valid values: 'auto', 'formula', 'cask'. Defaults to 'auto' which auto-detects the package type. For Homebrew: 'formula' for command-line tools, 'cask' for GUI applications.
 - `pin` (Boolean) Whether to pin/hold the package at the current version to prevent upgrades. Defaults to false.
 - `reinstall_on_drift` (Boolean) If true, reinstall the package when version drift is detected. If false, only update version_actual. Defaults to true.
 - `state` (String) Desired state of the package. Valid values: 'present', 'absent'. Defaults to 'present'.
 - `timeouts` (Block, Optional) Timeout configuration for package operations. (see [below for nested schema](#nestedblock--timeouts))
+- `track_dependencies` (Boolean) Whether to track package dependency relationships. Defaults to false.
+- `track_metadata` (Boolean) Whether to track enhanced package metadata. Defaults to false.
+- `track_usage` (Boolean) Whether to track package usage statistics. Defaults to false.
 - `version` (String) Desired version of the package. Supports exact versions, semantic version ranges, or glob patterns depending on the package manager. Leave empty for latest version.
 
 ### Read-Only
 
+- `dependency_tree` (Map of String) Map of dependencies and their versions. Computed when track_dependencies is enabled.
 - `id` (String) Package identifier in the format 'manager:name'.
+- `installation_source` (String) Source from which the package was installed. Computed automatically.
+- `last_access` (String) Timestamp of last package access. Computed when track_usage is enabled.
 - `version_actual` (String) Actual installed version of the package. This is computed and shows the real installed version.
+
+<a id="nestedblock--drift_detection"></a>
+### Nested Schema for `drift_detection`
+
+Optional:
+
+- `check_dependencies` (Boolean) Whether to check dependency drift. Defaults to true.
+- `check_integrity` (Boolean) Whether to check package file integrity. Defaults to true.
+- `check_version` (Boolean) Whether to check for version drift. Defaults to true.
+- `remediation` (String) Remediation strategy for detected drift. Valid values: 'auto', 'manual', 'warn'. Defaults to 'auto'.
+
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

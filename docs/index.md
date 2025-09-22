@@ -81,11 +81,17 @@ data "pkg_package_search" "fonts" {
 - `apt_get_path` (String) Path to the apt-get binary. If not specified, will use default system path.
 - `assume_yes` (Boolean) Run package operations non-interactively, assuming 'yes' to all prompts. Defaults to true.
 - `brew_path` (String) Path to the Homebrew binary. If not specified, will use default system path.
+- `checksum_validation` (Boolean) Whether to validate package checksums when available. Defaults to true.
 - `choco_path` (String) Path to the Chocolatey binary. If not specified, will use default system path.
+- `cleanup_on_error` (Boolean) Whether to clean up partial installations on error. Defaults to true.
 - `default_manager` (String) Default package manager to use. Valid values: auto, brew, apt, winget, choco. Defaults to 'auto' which auto-detects based on OS.
+- `fail_on_download` (Boolean) Whether to fail immediately on download errors. Defaults to false (retry on download failures).
 - `lock_timeout` (String) Timeout for waiting on package manager locks (e.g., apt/dpkg). Defaults to '10m'.
+- `retry_count` (Number) Number of times to retry failed operations. Defaults to 3.
+- `retry_delay` (String) Delay between retry attempts (e.g., '30s', '1m'). Defaults to '30s'.
 - `sudo_enabled` (Boolean) Enable sudo usage for operations that require elevated privileges on Unix systems. Defaults to true.
 - `update_cache` (String) When to update package manager cache. Valid values: never, on_change, always. Defaults to 'on_change'.
+- `verify_downloads` (Boolean) Whether to verify downloaded packages before installation. Defaults to true.
 - `winget_path` (String) Path to the winget binary. If not specified, will use default system path.
 
 ## Configuration Examples

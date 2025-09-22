@@ -199,7 +199,7 @@ func (p *PackageProvider) Configure(
 	if data.LockTimeout.IsNull() {
 		data.LockTimeout = types.StringValue("10m")
 	}
-	
+
 	// Set defaults for error handling
 	if data.RetryCount.IsNull() {
 		data.RetryCount = types.Int64Value(3)
