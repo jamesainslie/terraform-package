@@ -68,6 +68,7 @@ type PackageResourceModel struct {
 	Aliases          types.Map    `tfsdk:"aliases"`
 	ReinstallOnDrift types.Bool   `tfsdk:"reinstall_on_drift"`
 	HoldDependencies types.Bool   `tfsdk:"hold_dependencies"`
+	PackageType      types.String `tfsdk:"package_type"`
 
 	// Timeouts
 	Timeouts *PackageResourceTimeouts `tfsdk:"timeouts"`
@@ -160,6 +161,15 @@ func (r *PackageResource) Schema(
 				Optional: true,
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
+			},
+			"package_type": schema.StringAttribute{
+				MarkdownDescription: "Type of package to install. " +
+					"Valid values: 'auto', 'formula', 'cask'. " +
+					"Defaults to 'auto' which auto-detects the package type. " +
+					"For Homebrew: 'formula' for command-line tools, 'cask' for GUI applications.",
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("auto"),
 			},
 		},
 

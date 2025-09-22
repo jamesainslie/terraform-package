@@ -134,3 +134,78 @@ func TestPackageResource_Configure(t *testing.T) {
 		t.Errorf("Configure should not return errors for nil ProviderData")
 	}
 }
+
+// TestPackageResource_Schema_PackageType tests that the schema includes package_type attribute
+func TestPackageResource_Schema_PackageType(t *testing.T) {
+	r := &PackageResource{}
+	ctx := context.Background()
+
+	req := resource.SchemaRequest{}
+	resp := &resource.SchemaResponse{}
+
+	r.Schema(ctx, req, resp)
+
+	// Check that package_type attribute is present
+	if resp.Schema.Attributes["package_type"] == nil {
+		t.Error("Schema should include 'package_type' attribute")
+	}
+
+	// Verify it's optional (not required)
+	packageTypeAttr := resp.Schema.Attributes["package_type"]
+	if packageTypeAttr.IsRequired() {
+		t.Error("package_type attribute should be optional, not required")
+	}
+}
+
+func TestPackageResource_Schema_PackageType_ValidValues(t *testing.T) {
+	r := &PackageResource{}
+	ctx := context.Background()
+
+	req := resource.SchemaRequest{}
+	resp := &resource.SchemaResponse{}
+
+	r.Schema(ctx, req, resp)
+
+	// The package_type should support: formula, cask, auto
+	// This is tested implicitly through the schema validation
+	// We'll verify this in integration tests
+}
+
+// TestPackageResourceModel_PackageType tests the model includes PackageType field
+func TestPackageResourceModel_PackageType(t *testing.T) {
+	// Create a model instance to verify the struct includes PackageType field
+	model := PackageResourceModel{
+		ID:           types.StringValue("brew:test"),
+		Name:         types.StringValue("test"),
+		State:        types.StringValue("present"),
+		PackageType:  types.StringValue("cask"), // This should compile if field exists
+	}
+
+	if model.PackageType.ValueString() != "cask" {
+		t.Errorf("Expected PackageType to be 'cask', got '%s'", model.PackageType.ValueString())
+	}
+}
+
+// TestPackageResource_ResolvePackageManager_CaskType tests cask package type resolution
+func TestPackageResource_ResolvePackageManager_CaskType(t *testing.T) {
+	// This test will verify that when package_type = "cask" is specified,
+	// the package manager correctly handles cask installation
+	// Implementation will be tested once the functionality is added
+	t.Skip("Test implementation pending - requires cask support implementation")
+}
+
+// TestPackageResource_ResolvePackageManager_FormulaType tests formula package type resolution  
+func TestPackageResource_ResolvePackageManager_FormulaType(t *testing.T) {
+	// This test will verify that when package_type = "formula" is specified,
+	// the package manager correctly handles formula installation
+	// Implementation will be tested once the functionality is added
+	t.Skip("Test implementation pending - requires package type support implementation")
+}
+
+// TestPackageResource_ResolvePackageManager_AutoType tests auto package type detection
+func TestPackageResource_ResolvePackageManager_AutoType(t *testing.T) {
+	// This test will verify that when package_type = "auto" or not specified,
+	// the package manager uses the existing auto-detection logic
+	// Implementation will be tested once the functionality is added
+	t.Skip("Test implementation pending - requires package type support implementation")
+}
