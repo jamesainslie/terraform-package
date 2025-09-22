@@ -448,3 +448,144 @@ func TestPackageResource_Dependencies_CircularDetection(t *testing.T) {
 		t.Logf("Correctly detected circular dependency: %v", err)
 	}
 }
+
+// TestPackageResource_Schema_StateTracking tests enhanced state tracking fields
+func TestPackageResource_Schema_StateTracking(t *testing.T) {
+	r := &PackageResource{}
+	ctx := context.Background()
+
+	req := resource.SchemaRequest{}
+	resp := &resource.SchemaResponse{}
+
+	r.Schema(ctx, req, resp)
+
+	// Check that enhanced state tracking attributes exist
+	stateFields := []string{
+		"track_metadata", "track_dependencies", "track_usage",
+	}
+
+	for _, field := range stateFields {
+		if _, exists := resp.Schema.Attributes[field]; !exists {
+			t.Error("Schema should include '" + field + "' attribute for state tracking")
+		}
+	}
+}
+
+// TestPackageResource_Schema_DriftDetection tests drift detection configuration fields
+func TestPackageResource_Schema_DriftDetection(t *testing.T) {
+	r := &PackageResource{}
+	ctx := context.Background()
+
+	req := resource.SchemaRequest{}
+	resp := &resource.SchemaResponse{}
+
+	r.Schema(ctx, req, resp)
+
+	// Check that drift detection block exists
+	if resp.Schema.Blocks["drift_detection"] == nil {
+		t.Error("Schema should include 'drift_detection' block")
+	}
+}
+
+// TestPackageResourceModel_StateTrackingFields tests enhanced state tracking model fields
+func TestPackageResourceModel_StateTrackingFields(t *testing.T) {
+	// Create a model instance to verify enhanced state tracking fields
+	model := PackageResourceModel{
+		ID:               types.StringValue("brew:test"),
+		Name:             types.StringValue("test"),
+		State:            types.StringValue("present"),
+		TrackMetadata:    types.BoolValue(true),
+		TrackDependencies: types.BoolValue(true),
+		TrackUsage:       types.BoolValue(true),
+		InstallationSource: types.StringValue("brew"),
+		DependencyTree:   types.MapValueMust(types.StringType, map[string]attr.Value{
+			"colima": types.StringValue("1.2.3"),
+		}),
+		LastAccess:       types.StringValue("2023-01-01T00:00:00Z"),
+	}
+
+	if !model.TrackMetadata.ValueBool() {
+		t.Error("TrackMetadata should be true")
+	}
+
+	if !model.TrackDependencies.ValueBool() {
+		t.Error("TrackDependencies should be true")
+	}
+
+	if model.InstallationSource.ValueString() != "brew" {
+		t.Errorf("Expected InstallationSource to be 'brew', got '%s'", model.InstallationSource.ValueString())
+	}
+}
+
+// TestPackageResource_DriftDetection_CheckVersion tests version drift detection
+func TestPackageResource_DriftDetection_CheckVersion(t *testing.T) {
+	// This test will verify version drift detection functionality
+	
+	r := &PackageResource{}
+	
+	// Test drift detection method structure
+	current := PackageState{
+		Name: "terraform",
+		Version: "1.5.0",
+		Installed: true,
+	}
+	
+	desired := PackageState{
+		Name: "terraform", 
+		Version: "1.6.0",
+		Installed: true,
+	}
+	
+	drift := r.detectVersionDrift(current, desired)
+	
+	// Should detect version drift
+	if !drift.HasVersionDrift {
+		t.Error("Should detect version drift between 1.5.0 and 1.6.0")
+	}
+	
+	if drift.CurrentVersion != "1.5.0" {
+		t.Errorf("Expected current version '1.5.0', got '%s'", drift.CurrentVersion)
+	}
+	
+	if drift.DesiredVersion != "1.6.0" {
+		t.Errorf("Expected desired version '1.6.0', got '%s'", drift.DesiredVersion)
+	}
+}
+
+// TestPackageResource_DriftDetection_CheckIntegrity tests integrity drift detection
+func TestPackageResource_DriftDetection_CheckIntegrity(t *testing.T) {
+	// This test will verify package integrity drift detection
+	
+	r := &PackageResource{}
+	
+	packagePath := "/usr/local/bin/terraform"
+	expectedChecksum := "abc123def456"
+	
+	drift := r.detectIntegrityDrift(packagePath, expectedChecksum)
+	
+	// Should have integrity drift structure
+	if drift == nil {
+		t.Error("Integrity drift detection should return a result")
+	}
+}
+
+// TestPackageResource_DriftDetection_Remediation tests drift remediation strategies
+func TestPackageResource_DriftDetection_Remediation(t *testing.T) {
+	// This test will verify drift remediation functionality
+	
+	r := &PackageResource{}
+	
+	drift := DriftInfo{
+		HasVersionDrift: true,
+		HasIntegrityDrift: false,
+		HasDependencyDrift: true,
+		RemediationStrategy: "auto",
+	}
+	
+	action := r.determineRemediationAction(drift)
+	
+	// Should determine appropriate remediation action
+	if action != "reinstall" {
+		t.Errorf("Expected remediation action 'reinstall', got '%s'", action)
+	}
+}

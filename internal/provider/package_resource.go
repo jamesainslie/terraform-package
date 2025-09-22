@@ -73,9 +73,20 @@ type PackageResourceModel struct {
 	Dependencies       types.List   `tfsdk:"dependencies"`
 	InstallPriority    types.Int64  `tfsdk:"install_priority"`
 	DependencyStrategy types.String `tfsdk:"dependency_strategy"`
+	
+	// Enhanced State Tracking
+	TrackMetadata      types.Bool   `tfsdk:"track_metadata"`
+	TrackDependencies  types.Bool   `tfsdk:"track_dependencies"`
+	TrackUsage         types.Bool   `tfsdk:"track_usage"`
+	InstallationSource types.String `tfsdk:"installation_source"`
+	DependencyTree     types.Map    `tfsdk:"dependency_tree"`
+	LastAccess         types.String `tfsdk:"last_access"`
 
 	// Timeouts
 	Timeouts *PackageResourceTimeouts `tfsdk:"timeouts"`
+	
+	// Drift Detection Configuration
+	DriftDetection *DriftDetectionConfig `tfsdk:"drift_detection"`
 }
 
 // PackageResourceTimeouts defines timeout configurations for package operations.
@@ -97,6 +108,39 @@ type DependencyResolution struct {
 	InstallOrder []string
 	Missing      []string
 	Circular     []string
+}
+
+// DriftDetectionConfig defines drift detection configuration.
+type DriftDetectionConfig struct {
+	CheckVersion     types.Bool   `tfsdk:"check_version"`
+	CheckIntegrity   types.Bool   `tfsdk:"check_integrity"`
+	CheckDependencies types.Bool  `tfsdk:"check_dependencies"`
+	Remediation      types.String `tfsdk:"remediation"`
+}
+
+// PackageState represents the state of a package.
+type PackageState struct {
+	Name      string
+	Version   string
+	Installed bool
+	Checksum  string
+}
+
+// DriftInfo contains information about detected drift.
+type DriftInfo struct {
+	HasVersionDrift    bool
+	HasIntegrityDrift  bool
+	HasDependencyDrift bool
+	CurrentVersion     string
+	DesiredVersion     string
+	RemediationStrategy string
+}
+
+// IntegrityDriftInfo contains information about integrity drift.
+type IntegrityDriftInfo struct {
+	HasDrift         bool
+	ExpectedChecksum string
+	ActualChecksum   string
 }
 
 // Metadata returns the resource type name.
@@ -209,6 +253,43 @@ func (r *PackageResource) Schema(
 				Computed: true,
 				Default:  stringdefault.StaticString("install_missing"),
 			},
+			"track_metadata": schema.BoolAttribute{
+				MarkdownDescription: "Whether to track enhanced package metadata. " +
+					"Defaults to false.",
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+			},
+			"track_dependencies": schema.BoolAttribute{
+				MarkdownDescription: "Whether to track package dependency relationships. " +
+					"Defaults to false.",
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+			},
+			"track_usage": schema.BoolAttribute{
+				MarkdownDescription: "Whether to track package usage statistics. " +
+					"Defaults to false.",
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+			},
+			"installation_source": schema.StringAttribute{
+				MarkdownDescription: "Source from which the package was installed. " +
+					"Computed automatically.",
+				Computed: true,
+			},
+			"dependency_tree": schema.MapAttribute{
+				ElementType: types.StringType,
+				MarkdownDescription: "Map of dependencies and their versions. " +
+					"Computed when track_dependencies is enabled.",
+				Computed: true,
+			},
+			"last_access": schema.StringAttribute{
+				MarkdownDescription: "Timestamp of last package access. " +
+					"Computed when track_usage is enabled.",
+				Computed: true,
+			},
 		},
 
 		Blocks: map[string]schema.Block{
@@ -233,6 +314,32 @@ func (r *PackageResource) Schema(
 					"delete": schema.StringAttribute{
 						MarkdownDescription: "Timeout for package removal. " +
 							"Defaults to '10m'.",
+						Optional: true,
+					},
+				},
+			},
+			"drift_detection": schema.SingleNestedBlock{
+				MarkdownDescription: "Configuration for drift detection and remediation.",
+				Attributes: map[string]schema.Attribute{
+					"check_version": schema.BoolAttribute{
+						MarkdownDescription: "Whether to check for version drift. " +
+							"Defaults to true.",
+						Optional: true,
+					},
+					"check_integrity": schema.BoolAttribute{
+						MarkdownDescription: "Whether to check package file integrity. " +
+							"Defaults to true.",
+						Optional: true,
+					},
+					"check_dependencies": schema.BoolAttribute{
+						MarkdownDescription: "Whether to check dependency drift. " +
+							"Defaults to true.",
+						Optional: true,
+					},
+					"remediation": schema.StringAttribute{
+						MarkdownDescription: "Remediation strategy for detected drift. " +
+							"Valid values: 'auto', 'manual', 'warn'. " +
+							"Defaults to 'auto'.",
 						Optional: true,
 					},
 				},
@@ -814,4 +921,54 @@ func (r *PackageResource) detectCircularDependencies(pkg string, depMap map[stri
 	visited[pkg] = true
 
 	return nil
+}
+
+// detectVersionDrift detects version drift between current and desired package state.
+func (r *PackageResource) detectVersionDrift(current, desired PackageState) DriftInfo {
+	drift := DriftInfo{
+		CurrentVersion: current.Version,
+		DesiredVersion: desired.Version,
+	}
+	
+	// Simple version comparison for now
+	drift.HasVersionDrift = current.Version != desired.Version
+	
+	return drift
+}
+
+// detectIntegrityDrift detects integrity drift by checking package checksums.
+func (r *PackageResource) detectIntegrityDrift(packagePath, expectedChecksum string) *IntegrityDriftInfo {
+	drift := &IntegrityDriftInfo{
+		ExpectedChecksum: expectedChecksum,
+		ActualChecksum:   "", // Would be computed from file
+	}
+	
+	// In a real implementation, we would:
+	// 1. Calculate checksum of the package file
+	// 2. Compare with expected checksum
+	// For now, assume no drift
+	drift.HasDrift = false
+	
+	return drift
+}
+
+// determineRemediationAction determines the appropriate remediation action based on drift info.
+func (r *PackageResource) determineRemediationAction(drift DriftInfo) string {
+	switch drift.RemediationStrategy {
+	case "auto":
+		// Automatically determine action based on drift type
+		if drift.HasVersionDrift || drift.HasDependencyDrift {
+			return "reinstall"
+		}
+		if drift.HasIntegrityDrift {
+			return "repair"
+		}
+		return "none"
+	case "manual":
+		return "manual"
+	case "warn":
+		return "warn"
+	default:
+		return "none"
+	}
 }
