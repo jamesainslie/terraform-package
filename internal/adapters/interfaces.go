@@ -27,6 +27,15 @@ import (
 	"context"
 )
 
+// PackageType represents the type of package
+type PackageType string
+
+const (
+	PackageTypeAuto    PackageType = "auto"
+	PackageTypeFormula PackageType = "formula"
+	PackageTypeCask    PackageType = "cask"
+)
+
 // PackageInfo represents information about a package.
 type PackageInfo struct {
 	Name              string
@@ -35,6 +44,7 @@ type PackageInfo struct {
 	Installed         bool
 	Pinned            bool
 	Repository        string
+	Type              PackageType // Type of package (formula, cask, etc.)
 }
 
 // PackageManager defines the interface that all package manager adapters must implement.
@@ -45,8 +55,14 @@ type PackageManager interface {
 	// Install installs a package with optional version specification
 	Install(ctx context.Context, name, version string) error
 
+	// InstallWithType installs a package with explicit type and optional version specification
+	InstallWithType(ctx context.Context, name, version string, packageType PackageType) error
+
 	// Remove uninstalls a package
 	Remove(ctx context.Context, name string) error
+
+	// RemoveWithType uninstalls a package with explicit type
+	RemoveWithType(ctx context.Context, name string, packageType PackageType) error
 
 	// Pin pins/holds a package at current version
 	Pin(ctx context.Context, name string, pin bool) error

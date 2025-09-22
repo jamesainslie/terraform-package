@@ -220,6 +220,13 @@ func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bo
 		Pinned:    info.Pinned,
 	}
 
+	// Set package type based on detection method
+	if isCask {
+		packageInfo.Type = adapters.PackageTypeCask
+	} else {
+		packageInfo.Type = adapters.PackageTypeFormula
+	}
+
 	// Set current version if installed
 	if len(info.Installed) > 0 {
 		packageInfo.Version = info.Installed[0].Version
@@ -243,11 +250,29 @@ func (b *BrewAdapter) getPackageInfo(ctx context.Context, name string, isCask bo
 
 // Install installs a package with optional version specification.
 func (b *BrewAdapter) Install(ctx context.Context, name, version string) error {
-	// Check if it's a cask first
-	isCask, err := b.isCask(ctx, name)
-	if err != nil {
-		// If we can't determine, try as formula first
+	// Use auto-detection for backward compatibility
+	return b.InstallWithType(ctx, name, version, adapters.PackageTypeAuto)
+}
+
+// InstallWithType installs a package with explicit type and optional version specification.
+func (b *BrewAdapter) InstallWithType(ctx context.Context, name, version string, packageType adapters.PackageType) error {
+	var isCask bool
+	var err error
+
+	switch packageType {
+	case adapters.PackageTypeCask:
+		isCask = true
+	case adapters.PackageTypeFormula:
 		isCask = false
+	case adapters.PackageTypeAuto:
+		// Auto-detect as before
+		isCask, err = b.isCask(ctx, name)
+		if err != nil {
+			// If we can't determine, try as formula first
+			isCask = false
+		}
+	default:
+		return fmt.Errorf("unsupported package type: %s", packageType)
 	}
 
 	args := []string{"install"}
@@ -279,11 +304,29 @@ func (b *BrewAdapter) Install(ctx context.Context, name, version string) error {
 
 // Remove uninstalls a package.
 func (b *BrewAdapter) Remove(ctx context.Context, name string) error {
-	// Check if it's a cask
-	isCask, err := b.isCask(ctx, name)
-	if err != nil {
-		// If we can't determine, try as formula first
+	// Use auto-detection for backward compatibility
+	return b.RemoveWithType(ctx, name, adapters.PackageTypeAuto)
+}
+
+// RemoveWithType uninstalls a package with explicit type.
+func (b *BrewAdapter) RemoveWithType(ctx context.Context, name string, packageType adapters.PackageType) error {
+	var isCask bool
+	var err error
+
+	switch packageType {
+	case adapters.PackageTypeCask:
+		isCask = true
+	case adapters.PackageTypeFormula:
 		isCask = false
+	case adapters.PackageTypeAuto:
+		// Auto-detect as before
+		isCask, err = b.isCask(ctx, name)
+		if err != nil {
+			// If we can't determine, try as formula first
+			isCask = false
+		}
+	default:
+		return fmt.Errorf("unsupported package type: %s", packageType)
 	}
 
 	args := []string{"uninstall"}

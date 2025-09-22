@@ -264,9 +264,11 @@ func (r *PackageResource) Create(
 		}
 	}
 
-	// Install the package
+	// Install the package with specified type
 	version := data.Version.ValueString()
-	if err := manager.Install(createCtx, packageName, version); err != nil {
+	packageType := r.getPackageType(data.PackageType)
+
+	if err := manager.InstallWithType(createCtx, packageName, version, packageType); err != nil {
 		resp.Diagnostics.AddError(
 			"Package Installation Failed",
 			fmt.Sprintf("Failed to install package %s: %v", packageName, err),
@@ -371,9 +373,11 @@ func (r *PackageResource) Update(
 	defer cancel()
 
 	// Handle state change (present -> absent or absent -> present)
+	packageType := r.getPackageType(data.PackageType)
+
 	if data.State.ValueString() == "absent" {
-		// Remove the package
-		if err := manager.Remove(updateCtx, packageName); err != nil {
+		// Remove the package with specified type
+		if err := manager.RemoveWithType(updateCtx, packageName, packageType); err != nil {
 			resp.Diagnostics.AddError(
 				"Package Removal Failed",
 				fmt.Sprintf("Failed to remove package %s: %v", packageName, err),
@@ -381,9 +385,9 @@ func (r *PackageResource) Update(
 			return
 		}
 	} else {
-		// Install/update the package
+		// Install/update the package with specified type
 		version := data.Version.ValueString()
-		if err := manager.Install(updateCtx, packageName, version); err != nil {
+		if err := manager.InstallWithType(updateCtx, packageName, version, packageType); err != nil {
 			resp.Diagnostics.AddError(
 				"Package Installation Failed",
 				fmt.Sprintf("Failed to install/update package %s: %v", packageName, err),
@@ -452,8 +456,9 @@ func (r *PackageResource) Delete(
 		}
 	}
 
-	// Remove the package
-	if err := manager.Remove(deleteCtx, packageName); err != nil {
+	// Remove the package with specified type
+	packageType := r.getPackageType(data.PackageType)
+	if err := manager.RemoveWithType(deleteCtx, packageName, packageType); err != nil {
 		resp.Diagnostics.AddError(
 			"Package Removal Failed",
 			fmt.Sprintf("Failed to remove package %s: %v", packageName, err),
@@ -496,6 +501,11 @@ func (r *PackageResource) ImportState(
 
 func (r *PackageResource) resolvePackageManager(
 	ctx context.Context, data PackageResourceModel) (adapters.PackageManager, string, error) {
+	// Check if provider data is available
+	if r.providerData == nil {
+		return nil, "", fmt.Errorf("provider data is not configured")
+	}
+
 	// Determine which manager to use
 	managerName := "auto"
 	if !data.Managers.IsNull() && len(data.Managers.Elements()) > 0 {
@@ -602,4 +612,22 @@ func (r *PackageResource) getTimeout(timeoutStr types.String, defaultTimeout str
 	}
 
 	return timeout
+}
+
+func (r *PackageResource) getPackageType(packageTypeValue types.String) adapters.PackageType {
+	if packageTypeValue.IsNull() || packageTypeValue.ValueString() == "" {
+		return adapters.PackageTypeAuto
+	}
+
+	switch packageTypeValue.ValueString() {
+	case "auto":
+		return adapters.PackageTypeAuto
+	case "formula":
+		return adapters.PackageTypeFormula
+	case "cask":
+		return adapters.PackageTypeCask
+	default:
+		// Default to auto if invalid value
+		return adapters.PackageTypeAuto
+	}
 }
