@@ -51,15 +51,21 @@ type PackageProvider struct {
 
 // PackageProviderModel describes the provider data model.
 type PackageProviderModel struct {
-	DefaultManager types.String `tfsdk:"default_manager"`
-	AssumeYes      types.Bool   `tfsdk:"assume_yes"`
-	SudoEnabled    types.Bool   `tfsdk:"sudo_enabled"`
-	BrewPath       types.String `tfsdk:"brew_path"`
-	AptGetPath     types.String `tfsdk:"apt_get_path"`
-	WingetPath     types.String `tfsdk:"winget_path"`
-	ChocoPath      types.String `tfsdk:"choco_path"`
-	UpdateCache    types.String `tfsdk:"update_cache"`
-	LockTimeout    types.String `tfsdk:"lock_timeout"`
+	DefaultManager     types.String `tfsdk:"default_manager"`
+	AssumeYes          types.Bool   `tfsdk:"assume_yes"`
+	SudoEnabled        types.Bool   `tfsdk:"sudo_enabled"`
+	BrewPath           types.String `tfsdk:"brew_path"`
+	AptGetPath         types.String `tfsdk:"apt_get_path"`
+	WingetPath         types.String `tfsdk:"winget_path"`
+	ChocoPath          types.String `tfsdk:"choco_path"`
+	UpdateCache        types.String `tfsdk:"update_cache"`
+	LockTimeout        types.String `tfsdk:"lock_timeout"`
+	RetryCount         types.Int64  `tfsdk:"retry_count"`
+	RetryDelay         types.String `tfsdk:"retry_delay"`
+	FailOnDownload     types.Bool   `tfsdk:"fail_on_download"`
+	CleanupOnError     types.Bool   `tfsdk:"cleanup_on_error"`
+	VerifyDownloads    types.Bool   `tfsdk:"verify_downloads"`
+	ChecksumValidation types.Bool   `tfsdk:"checksum_validation"`
 }
 
 // ProviderData holds the configured provider data that will be passed to resources and data sources.
@@ -132,6 +138,36 @@ func (p *PackageProvider) Schema(
 					"Defaults to '10m'.",
 				Optional: true,
 			},
+			"retry_count": schema.Int64Attribute{
+				MarkdownDescription: "Number of times to retry failed operations. " +
+					"Defaults to 3.",
+				Optional: true,
+			},
+			"retry_delay": schema.StringAttribute{
+				MarkdownDescription: "Delay between retry attempts (e.g., '30s', '1m'). " +
+					"Defaults to '30s'.",
+				Optional: true,
+			},
+			"fail_on_download": schema.BoolAttribute{
+				MarkdownDescription: "Whether to fail immediately on download errors. " +
+					"Defaults to false (retry on download failures).",
+				Optional: true,
+			},
+			"cleanup_on_error": schema.BoolAttribute{
+				MarkdownDescription: "Whether to clean up partial installations on error. " +
+					"Defaults to true.",
+				Optional: true,
+			},
+			"verify_downloads": schema.BoolAttribute{
+				MarkdownDescription: "Whether to verify downloaded packages before installation. " +
+					"Defaults to true.",
+				Optional: true,
+			},
+			"checksum_validation": schema.BoolAttribute{
+				MarkdownDescription: "Whether to validate package checksums when available. " +
+					"Defaults to true.",
+				Optional: true,
+			},
 		},
 	}
 }
@@ -162,6 +198,26 @@ func (p *PackageProvider) Configure(
 	}
 	if data.LockTimeout.IsNull() {
 		data.LockTimeout = types.StringValue("10m")
+	}
+	
+	// Set defaults for error handling
+	if data.RetryCount.IsNull() {
+		data.RetryCount = types.Int64Value(3)
+	}
+	if data.RetryDelay.IsNull() {
+		data.RetryDelay = types.StringValue("30s")
+	}
+	if data.FailOnDownload.IsNull() {
+		data.FailOnDownload = types.BoolValue(false)
+	}
+	if data.CleanupOnError.IsNull() {
+		data.CleanupOnError = types.BoolValue(true)
+	}
+	if data.VerifyDownloads.IsNull() {
+		data.VerifyDownloads = types.BoolValue(true)
+	}
+	if data.ChecksumValidation.IsNull() {
+		data.ChecksumValidation = types.BoolValue(true)
 	}
 
 	// Validate configuration values
