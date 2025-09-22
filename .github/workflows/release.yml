@@ -149,10 +149,10 @@ jobs:
       - name: Log existing release
         if: steps.check_release.outputs.release_exists == 'true'
         run: |
-          echo "ℹ️ Release ${{ github.ref_name }} already exists with the following assets:"
+          echo "INFO: Release ${{ github.ref_name }} already exists with the following assets:"
           gh release view ${{ github.ref_name }} --json assets --jq '.assets[] | "  - " + .name + " (" + (.size | tostring) + " bytes)"'
-          echo "✅ Skipping GoReleaser execution to prevent duplicate asset upload failures"
-          echo "🎯 This is expected behavior when re-running releases with the same tag"
+          echo "SUCCESS: Skipping GoReleaser execution to prevent duplicate asset upload failures"
+          echo "NOTE: This is expected behavior when re-running releases with the same tag"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -28,6 +28,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
@@ -138,5 +139,61 @@ func TestPackageProvider_DataSources(t *testing.T) {
 	// Should have 10 data sources in Phase 2.4 (comprehensive data source suite)
 	if len(dataSources) != 10 {
 		t.Errorf("Expected 10 data sources in Phase 2.4, got %d", len(dataSources))
+	}
+}
+
+// TestPackageProvider_Schema_ErrorHandling tests that error handling fields are included
+func TestPackageProvider_Schema_ErrorHandling(t *testing.T) {
+	p := New("test")()
+	ctx := context.Background()
+
+	req := provider.SchemaRequest{}
+	resp := &provider.SchemaResponse{}
+
+	p.Schema(ctx, req, resp)
+
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Schema should not have errors: %v", resp.Diagnostics.Errors())
+	}
+
+	schema := resp.Schema
+
+	// Check that error handling attributes exist
+	errorHandlingAttrs := []string{
+		"retry_count", "retry_delay", "fail_on_download",
+		"cleanup_on_error", "verify_downloads", "checksum_validation",
+	}
+
+	for _, attr := range errorHandlingAttrs {
+		if _, exists := schema.Attributes[attr]; !exists {
+			t.Error("Schema should include '" + attr + "' attribute for error handling")
+		}
+	}
+}
+
+// TestPackageProviderModel_ErrorHandling tests the model includes error handling fields
+func TestPackageProviderModel_ErrorHandling(t *testing.T) {
+	// Create a model instance to verify the struct includes error handling fields
+	model := PackageProviderModel{
+		DefaultManager:     types.StringValue("brew"),
+		AssumeYes:          types.BoolValue(true),
+		RetryCount:         types.Int64Value(3),
+		RetryDelay:         types.StringValue("30s"),
+		FailOnDownload:     types.BoolValue(false),
+		CleanupOnError:     types.BoolValue(true),
+		VerifyDownloads:    types.BoolValue(true),
+		ChecksumValidation: types.BoolValue(true),
+	}
+
+	if model.RetryCount.ValueInt64() != 3 {
+		t.Errorf("Expected RetryCount to be 3, got %d", model.RetryCount.ValueInt64())
+	}
+
+	if model.RetryDelay.ValueString() != "30s" {
+		t.Errorf("Expected RetryDelay to be '30s', got '%s'", model.RetryDelay.ValueString())
+	}
+
+	if model.VerifyDownloads.ValueBool() != true {
+		t.Errorf("Expected VerifyDownloads to be true, got %t", model.VerifyDownloads.ValueBool())
 	}
 }
