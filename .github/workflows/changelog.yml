@@ -40,11 +40,12 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: |
-            # Use git-cliff action with retry logic
+            # Use git-cliff action with retry logic  
+            TAG_NAME="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}"
             docker run --rm -v "${PWD}":/workdir -w /workdir \
               orhunp/git-cliff:2.10.0 \
               --config .cliff.toml \
-              --verbose --unreleased --tag 0.1.0 \
+              --verbose \
               --output CHANGELOG.md
         
       - name: Commit changelog directly to main
