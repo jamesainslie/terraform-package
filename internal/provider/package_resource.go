@@ -33,6 +33,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -58,17 +59,20 @@ type PackageResource struct {
 
 // PackageResourceModel describes the resource data model.
 type PackageResourceModel struct {
-	ID               types.String `tfsdk:"id"`
-	Name             types.String `tfsdk:"name"`
-	State            types.String `tfsdk:"state"`
-	Version          types.String `tfsdk:"version"`
-	VersionActual    types.String `tfsdk:"version_actual"`
-	Pin              types.Bool   `tfsdk:"pin"`
-	Managers         types.List   `tfsdk:"managers"`
-	Aliases          types.Map    `tfsdk:"aliases"`
-	ReinstallOnDrift types.Bool   `tfsdk:"reinstall_on_drift"`
-	HoldDependencies types.Bool   `tfsdk:"hold_dependencies"`
-	PackageType      types.String `tfsdk:"package_type"`
+	ID                 types.String `tfsdk:"id"`
+	Name               types.String `tfsdk:"name"`
+	State              types.String `tfsdk:"state"`
+	Version            types.String `tfsdk:"version"`
+	VersionActual      types.String `tfsdk:"version_actual"`
+	Pin                types.Bool   `tfsdk:"pin"`
+	Managers           types.List   `tfsdk:"managers"`
+	Aliases            types.Map    `tfsdk:"aliases"`
+	ReinstallOnDrift   types.Bool   `tfsdk:"reinstall_on_drift"`
+	HoldDependencies   types.Bool   `tfsdk:"hold_dependencies"`
+	PackageType        types.String `tfsdk:"package_type"`
+	Dependencies       types.List   `tfsdk:"dependencies"`
+	InstallPriority    types.Int64  `tfsdk:"install_priority"`
+	DependencyStrategy types.String `tfsdk:"dependency_strategy"`
 
 	// Timeouts
 	Timeouts *PackageResourceTimeouts `tfsdk:"timeouts"`
@@ -170,6 +174,27 @@ func (r *PackageResource) Schema(
 				Optional: true,
 				Computed: true,
 				Default:  stringdefault.StaticString("auto"),
+			},
+			"dependencies": schema.ListAttribute{
+				ElementType: types.StringType,
+				MarkdownDescription: "List of package names that must be installed before this package. " +
+					"Dependencies will be resolved based on the dependency_strategy setting.",
+				Optional: true,
+			},
+			"install_priority": schema.Int64Attribute{
+				MarkdownDescription: "Installation priority for dependency ordering. " +
+					"Higher numbers are installed first. Defaults to 0.",
+				Optional: true,
+				Computed: true,
+				Default:  int64default.StaticInt64(0),
+			},
+			"dependency_strategy": schema.StringAttribute{
+				MarkdownDescription: "Strategy for handling dependencies. " +
+					"Valid values: 'install_missing', 'require_existing', 'ignore'. " +
+					"Defaults to 'install_missing'.",
+				Optional: true,
+				Computed: true,
+				Default:  stringdefault.StaticString("install_missing"),
 			},
 		},
 

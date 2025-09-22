@@ -28,6 +28,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -251,25 +252,104 @@ func TestPackageResource_ResolvePackageManager_FormulaType(t *testing.T) {
 // TestPackageResource_ResolvePackageManager_AutoType tests auto package type detection
 func TestPackageResource_ResolvePackageManager_AutoType(t *testing.T) {
 	r := &PackageResource{}
-
+	
 	data := PackageResourceModel{
 		Name:        types.StringValue("terraform"),
 		PackageType: types.StringValue("auto"),
 		State:       types.StringValue("present"),
 	}
-
+	
 	ctx := context.Background()
-
+	
 	defer func() {
 		if r := recover(); r != nil {
 			t.Errorf("resolvePackageManager should not panic, but got: %v", r)
 		}
 	}()
-
+	
 	_, _, err := r.resolvePackageManager(ctx, data)
-
+	
 	// We expect an error due to missing provider data
 	if err == nil {
 		t.Error("Expected error due to missing provider data, but got none")
+	}
+}
+
+// TestPackageResource_Schema_Dependencies tests that dependencies field is included
+func TestPackageResource_Schema_Dependencies(t *testing.T) {
+	r := &PackageResource{}
+	ctx := context.Background()
+
+	req := resource.SchemaRequest{}
+	resp := &resource.SchemaResponse{}
+
+	r.Schema(ctx, req, resp)
+
+	// Check that dependencies attribute is present
+	if resp.Schema.Attributes["dependencies"] == nil {
+		t.Error("Schema should include 'dependencies' attribute")
+	}
+
+	// Verify it's optional (not required)
+	dependenciesAttr := resp.Schema.Attributes["dependencies"]
+	if dependenciesAttr.IsRequired() {
+		t.Error("dependencies attribute should be optional, not required")
+	}
+}
+
+// TestPackageResource_Schema_InstallPriority tests install_priority field
+func TestPackageResource_Schema_InstallPriority(t *testing.T) {
+	r := &PackageResource{}
+	ctx := context.Background()
+
+	req := resource.SchemaRequest{}
+	resp := &resource.SchemaResponse{}
+
+	r.Schema(ctx, req, resp)
+
+	// Check that install_priority attribute is present
+	if resp.Schema.Attributes["install_priority"] == nil {
+		t.Error("Schema should include 'install_priority' attribute")
+	}
+}
+
+// TestPackageResource_Schema_DependencyStrategy tests dependency_strategy field
+func TestPackageResource_Schema_DependencyStrategy(t *testing.T) {
+	r := &PackageResource{}
+	ctx := context.Background()
+
+	req := resource.SchemaRequest{}
+	resp := &resource.SchemaResponse{}
+
+	r.Schema(ctx, req, resp)
+
+	// Check that dependency_strategy attribute is present
+	if resp.Schema.Attributes["dependency_strategy"] == nil {
+		t.Error("Schema should include 'dependency_strategy' attribute")
+	}
+}
+
+// TestPackageResourceModel_DependencyFields tests the model includes dependency fields
+func TestPackageResourceModel_DependencyFields(t *testing.T) {
+	// Create a model instance to verify the struct includes dependency fields
+	model := PackageResourceModel{
+		ID:                 types.StringValue("brew:test"),
+		Name:               types.StringValue("test"),
+		State:              types.StringValue("present"),
+		Dependencies:       types.ListValueMust(types.StringType, []attr.Value{types.StringValue("dep1")}),
+		InstallPriority:    types.Int64Value(10),
+		DependencyStrategy: types.StringValue("install_missing"),
+	}
+
+	if model.Dependencies.IsNull() {
+		t.Error("Dependencies field should not be null")
+	}
+
+	if model.InstallPriority.ValueInt64() != 10 {
+		t.Errorf("Expected InstallPriority to be 10, got %d", model.InstallPriority.ValueInt64())
+	}
+
+	if model.DependencyStrategy.ValueString() != "install_missing" {
+		t.Errorf("Expected DependencyStrategy to be 'install_missing', got '%s'", model.DependencyStrategy.ValueString())
 	}
 }
