@@ -854,18 +854,14 @@ func (r *PackageResource) resolveDependencies(ctx context.Context, dependencies 
 	switch strategy {
 	case "install_missing":
 		// Check which dependencies are missing and add them to install order
-		for _, dep := range dependencies {
-			// In a real implementation, we would check if the package is installed
-			// For now, assume all dependencies need to be installed
-			resolution.InstallOrder = append(resolution.InstallOrder, dep)
-		}
+		// In a real implementation, we would check if the package is installed
+		// For now, assume all dependencies need to be installed
+		resolution.InstallOrder = append(resolution.InstallOrder, dependencies...)
 	case "require_existing":
 		// Check which dependencies are missing and fail if any are missing
-		for _, dep := range dependencies {
-			// In a real implementation, we would check if package exists
-			// For testing purposes, assume any dependency is missing
-			resolution.Missing = append(resolution.Missing, dep)
-		}
+		// In a real implementation, we would check if package exists
+		// For testing purposes, assume any dependency is missing
+		resolution.Missing = append(resolution.Missing, dependencies...)
 		if len(resolution.Missing) > 0 {
 			return resolution, fmt.Errorf("required dependencies not found: %v", resolution.Missing)
 		}
