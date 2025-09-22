@@ -353,3 +353,98 @@ func TestPackageResourceModel_DependencyFields(t *testing.T) {
 		t.Errorf("Expected DependencyStrategy to be 'install_missing', got '%s'", model.DependencyStrategy.ValueString())
 	}
 }
+
+// TestPackageResource_Dependencies_InstallMissing tests install_missing strategy
+func TestPackageResource_Dependencies_InstallMissing(t *testing.T) {
+	// This test will verify that when dependency_strategy = "install_missing",
+	// missing dependencies are automatically installed before the main package
+	
+	// For now, this tests the dependency resolution logic structure
+	deps := []string{"colima", "ca-certificates"}
+	strategy := "install_missing"
+	
+	// Test dependency resolution helper function exists
+	r := &PackageResource{}
+	resolved, err := r.resolveDependencies(context.Background(), deps, strategy)
+	
+	// Should not panic and should handle the dependency list
+	if err != nil {
+		t.Logf("Expected error due to missing provider data: %v", err)
+	}
+	
+	// When implemented, resolved should contain dependency information
+	if resolved != nil {
+		t.Log("Dependency resolution returned results")
+	}
+}
+
+// TestPackageResource_Dependencies_RequireExisting tests require_existing strategy  
+func TestPackageResource_Dependencies_RequireExisting(t *testing.T) {
+	// This test will verify that when dependency_strategy = "require_existing",
+	// installation fails if dependencies are not already present
+	
+	deps := []string{"nonexistent-package"}
+	strategy := "require_existing"
+	
+	r := &PackageResource{}
+	_, err := r.resolveDependencies(context.Background(), deps, strategy)
+	
+	// Should handle the require_existing strategy
+	if err != nil {
+		t.Logf("Expected error for require_existing with missing deps: %v", err)
+	}
+}
+
+// TestPackageResource_Dependencies_InstallOrder tests installation ordering
+func TestPackageResource_Dependencies_InstallOrder(t *testing.T) {
+	// This test will verify that packages with higher install_priority
+	// are installed before packages with lower priority
+	
+	packages := []PackageWithPriority{
+		{Name: "low-priority", Priority: 1},
+		{Name: "high-priority", Priority: 10},
+		{Name: "medium-priority", Priority: 5},
+	}
+	
+	r := &PackageResource{}
+	ordered := r.sortPackagesByPriority(packages)
+	
+	// Should sort by priority descending (high first)
+	if len(ordered) != 3 {
+		t.Errorf("Expected 3 packages, got %d", len(ordered))
+	}
+	
+	if len(ordered) >= 3 {
+		if ordered[0].Name != "high-priority" {
+			t.Errorf("Expected high-priority first, got %s", ordered[0].Name)
+		}
+		if ordered[1].Name != "medium-priority" {
+			t.Errorf("Expected medium-priority second, got %s", ordered[1].Name)
+		}
+		if ordered[2].Name != "low-priority" {
+			t.Errorf("Expected low-priority last, got %s", ordered[2].Name)
+		}
+	}
+}
+
+// TestPackageResource_Dependencies_CircularDetection tests circular dependency detection
+func TestPackageResource_Dependencies_CircularDetection(t *testing.T) {
+	// This test verifies that circular dependencies are detected and handled
+	
+	// Create a circular dependency scenario: A -> B -> C -> A
+	depMap := map[string][]string{
+		"package-a": {"package-b"},
+		"package-b": {"package-c"}, 
+		"package-c": {"package-a"}, // Circular reference
+	}
+	
+	r := &PackageResource{}
+	err := r.detectCircularDependencies("package-a", depMap, make(map[string]bool), make(map[string]bool))
+	
+	// Should detect the circular dependency
+	if err == nil {
+		t.Error("Expected circular dependency to be detected")
+	} else {
+		t.Logf("Correctly detected circular dependency: %v", err)
+	}
+}

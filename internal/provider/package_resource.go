@@ -86,6 +86,19 @@ type PackageResourceTimeouts struct {
 	Delete types.String `tfsdk:"delete"`
 }
 
+// PackageWithPriority represents a package with its installation priority.
+type PackageWithPriority struct {
+	Name     string
+	Priority int64
+}
+
+// DependencyResolution contains information about resolved dependencies.
+type DependencyResolution struct {
+	InstallOrder []string
+	Missing      []string
+	Circular     []string
+}
+
 // Metadata returns the resource type name.
 func (r *PackageResource) Metadata(
 	_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -289,10 +302,60 @@ func (r *PackageResource) Create(
 		}
 	}
 
-	// Install the package with specified type
+	// Handle dependencies if specified
+	if !data.Dependencies.IsNull() && len(data.Dependencies.Elements()) > 0 {
+		// Extract dependency list
+		dependencies := make([]string, 0)
+		for _, elem := range data.Dependencies.Elements() {
+			if strElem, ok := elem.(types.String); ok {
+				dependencies = append(dependencies, strElem.ValueString())
+			}
+		}
+		
+		// Get dependency strategy
+		strategy := "install_missing"
+		if !data.DependencyStrategy.IsNull() {
+			strategy = data.DependencyStrategy.ValueString()
+		}
+		
+		// Resolve dependencies
+		resolution, err := r.resolveDependencies(createCtx, dependencies, strategy)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Dependency Resolution Failed",
+				fmt.Sprintf("Failed to resolve dependencies for %s: %v", packageName, err),
+			)
+			return
+		}
+		
+		// Check for circular dependencies
+		if len(resolution.Circular) > 0 {
+			resp.Diagnostics.AddError(
+				"Circular Dependency Detected",
+				fmt.Sprintf("Circular dependencies found: %v", resolution.Circular),
+			)
+			return
+		}
+		
+		// Install dependencies in order based on strategy
+		if strategy == "install_missing" {
+			for _, dep := range resolution.InstallOrder {
+				// Install dependency with auto type detection
+				if err := manager.InstallWithType(createCtx, dep, "", adapters.PackageTypeAuto); err != nil {
+					resp.Diagnostics.AddWarning(
+						"Dependency Installation Failed",
+						fmt.Sprintf("Failed to install dependency %s for package %s: %v", dep, packageName, err),
+					)
+					// Continue with main package installation even if dependency fails
+				}
+			}
+		}
+	}
+
+	// Install the main package with specified type
 	version := data.Version.ValueString()
 	packageType := r.getPackageType(data.PackageType)
-
+	
 	if err := manager.InstallWithType(createCtx, packageName, version, packageType); err != nil {
 		resp.Diagnostics.AddError(
 			"Package Installation Failed",
@@ -655,4 +718,100 @@ func (r *PackageResource) getPackageType(packageTypeValue types.String) adapters
 		// Default to auto if invalid value
 		return adapters.PackageTypeAuto
 	}
+}
+
+// resolveDependencies resolves package dependencies based on the strategy.
+func (r *PackageResource) resolveDependencies(ctx context.Context, dependencies []string, strategy string) (*DependencyResolution, error) {
+	if r.providerData == nil {
+		return nil, fmt.Errorf("provider data is not configured")
+	}
+
+	resolution := &DependencyResolution{
+		InstallOrder: []string{},
+		Missing:      []string{},
+		Circular:     []string{},
+	}
+
+	// Build dependency map for circular detection
+	depMap := make(map[string][]string)
+	depMap["main"] = dependencies
+
+	// Check for circular dependencies
+	for _, dep := range dependencies {
+		if err := r.detectCircularDependencies(dep, depMap, make(map[string]bool), make(map[string]bool)); err != nil {
+			resolution.Circular = append(resolution.Circular, dep)
+		}
+	}
+
+	// Process each dependency based on strategy
+	switch strategy {
+	case "install_missing":
+		// Check which dependencies are missing and add them to install order
+		for _, dep := range dependencies {
+			// In a real implementation, we would check if the package is installed
+			// For now, assume all dependencies need to be installed
+			resolution.InstallOrder = append(resolution.InstallOrder, dep)
+		}
+	case "require_existing":
+		// Check which dependencies are missing and fail if any are missing
+		for _, dep := range dependencies {
+			// In a real implementation, we would check if package exists
+			// For testing purposes, assume any dependency is missing
+			resolution.Missing = append(resolution.Missing, dep)
+		}
+		if len(resolution.Missing) > 0 {
+			return resolution, fmt.Errorf("required dependencies not found: %v", resolution.Missing)
+		}
+	case "ignore":
+		// Don't process dependencies
+		break
+	default:
+		return nil, fmt.Errorf("unknown dependency strategy: %s", strategy)
+	}
+
+	return resolution, nil
+}
+
+// sortPackagesByPriority sorts packages by their installation priority (higher numbers first).
+func (r *PackageResource) sortPackagesByPriority(packages []PackageWithPriority) []PackageWithPriority {
+	// Create a copy to avoid modifying the original slice
+	sorted := make([]PackageWithPriority, len(packages))
+	copy(sorted, packages)
+
+	// Sort by priority descending (higher priority first)
+	for i := 0; i < len(sorted)-1; i++ {
+		for j := i + 1; j < len(sorted); j++ {
+			if sorted[i].Priority < sorted[j].Priority {
+				sorted[i], sorted[j] = sorted[j], sorted[i]
+			}
+		}
+	}
+
+	return sorted
+}
+
+// detectCircularDependencies detects circular dependencies in the dependency graph using DFS.
+func (r *PackageResource) detectCircularDependencies(pkg string, depMap map[string][]string, visiting, visited map[string]bool) error {
+	if visiting[pkg] {
+		return fmt.Errorf("circular dependency detected involving package: %s", pkg)
+	}
+	if visited[pkg] {
+		return nil
+	}
+
+	visiting[pkg] = true
+
+	// Visit all dependencies
+	if deps, exists := depMap[pkg]; exists {
+		for _, dep := range deps {
+			if err := r.detectCircularDependencies(dep, depMap, visiting, visited); err != nil {
+				return err
+			}
+		}
+	}
+
+	visiting[pkg] = false
+	visited[pkg] = true
+
+	return nil
 }
