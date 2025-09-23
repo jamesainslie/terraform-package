@@ -298,6 +298,9 @@ func (p *PackageProvider) DataSources(_ context.Context) []func() datasource.Dat
 		NewDependenciesDataSource,
 		NewVersionHistoryDataSource,
 		NewSecurityInfoDataSource,
+		// Service status data sources
+		NewServiceStatusDataSource,
+		NewServicesOverviewDataSource,
 	}
 }
 
