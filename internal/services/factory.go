@@ -32,14 +32,14 @@ import (
 func NewServiceDetector(executor executor.Executor) ServiceDetector {
 	mapping := GetDefaultMapping()
 	healthChecker := NewDefaultHealthChecker(executor)
-	
+
 	return newPlatformServiceDetector(executor, mapping, healthChecker)
 }
 
 // NewServiceDetectorWithMapping creates a service detector with custom mapping
 func NewServiceDetectorWithMapping(executor executor.Executor, mapping *PackageServiceMapping) ServiceDetector {
 	healthChecker := NewDefaultHealthChecker(executor)
-	
+
 	return newPlatformServiceDetector(executor, mapping, healthChecker)
 }
 

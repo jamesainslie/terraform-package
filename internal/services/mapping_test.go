@@ -170,7 +170,7 @@ func TestGetDefaultHealthCheck(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := mapping.GetDefaultHealthCheck(tt.serviceName)
-			
+
 			if tt.expectNil {
 				if result != nil {
 					t.Errorf("GetDefaultHealthCheck(%q) = %v, want nil", tt.serviceName, result)

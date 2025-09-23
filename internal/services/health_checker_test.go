@@ -136,10 +136,10 @@ func TestCheckHTTP(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/health" {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK"))
+			_, _ = w.Write([]byte("OK"))
 		} else if r.URL.Path == "/error" {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Error"))
+			_, _ = w.Write([]byte("Error"))
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 		}
