@@ -1,0 +1,56 @@
+run:
+  tests: true
+  timeout: 5m
+
+linters:
+  disable-all: true
+  enable:
+    # Essential linters for correctness
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - typecheck
+    
+    # Style and formatting (basic)
+    - gofmt
+    - goimports
+    - misspell
+    
+    # Security (essential)
+    - gosec
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: false  # Allow blank assignment to ignore errors where appropriate
+    
+  gosec:
+    excludes:
+      - G204  # Command injection - acceptable for package manager commands
+      - G301  # File permissions
+      - G302  # File permissions  
+      - G304  # File inclusion via variable
+      
+issues:
+  exclude-rules:
+    # Exclude linters from test files
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+        
+    # Exclude linters from examples  
+    - path: examples/
+      linters:
+        - errcheck
+        - gosec
+        
+    # Exclude specific error messages
+    - text: "Error return value.*is not checked"
+      path: _test\.go
+      
+  max-issues-per-linter: 0
+  max-same-issues: 0
