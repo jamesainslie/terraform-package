@@ -136,9 +136,9 @@ func TestPackageProvider_DataSources(t *testing.T) {
 
 	dataSources := p.DataSources(ctx)
 
-	// Should have 10 data sources in Phase 2.4 (comprehensive data source suite)
-	if len(dataSources) != 10 {
-		t.Errorf("Expected 10 data sources in Phase 2.4, got %d", len(dataSources))
+	// Should have 12 data sources in Phase 2.4 (comprehensive data source suite + service status)
+	if len(dataSources) != 12 {
+		t.Errorf("Expected 12 data sources in Phase 2.4 (including service status), got %d", len(dataSources))
 	}
 }
 
