@@ -71,7 +71,14 @@ test-all: test test-acc
 .PHONY: lint
 lint:
 	@echo "Running linters..."
-	golangci-lint run ./...
+	@command -v golangci-lint >/dev/null 2>&1 || { echo "golangci-lint not found in PATH, trying ~/go/bin/golangci-lint..."; }
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run ./...; \
+	elif [ -f ~/go/bin/golangci-lint ]; then \
+		~/go/bin/golangci-lint run ./...; \
+	else \
+		echo "Error: golangci-lint not found. Run 'make dev-setup' to install."; exit 1; \
+	fi
 
 ## fmt: Format Go code
 .PHONY: fmt
@@ -86,6 +93,19 @@ vet:
 	@echo "Running go vet..."
 	go vet ./...
 
+## staticcheck: Run staticcheck static analysis
+.PHONY: staticcheck
+staticcheck:
+	@echo "Running staticcheck..."
+	@command -v staticcheck >/dev/null 2>&1 || { echo "staticcheck not found in PATH, trying ~/go/bin/staticcheck..."; }
+	@if command -v staticcheck >/dev/null 2>&1; then \
+		staticcheck ./...; \
+	elif [ -f ~/go/bin/staticcheck ]; then \
+		~/go/bin/staticcheck ./...; \
+	else \
+		echo "Error: staticcheck not found. Install with: go install honnef.co/go/tools/cmd/staticcheck@latest"; exit 1; \
+	fi
+
 ## mod: Tidy and verify go modules
 .PHONY: mod
 mod:
@@ -93,9 +113,11 @@ mod:
 	go mod tidy
 	go mod verify
 
-## generate: Generate documentation
+## generate: Generate documentation and tools
 .PHONY: generate
 generate:
+	@echo "Generating tools..."
+	cd tools && go generate ./...
 	@echo "Generating documentation..."
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
 	tfplugindocs generate --provider-name pkg
@@ -114,6 +136,7 @@ dev-setup:
 	@echo "Setting up development environment..."
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go install golang.org/x/tools/cmd/goimports@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 
@@ -126,8 +149,39 @@ security:
 
 ## check: Run all quality checks
 .PHONY: check
-check: fmt vet lint test security
+check: fmt vet lint staticcheck test security
 	@echo "All quality checks passed!"
+
+## quality: Run comprehensive tests and quality checks
+.PHONY: quality
+quality:
+	@echo "=== COMPREHENSIVE QUALITY CHECK ==="
+	@echo "1. Running go vet..."
+	@$(MAKE) vet
+	@echo "✅ go vet passed"
+	@echo "2. Running golangci-lint..."
+	@$(MAKE) lint
+	@echo "✅ golangci-lint passed"
+	@echo "3. Running staticcheck..."
+	@$(MAKE) staticcheck
+	@echo "✅ staticcheck passed"
+	@echo "4. Running tests..."
+	@$(MAKE) test
+	@echo "✅ All tests passed"
+	@echo "5. Building project..."
+	@go build ./...
+	@echo "✅ Build successful"
+	@echo ""
+	@echo "🎉 ALL QUALITY CHECKS PASSED! 🎉"
+
+## lint-all: Run all linting tools (quick check)
+.PHONY: lint-all
+lint-all:
+	@echo "Running all linting tools..."
+	@$(MAKE) vet
+	@$(MAKE) lint
+	@$(MAKE) staticcheck
+	@echo "✅ All linting passed!"
 
 ## ci: Run CI-like checks locally
 .PHONY: ci
