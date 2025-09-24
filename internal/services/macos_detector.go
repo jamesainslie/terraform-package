@@ -382,30 +382,6 @@ func (m *MacOSServiceDetector) RestartService(ctx context.Context, serviceName s
 	return nil
 }
 
-// EnableService enables a service to start automatically on system startup
-func (m *MacOSServiceDetector) EnableService(ctx context.Context, serviceName string) error {
-	// Try brew services first
-	result, err := m.executor.Run(ctx, "brew", []string{"services", "start", serviceName}, executor.ExecOpts{})
-	if err == nil && result.ExitCode == 0 {
-		return nil
-	}
-
-	// For launchd services, we need to load the plist
-	// This is a simplified approach - in practice, you'd need to handle plist paths
-	result, err = m.executor.Run(ctx, "launchctl", []string{"load", "-w", fmt.Sprintf("/Library/LaunchDaemons/%s.plist", serviceName)}, executor.ExecOpts{})
-	if err != nil {
-		// Try user domain
-		result, err = m.executor.Run(ctx, "launchctl", []string{"load", "-w", fmt.Sprintf("~/Library/LaunchAgents/%s.plist", serviceName)}, executor.ExecOpts{})
-		if err != nil {
-			return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
-		}
-	}
-	if result.ExitCode != 0 {
-		return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
-	}
-	return nil
-}
-
 // DisableService disables a service from starting automatically on system startup
 func (m *MacOSServiceDetector) DisableService(ctx context.Context, serviceName string) error {
 	// Try brew services first
@@ -463,7 +439,26 @@ func (m *MacOSServiceDetector) IsServiceEnabled(ctx context.Context, serviceName
 // SetServiceStartup sets whether a service should start on system startup
 func (m *MacOSServiceDetector) SetServiceStartup(ctx context.Context, serviceName string, enabled bool) error {
 	if enabled {
-		return m.EnableService(ctx, serviceName)
+		// Try brew services first
+		result, err := m.executor.Run(ctx, "brew", []string{"services", "start", serviceName}, executor.ExecOpts{})
+		if err == nil && result.ExitCode == 0 {
+			return nil
+		}
+
+		// For launchd services, we need to load the plist
+		// This is a simplified approach - in practice, you'd need to handle plist paths
+		result, err = m.executor.Run(ctx, "launchctl", []string{"load", "-w", fmt.Sprintf("/Library/LaunchDaemons/%s.plist", serviceName)}, executor.ExecOpts{})
+		if err != nil {
+			// Try user domain
+			result, err = m.executor.Run(ctx, "launchctl", []string{"load", "-w", fmt.Sprintf("~/Library/LaunchAgents/%s.plist", serviceName)}, executor.ExecOpts{})
+			if err != nil {
+				return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
+			}
+		}
+		if result.ExitCode != 0 {
+			return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
+		}
+		return nil
 	}
 	return m.DisableService(ctx, serviceName)
 }

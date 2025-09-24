@@ -252,17 +252,6 @@ func (l *LinuxServiceDetector) RestartService(ctx context.Context, serviceName s
 	return nil
 }
 
-// EnableService enables a service to start automatically on system startup
-func (l *LinuxServiceDetector) EnableService(ctx context.Context, serviceName string) error {
-	result, err := l.executor.Run(ctx, "systemctl", []string{"enable", serviceName}, executor.ExecOpts{})
-	if err != nil {
-		return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
-	}
-	if result.ExitCode != 0 {
-		return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
-	}
-	return nil
-}
 
 // DisableService disables a service from starting automatically on system startup
 func (l *LinuxServiceDetector) DisableService(ctx context.Context, serviceName string) error {
@@ -282,7 +271,7 @@ func (l *LinuxServiceDetector) IsServiceEnabled(ctx context.Context, serviceName
 	if err != nil {
 		return false, fmt.Errorf("failed to check if service %s is enabled: %w", serviceName, err)
 	}
-	
+
 	// systemctl is-enabled returns "enabled" for enabled services
 	enabled := strings.TrimSpace(result.Stdout) == "enabled"
 	return enabled, nil
@@ -291,7 +280,14 @@ func (l *LinuxServiceDetector) IsServiceEnabled(ctx context.Context, serviceName
 // SetServiceStartup sets whether a service should start on system startup
 func (l *LinuxServiceDetector) SetServiceStartup(ctx context.Context, serviceName string, enabled bool) error {
 	if enabled {
-		return l.EnableService(ctx, serviceName)
+		result, err := l.executor.Run(ctx, "systemctl", []string{"enable", serviceName}, executor.ExecOpts{})
+		if err != nil {
+			return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
+		}
+		if result.ExitCode != 0 {
+			return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
+		}
+		return nil
 	}
 	return l.DisableService(ctx, serviceName)
 }

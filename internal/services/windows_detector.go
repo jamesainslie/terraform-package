@@ -252,18 +252,6 @@ func (w *WindowsServiceDetector) RestartService(ctx context.Context, serviceName
 	return nil
 }
 
-// EnableService enables a service to start automatically on system startup
-func (w *WindowsServiceDetector) EnableService(ctx context.Context, serviceName string) error {
-	cmd := fmt.Sprintf("Set-Service -Name '%s' -StartupType Automatic", serviceName)
-	result, err := w.executor.Run(ctx, "powershell", []string{"-Command", cmd}, executor.ExecOpts{})
-	if err != nil {
-		return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
-	}
-	if result.ExitCode != 0 {
-		return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
-	}
-	return nil
-}
 
 // DisableService disables a service from starting automatically on system startup
 func (w *WindowsServiceDetector) DisableService(ctx context.Context, serviceName string) error {
@@ -285,7 +273,7 @@ func (w *WindowsServiceDetector) IsServiceEnabled(ctx context.Context, serviceNa
 	if err != nil {
 		return false, fmt.Errorf("failed to check if service %s is enabled: %w", serviceName, err)
 	}
-	
+
 	// PowerShell returns "Automatic" for enabled services
 	enabled := strings.TrimSpace(result.Stdout) == "Automatic"
 	return enabled, nil
@@ -294,7 +282,15 @@ func (w *WindowsServiceDetector) IsServiceEnabled(ctx context.Context, serviceNa
 // SetServiceStartup sets whether a service should start on system startup
 func (w *WindowsServiceDetector) SetServiceStartup(ctx context.Context, serviceName string, enabled bool) error {
 	if enabled {
-		return w.EnableService(ctx, serviceName)
+		cmd := fmt.Sprintf("Set-Service -Name '%s' -StartupType Automatic", serviceName)
+		result, err := w.executor.Run(ctx, "powershell", []string{"-Command", cmd}, executor.ExecOpts{})
+		if err != nil {
+			return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
+		}
+		if result.ExitCode != 0 {
+			return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
+		}
+		return nil
 	}
 	return w.DisableService(ctx, serviceName)
 }

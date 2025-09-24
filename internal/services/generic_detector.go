@@ -187,12 +187,6 @@ func (g *GenericServiceDetector) RestartService(ctx context.Context, serviceName
 	return fmt.Errorf("generic service detector cannot restart services - use platform-specific detector")
 }
 
-// EnableService enables a service to start automatically on system startup (generic implementation - limited functionality)
-func (g *GenericServiceDetector) EnableService(ctx context.Context, serviceName string) error {
-	// Generic implementation cannot enable services - this would require platform-specific knowledge
-	return fmt.Errorf("generic service detector cannot enable services - use platform-specific detector")
-}
-
 // DisableService disables a service from starting automatically on system startup (generic implementation - limited functionality)
 func (g *GenericServiceDetector) DisableService(ctx context.Context, serviceName string) error {
 	// Generic implementation cannot disable services - this would require platform-specific knowledge

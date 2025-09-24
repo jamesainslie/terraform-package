@@ -62,9 +62,6 @@ type ServiceManager interface {
 	// RestartService restarts a service
 	RestartService(ctx context.Context, serviceName string) error
 
-	// EnableService enables a service to start automatically on system startup
-	EnableService(ctx context.Context, serviceName string) error
-
 	// DisableService disables a service from starting automatically on system startup
 	DisableService(ctx context.Context, serviceName string) error
 
