@@ -124,9 +124,9 @@ func TestPackageProvider_Resources(t *testing.T) {
 
 	resources := p.Resources(ctx)
 
-	// Should have 2 resources in Phase 2.3 (pkg_package, pkg_repo)
-	if len(resources) != 2 {
-		t.Errorf("Expected 2 resources in Phase 2.3, got %d", len(resources))
+	// Should have 3 resources in Phase 2 (pkg_package, pkg_repo, pkg_service)
+	if len(resources) != 3 {
+		t.Errorf("Expected 3 resources in Phase 2 (including service management), got %d", len(resources))
 	}
 }
 

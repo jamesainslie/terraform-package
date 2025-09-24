@@ -41,6 +41,38 @@ type ServiceDetector interface {
 
 	// CheckHealth performs health checks on a service
 	CheckHealth(ctx context.Context, serviceName string, config *HealthCheckConfig) (*HealthResult, error)
+
+	// GetServicesForPackage returns service names associated with a package
+	GetServicesForPackage(packageName string) ([]string, error)
+
+	// GetPackageForService returns the package name associated with a service
+	GetPackageForService(serviceName string) (string, error)
+}
+
+// ServiceManager defines the interface for managing service lifecycle
+type ServiceManager interface {
+	ServiceDetector
+
+	// StartService starts a service
+	StartService(ctx context.Context, serviceName string) error
+
+	// StopService stops a service
+	StopService(ctx context.Context, serviceName string) error
+
+	// RestartService restarts a service
+	RestartService(ctx context.Context, serviceName string) error
+
+	// EnableService enables a service to start automatically on system startup
+	EnableService(ctx context.Context, serviceName string) error
+
+	// DisableService disables a service from starting automatically on system startup
+	DisableService(ctx context.Context, serviceName string) error
+
+	// IsServiceEnabled checks if a service is enabled for automatic startup
+	IsServiceEnabled(ctx context.Context, serviceName string) (bool, error)
+
+	// SetServiceStartup sets whether a service should start on system startup
+	SetServiceStartup(ctx context.Context, serviceName string, enabled bool) error
 }
 
 // ServiceInfo represents detailed information about a service
@@ -48,6 +80,7 @@ type ServiceInfo struct {
 	Name        string            `json:"name"`
 	Running     bool              `json:"running"`
 	Healthy     bool              `json:"healthy"`
+	Enabled     bool              `json:"enabled"` // Is service enabled for auto-start
 	Version     string            `json:"version,omitempty"`
 	ProcessID   string            `json:"process_id,omitempty"`
 	StartTime   *time.Time        `json:"start_time,omitempty"`
@@ -148,13 +181,13 @@ const (
 	PlatformWindows Platform = "windows"
 )
 
-// ServiceManager represents the type of service manager
-type ServiceManager string
+// ServiceManagerType represents the type of service manager
+type ServiceManagerType string
 
 const (
-	ServiceManagerLaunchd         ServiceManager = "launchd"
-	ServiceManagerSystemd         ServiceManager = "systemd"
-	ServiceManagerBrewServices    ServiceManager = "brew"
-	ServiceManagerWindowsServices ServiceManager = "windows"
-	ServiceManagerProcess         ServiceManager = "process"
+	ServiceManagerLaunchd         ServiceManagerType = "launchd"
+	ServiceManagerSystemd         ServiceManagerType = "systemd"
+	ServiceManagerBrewServices    ServiceManagerType = "brew"
+	ServiceManagerWindowsServices ServiceManagerType = "windows"
+	ServiceManagerProcess         ServiceManagerType = "process"
 )

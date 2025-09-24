@@ -28,7 +28,7 @@ import (
 	"github.com/jamesainslie/terraform-package/internal/executor"
 )
 
-// newPlatformServiceDetector creates a macOS-specific service detector
-func newPlatformServiceDetector(executor executor.Executor, mapping *PackageServiceMapping, healthChecker HealthChecker) ServiceDetector {
+// newPlatformServiceDetector creates a macOS-specific service detector/manager
+func newPlatformServiceDetector(executor executor.Executor, mapping *PackageServiceMapping, healthChecker HealthChecker) ServiceManager {
 	return NewMacOSServiceDetector(executor, mapping, healthChecker)
 }

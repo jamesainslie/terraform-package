@@ -24,12 +24,13 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/jamesainslie/terraform-package/internal/executor"
 )
 
-// GenericServiceDetector provides a basic service detection implementation
+// GenericServiceDetector provides a basic service detection and management implementation
 // that works on any platform by checking process names
 type GenericServiceDetector struct {
 	executor executor.Executor
@@ -57,6 +58,7 @@ func (g *GenericServiceDetector) GetServiceInfo(ctx context.Context, serviceName
 		Name:        serviceName,
 		Running:     false,
 		Healthy:     false,
+		Enabled:     false,
 		ManagerType: string(ServiceManagerProcess),
 		Metadata:    make(map[string]string),
 	}
@@ -80,6 +82,10 @@ func (g *GenericServiceDetector) GetServiceInfo(ctx context.Context, serviceName
 			Manager: "unknown",
 		}
 	}
+
+	// Check if service is enabled for automatic startup (generic implementation cannot determine this)
+	// The generic detector cannot determine if a service is enabled for startup
+	info.Enabled = false
 
 	// Perform health check if service is running
 	if info.Running {
@@ -163,5 +169,57 @@ func (g *GenericServiceDetector) checkProcessName(ctx context.Context, serviceNa
 	return false, nil
 }
 
-// Ensure GenericServiceDetector implements ServiceDetector interface
-var _ ServiceDetector = (*GenericServiceDetector)(nil)
+// StartService starts a service (generic implementation - limited functionality)
+func (g *GenericServiceDetector) StartService(ctx context.Context, serviceName string) error {
+	// Generic implementation cannot start services - this would require platform-specific knowledge
+	return fmt.Errorf("generic service detector cannot start services - use platform-specific detector")
+}
+
+// StopService stops a service (generic implementation - limited functionality)
+func (g *GenericServiceDetector) StopService(ctx context.Context, serviceName string) error {
+	// Generic implementation cannot stop services - this would require platform-specific knowledge
+	return fmt.Errorf("generic service detector cannot stop services - use platform-specific detector")
+}
+
+// RestartService restarts a service (generic implementation - limited functionality)
+func (g *GenericServiceDetector) RestartService(ctx context.Context, serviceName string) error {
+	// Generic implementation cannot restart services - this would require platform-specific knowledge
+	return fmt.Errorf("generic service detector cannot restart services - use platform-specific detector")
+}
+
+// EnableService enables a service to start automatically on system startup (generic implementation - limited functionality)
+func (g *GenericServiceDetector) EnableService(ctx context.Context, serviceName string) error {
+	// Generic implementation cannot enable services - this would require platform-specific knowledge
+	return fmt.Errorf("generic service detector cannot enable services - use platform-specific detector")
+}
+
+// DisableService disables a service from starting automatically on system startup (generic implementation - limited functionality)
+func (g *GenericServiceDetector) DisableService(ctx context.Context, serviceName string) error {
+	// Generic implementation cannot disable services - this would require platform-specific knowledge
+	return fmt.Errorf("generic service detector cannot disable services - use platform-specific detector")
+}
+
+// IsServiceEnabled checks if a service is enabled for automatic startup (generic implementation - limited functionality)
+func (g *GenericServiceDetector) IsServiceEnabled(ctx context.Context, serviceName string) (bool, error) {
+	// Generic implementation cannot check if services are enabled - this would require platform-specific knowledge
+	return false, fmt.Errorf("generic service detector cannot check if services are enabled - use platform-specific detector")
+}
+
+// SetServiceStartup sets whether a service should start on system startup (generic implementation - limited functionality)
+func (g *GenericServiceDetector) SetServiceStartup(ctx context.Context, serviceName string, enabled bool) error {
+	// Generic implementation cannot set service startup - this would require platform-specific knowledge
+	return fmt.Errorf("generic service detector cannot set service startup - use platform-specific detector")
+}
+
+// GetServicesForPackage returns service names associated with a package
+func (g *GenericServiceDetector) GetServicesForPackage(packageName string) ([]string, error) {
+	return g.mapping.GetServicesForPackage(packageName), nil
+}
+
+// GetPackageForService returns the package name associated with a service
+func (g *GenericServiceDetector) GetPackageForService(serviceName string) (string, error) {
+	return g.mapping.GetPackageForService(serviceName), nil
+}
+
+// Ensure GenericServiceDetector implements ServiceManager interface
+var _ ServiceManager = (*GenericServiceDetector)(nil)

@@ -34,7 +34,7 @@ import (
 	"github.com/jamesainslie/terraform-package/internal/executor"
 )
 
-// MacOSServiceDetector implements service detection for macOS using launchd and brew services
+// MacOSServiceDetector implements service detection and management for macOS using launchd and brew services
 type MacOSServiceDetector struct {
 	executor executor.Executor
 	mapping  *PackageServiceMapping
@@ -90,6 +90,7 @@ func (m *MacOSServiceDetector) GetServiceInfo(ctx context.Context, serviceName s
 		Name:        serviceName,
 		Running:     false,
 		Healthy:     false,
+		Enabled:     false,
 		ManagerType: string(ServiceManagerProcess), // default fallback
 		Metadata:    make(map[string]string),
 	}
@@ -144,6 +145,11 @@ func (m *MacOSServiceDetector) GetServiceInfo(ctx context.Context, serviceName s
 			info.Package.Version = version
 			info.Version = version
 		}
+	}
+
+	// Check if service is enabled for automatic startup
+	if enabled, err := m.IsServiceEnabled(ctx, serviceName); err == nil {
+		info.Enabled = enabled
 	}
 
 	// Perform health check if service is running
@@ -320,5 +326,157 @@ func (m *MacOSServiceDetector) getPackageVersion(ctx context.Context, packageNam
 	return "", fmt.Errorf("could not parse version for package %s", packageName)
 }
 
-// Ensure MacOSServiceDetector implements ServiceDetector interface
-var _ ServiceDetector = (*MacOSServiceDetector)(nil)
+// StartService starts a service using the appropriate service manager
+func (m *MacOSServiceDetector) StartService(ctx context.Context, serviceName string) error {
+	// Try brew services first
+	result, err := m.executor.Run(ctx, "brew", []string{"services", "start", serviceName}, executor.ExecOpts{})
+	if err == nil && result.ExitCode == 0 {
+		return nil
+	}
+
+	// Fallback to launchctl
+	result, err = m.executor.Run(ctx, "launchctl", []string{"start", serviceName}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to start service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to start service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// StopService stops a service using the appropriate service manager
+func (m *MacOSServiceDetector) StopService(ctx context.Context, serviceName string) error {
+	// Try brew services first
+	result, err := m.executor.Run(ctx, "brew", []string{"services", "stop", serviceName}, executor.ExecOpts{})
+	if err == nil && result.ExitCode == 0 {
+		return nil
+	}
+
+	// Fallback to launchctl
+	result, err = m.executor.Run(ctx, "launchctl", []string{"stop", serviceName}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to stop service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to stop service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// RestartService restarts a service using the appropriate service manager
+func (m *MacOSServiceDetector) RestartService(ctx context.Context, serviceName string) error {
+	// Try brew services first
+	result, err := m.executor.Run(ctx, "brew", []string{"services", "restart", serviceName}, executor.ExecOpts{})
+	if err == nil && result.ExitCode == 0 {
+		return nil
+	}
+
+	// Fallback to stop then start
+	if err := m.StopService(ctx, serviceName); err != nil {
+		return fmt.Errorf("failed to stop service %s during restart: %w", serviceName, err)
+	}
+	if err := m.StartService(ctx, serviceName); err != nil {
+		return fmt.Errorf("failed to start service %s during restart: %w", serviceName, err)
+	}
+	return nil
+}
+
+// EnableService enables a service to start automatically on system startup
+func (m *MacOSServiceDetector) EnableService(ctx context.Context, serviceName string) error {
+	// Try brew services first
+	result, err := m.executor.Run(ctx, "brew", []string{"services", "start", serviceName}, executor.ExecOpts{})
+	if err == nil && result.ExitCode == 0 {
+		return nil
+	}
+
+	// For launchd services, we need to load the plist
+	// This is a simplified approach - in practice, you'd need to handle plist paths
+	result, err = m.executor.Run(ctx, "launchctl", []string{"load", "-w", fmt.Sprintf("/Library/LaunchDaemons/%s.plist", serviceName)}, executor.ExecOpts{})
+	if err != nil {
+		// Try user domain
+		result, err = m.executor.Run(ctx, "launchctl", []string{"load", "-w", fmt.Sprintf("~/Library/LaunchAgents/%s.plist", serviceName)}, executor.ExecOpts{})
+		if err != nil {
+			return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
+		}
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// DisableService disables a service from starting automatically on system startup
+func (m *MacOSServiceDetector) DisableService(ctx context.Context, serviceName string) error {
+	// Try brew services first
+	result, err := m.executor.Run(ctx, "brew", []string{"services", "stop", serviceName}, executor.ExecOpts{})
+	if err == nil && result.ExitCode == 0 {
+		return nil
+	}
+
+	// For launchd services, we need to unload the plist
+	result, err = m.executor.Run(ctx, "launchctl", []string{"unload", "-w", fmt.Sprintf("/Library/LaunchDaemons/%s.plist", serviceName)}, executor.ExecOpts{})
+	if err != nil {
+		// Try user domain
+		result, err = m.executor.Run(ctx, "launchctl", []string{"unload", "-w", fmt.Sprintf("~/Library/LaunchAgents/%s.plist", serviceName)}, executor.ExecOpts{})
+		if err != nil {
+			return fmt.Errorf("failed to disable service %s: %w", serviceName, err)
+		}
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to disable service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// IsServiceEnabled checks if a service is enabled for automatic startup
+func (m *MacOSServiceDetector) IsServiceEnabled(ctx context.Context, serviceName string) (bool, error) {
+	// Try brew services first
+	result, err := m.executor.Run(ctx, "brew", []string{"services", "list", "--json"}, executor.ExecOpts{})
+	if err == nil && result.ExitCode == 0 {
+		var services []BrewService
+		if err := json.Unmarshal([]byte(result.Stdout), &services); err == nil {
+			for _, service := range services {
+				if service.Name == serviceName {
+					return service.Status == "started", nil
+				}
+			}
+		}
+	}
+
+	// For launchd services, check if plist is loaded
+	result, err = m.executor.Run(ctx, "launchctl", []string{"list"}, executor.ExecOpts{})
+	if err != nil {
+		return false, fmt.Errorf("failed to check if service %s is enabled: %w", serviceName, err)
+	}
+
+	// Check if service appears in launchctl list
+	lines := strings.Split(result.Stdout, "\n")
+	for _, line := range lines {
+		if strings.Contains(line, serviceName) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// SetServiceStartup sets whether a service should start on system startup
+func (m *MacOSServiceDetector) SetServiceStartup(ctx context.Context, serviceName string, enabled bool) error {
+	if enabled {
+		return m.EnableService(ctx, serviceName)
+	}
+	return m.DisableService(ctx, serviceName)
+}
+
+// GetServicesForPackage returns service names associated with a package
+func (m *MacOSServiceDetector) GetServicesForPackage(packageName string) ([]string, error) {
+	return m.mapping.GetServicesForPackage(packageName), nil
+}
+
+// GetPackageForService returns the package name associated with a service
+func (m *MacOSServiceDetector) GetPackageForService(serviceName string) (string, error) {
+	return m.mapping.GetPackageForService(serviceName), nil
+}
+
+// Ensure MacOSServiceDetector implements ServiceManager interface
+var _ ServiceManager = (*MacOSServiceDetector)(nil)

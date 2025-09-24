@@ -158,21 +158,21 @@ quality:
 	@echo "=== COMPREHENSIVE QUALITY CHECK ==="
 	@echo "1. Running go vet..."
 	@$(MAKE) vet
-	@echo "✅ go vet passed"
+	@echo " go vet passed"
 	@echo "2. Running golangci-lint..."
 	@$(MAKE) lint
-	@echo "✅ golangci-lint passed"
+	@echo " golangci-lint passed"
 	@echo "3. Running staticcheck..."
 	@$(MAKE) staticcheck
-	@echo "✅ staticcheck passed"
+	@echo " staticcheck passed"
 	@echo "4. Running tests..."
 	@$(MAKE) test
-	@echo "✅ All tests passed"
+	@echo " All tests passed"
 	@echo "5. Building project..."
 	@go build ./...
-	@echo "✅ Build successful"
+	@echo " Build successful"
 	@echo ""
-	@echo "🎉 ALL QUALITY CHECKS PASSED! 🎉"
+	@echo " ALL QUALITY CHECKS PASSED! "
 
 ## lint-all: Run all linting tools (quick check)
 .PHONY: lint-all
@@ -181,7 +181,7 @@ lint-all:
 	@$(MAKE) vet
 	@$(MAKE) lint
 	@$(MAKE) staticcheck
-	@echo "✅ All linting passed!"
+	@echo " All linting passed!"
 
 ## ci: Run CI-like checks locally
 .PHONY: ci

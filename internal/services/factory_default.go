@@ -28,7 +28,7 @@ import (
 	"github.com/jamesainslie/terraform-package/internal/executor"
 )
 
-// newPlatformServiceDetector creates a generic service detector for unsupported platforms
-func newPlatformServiceDetector(executor executor.Executor, mapping *PackageServiceMapping, healthChecker HealthChecker) ServiceDetector {
+// newPlatformServiceDetector creates a generic service detector/manager for unsupported platforms
+func newPlatformServiceDetector(executor executor.Executor, mapping *PackageServiceMapping, healthChecker HealthChecker) ServiceManager {
 	return NewGenericServiceDetector(executor, mapping, healthChecker)
 }

@@ -282,6 +282,8 @@ func (p *PackageProvider) Resources(_ context.Context) []func() resource.Resourc
 	return []func() resource.Resource{
 		NewPackageResource,
 		NewRepositoryResource,
+		// Service management resource
+		NewServiceResource,
 	}
 }
 

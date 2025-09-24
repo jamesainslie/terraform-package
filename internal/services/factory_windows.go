@@ -28,7 +28,7 @@ import (
 	"github.com/jamesainslie/terraform-package/internal/executor"
 )
 
-// newPlatformServiceDetector creates a Windows-specific service detector
-func newPlatformServiceDetector(executor executor.Executor, mapping *PackageServiceMapping, healthChecker HealthChecker) ServiceDetector {
+// newPlatformServiceDetector creates a Windows-specific service detector/manager
+func newPlatformServiceDetector(executor executor.Executor, mapping *PackageServiceMapping, healthChecker HealthChecker) ServiceManager {
 	return NewWindowsServiceDetector(executor, mapping, healthChecker)
 }

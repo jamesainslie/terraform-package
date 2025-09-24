@@ -32,7 +32,7 @@ import (
 	"github.com/jamesainslie/terraform-package/internal/executor"
 )
 
-// LinuxServiceDetector implements service detection for Linux using systemd
+// LinuxServiceDetector implements service detection and management for Linux using systemd
 type LinuxServiceDetector struct {
 	executor executor.Executor
 	mapping  *PackageServiceMapping
@@ -66,6 +66,7 @@ func (l *LinuxServiceDetector) GetServiceInfo(ctx context.Context, serviceName s
 		Name:        serviceName,
 		Running:     false,
 		Healthy:     false,
+		Enabled:     false,
 		ManagerType: string(ServiceManagerProcess),
 		Metadata:    make(map[string]string),
 	}
@@ -97,6 +98,11 @@ func (l *LinuxServiceDetector) GetServiceInfo(ctx context.Context, serviceName s
 			Name:    packageName,
 			Manager: "apt", // Default assumption for Linux
 		}
+	}
+
+	// Check if service is enabled for automatic startup
+	if enabled, err := l.IsServiceEnabled(ctx, serviceName); err == nil {
+		info.Enabled = enabled
 	}
 
 	// Perform health check if service is running
@@ -210,5 +216,95 @@ func (l *LinuxServiceDetector) checkProcessName(ctx context.Context, serviceName
 	return strings.TrimSpace(result.Stdout) != "", nil
 }
 
-// Ensure LinuxServiceDetector implements ServiceDetector interface
-var _ ServiceDetector = (*LinuxServiceDetector)(nil)
+// StartService starts a service using systemctl
+func (l *LinuxServiceDetector) StartService(ctx context.Context, serviceName string) error {
+	result, err := l.executor.Run(ctx, "systemctl", []string{"start", serviceName}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to start service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to start service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// StopService stops a service using systemctl
+func (l *LinuxServiceDetector) StopService(ctx context.Context, serviceName string) error {
+	result, err := l.executor.Run(ctx, "systemctl", []string{"stop", serviceName}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to stop service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to stop service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// RestartService restarts a service using systemctl
+func (l *LinuxServiceDetector) RestartService(ctx context.Context, serviceName string) error {
+	result, err := l.executor.Run(ctx, "systemctl", []string{"restart", serviceName}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to restart service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to restart service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// EnableService enables a service to start automatically on system startup
+func (l *LinuxServiceDetector) EnableService(ctx context.Context, serviceName string) error {
+	result, err := l.executor.Run(ctx, "systemctl", []string{"enable", serviceName}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// DisableService disables a service from starting automatically on system startup
+func (l *LinuxServiceDetector) DisableService(ctx context.Context, serviceName string) error {
+	result, err := l.executor.Run(ctx, "systemctl", []string{"disable", serviceName}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to disable service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to disable service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// IsServiceEnabled checks if a service is enabled for automatic startup
+func (l *LinuxServiceDetector) IsServiceEnabled(ctx context.Context, serviceName string) (bool, error) {
+	result, err := l.executor.Run(ctx, "systemctl", []string{"is-enabled", serviceName}, executor.ExecOpts{})
+	if err != nil {
+		return false, fmt.Errorf("failed to check if service %s is enabled: %w", serviceName, err)
+	}
+	
+	// systemctl is-enabled returns "enabled" for enabled services
+	enabled := strings.TrimSpace(result.Stdout) == "enabled"
+	return enabled, nil
+}
+
+// SetServiceStartup sets whether a service should start on system startup
+func (l *LinuxServiceDetector) SetServiceStartup(ctx context.Context, serviceName string, enabled bool) error {
+	if enabled {
+		return l.EnableService(ctx, serviceName)
+	}
+	return l.DisableService(ctx, serviceName)
+}
+
+// GetServicesForPackage returns service names associated with a package
+func (l *LinuxServiceDetector) GetServicesForPackage(packageName string) ([]string, error) {
+	return l.mapping.GetServicesForPackage(packageName), nil
+}
+
+// GetPackageForService returns the package name associated with a service
+func (l *LinuxServiceDetector) GetPackageForService(serviceName string) (string, error) {
+	return l.mapping.GetPackageForService(serviceName), nil
+}
+
+// Ensure LinuxServiceDetector implements ServiceManager interface
+var _ ServiceManager = (*LinuxServiceDetector)(nil)

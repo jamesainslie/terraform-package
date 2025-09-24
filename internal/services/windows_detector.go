@@ -26,12 +26,13 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/jamesainslie/terraform-package/internal/executor"
 )
 
-// WindowsServiceDetector implements service detection for Windows using Windows Services
+// WindowsServiceDetector implements service detection and management for Windows using Windows Services
 type WindowsServiceDetector struct {
 	executor executor.Executor
 	mapping  *PackageServiceMapping
@@ -72,6 +73,7 @@ func (w *WindowsServiceDetector) GetServiceInfo(ctx context.Context, serviceName
 		Name:        serviceName,
 		Running:     false,
 		Healthy:     false,
+		Enabled:     false,
 		ManagerType: string(ServiceManagerWindowsServices),
 		Metadata:    make(map[string]string),
 	}
@@ -102,6 +104,11 @@ func (w *WindowsServiceDetector) GetServiceInfo(ctx context.Context, serviceName
 			Name:    packageName,
 			Manager: "winget", // Default assumption for Windows
 		}
+	}
+
+	// Check if service is enabled for automatic startup
+	if enabled, err := w.IsServiceEnabled(ctx, serviceName); err == nil {
+		info.Enabled = enabled
 	}
 
 	// Perform health check if service is running
@@ -206,5 +213,101 @@ func (w *WindowsServiceDetector) checkProcessName(ctx context.Context, serviceNa
 	return count != "0" && count != "", nil
 }
 
-// Ensure WindowsServiceDetector implements ServiceDetector interface
-var _ ServiceDetector = (*WindowsServiceDetector)(nil)
+// StartService starts a service using PowerShell
+func (w *WindowsServiceDetector) StartService(ctx context.Context, serviceName string) error {
+	cmd := fmt.Sprintf("Start-Service -Name '%s'", serviceName)
+	result, err := w.executor.Run(ctx, "powershell", []string{"-Command", cmd}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to start service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to start service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// StopService stops a service using PowerShell
+func (w *WindowsServiceDetector) StopService(ctx context.Context, serviceName string) error {
+	cmd := fmt.Sprintf("Stop-Service -Name '%s'", serviceName)
+	result, err := w.executor.Run(ctx, "powershell", []string{"-Command", cmd}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to stop service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to stop service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// RestartService restarts a service using PowerShell
+func (w *WindowsServiceDetector) RestartService(ctx context.Context, serviceName string) error {
+	cmd := fmt.Sprintf("Restart-Service -Name '%s'", serviceName)
+	result, err := w.executor.Run(ctx, "powershell", []string{"-Command", cmd}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to restart service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to restart service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// EnableService enables a service to start automatically on system startup
+func (w *WindowsServiceDetector) EnableService(ctx context.Context, serviceName string) error {
+	cmd := fmt.Sprintf("Set-Service -Name '%s' -StartupType Automatic", serviceName)
+	result, err := w.executor.Run(ctx, "powershell", []string{"-Command", cmd}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to enable service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to enable service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// DisableService disables a service from starting automatically on system startup
+func (w *WindowsServiceDetector) DisableService(ctx context.Context, serviceName string) error {
+	cmd := fmt.Sprintf("Set-Service -Name '%s' -StartupType Disabled", serviceName)
+	result, err := w.executor.Run(ctx, "powershell", []string{"-Command", cmd}, executor.ExecOpts{})
+	if err != nil {
+		return fmt.Errorf("failed to disable service %s: %w", serviceName, err)
+	}
+	if result.ExitCode != 0 {
+		return fmt.Errorf("failed to disable service %s: %s", serviceName, result.Stderr)
+	}
+	return nil
+}
+
+// IsServiceEnabled checks if a service is enabled for automatic startup
+func (w *WindowsServiceDetector) IsServiceEnabled(ctx context.Context, serviceName string) (bool, error) {
+	cmd := fmt.Sprintf("(Get-Service -Name '%s').StartType", serviceName)
+	result, err := w.executor.Run(ctx, "powershell", []string{"-Command", cmd}, executor.ExecOpts{})
+	if err != nil {
+		return false, fmt.Errorf("failed to check if service %s is enabled: %w", serviceName, err)
+	}
+	
+	// PowerShell returns "Automatic" for enabled services
+	enabled := strings.TrimSpace(result.Stdout) == "Automatic"
+	return enabled, nil
+}
+
+// SetServiceStartup sets whether a service should start on system startup
+func (w *WindowsServiceDetector) SetServiceStartup(ctx context.Context, serviceName string, enabled bool) error {
+	if enabled {
+		return w.EnableService(ctx, serviceName)
+	}
+	return w.DisableService(ctx, serviceName)
+}
+
+// GetServicesForPackage returns service names associated with a package
+func (w *WindowsServiceDetector) GetServicesForPackage(packageName string) ([]string, error) {
+	return w.mapping.GetServicesForPackage(packageName), nil
+}
+
+// GetPackageForService returns the package name associated with a service
+func (w *WindowsServiceDetector) GetPackageForService(serviceName string) (string, error) {
+	return w.mapping.GetPackageForService(serviceName), nil
+}
+
+// Ensure WindowsServiceDetector implements ServiceManager interface
+var _ ServiceManager = (*WindowsServiceDetector)(nil)

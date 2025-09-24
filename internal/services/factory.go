@@ -33,11 +33,28 @@ func NewServiceDetector(executor executor.Executor) ServiceDetector {
 	mapping := GetDefaultMapping()
 	healthChecker := NewDefaultHealthChecker(executor)
 
-	return newPlatformServiceDetector(executor, mapping, healthChecker)
+	manager := newPlatformServiceDetector(executor, mapping, healthChecker)
+	return manager
 }
 
 // NewServiceDetectorWithMapping creates a service detector with custom mapping
 func NewServiceDetectorWithMapping(executor executor.Executor, mapping *PackageServiceMapping) ServiceDetector {
+	healthChecker := NewDefaultHealthChecker(executor)
+
+	manager := newPlatformServiceDetector(executor, mapping, healthChecker)
+	return manager
+}
+
+// NewServiceManager creates a platform-appropriate service manager
+func NewServiceManager(executor executor.Executor) ServiceManager {
+	mapping := GetDefaultMapping()
+	healthChecker := NewDefaultHealthChecker(executor)
+
+	return newPlatformServiceDetector(executor, mapping, healthChecker)
+}
+
+// NewServiceManagerWithMapping creates a service manager with custom mapping
+func NewServiceManagerWithMapping(executor executor.Executor, mapping *PackageServiceMapping) ServiceManager {
 	healthChecker := NewDefaultHealthChecker(executor)
 
 	return newPlatformServiceDetector(executor, mapping, healthChecker)
