@@ -185,7 +185,7 @@ func (h *DefaultHealthChecker) CheckTCP(ctx context.Context, host string, port i
 	}
 
 	// Close connection immediately
-	conn.Close()
+	_ = conn.Close()
 
 	return &HealthResult{
 		Healthy:      true,

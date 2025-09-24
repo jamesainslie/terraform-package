@@ -15,7 +15,7 @@ resource "pkg_service" "postgresql" {
   service_name = "postgresql"
   state        = "running"
   startup      = "enabled"
-  
+
   # Uses auto strategy by default, which will try:
   # 1. brew services (if supported)
   # 2. direct commands (if available)
@@ -25,20 +25,20 @@ resource "pkg_service" "postgresql" {
 # Example 2: Explicit brew services strategy
 resource "pkg_service" "redis" {
   service_name        = "redis"
-  state              = "running"
-  startup            = "enabled"
+  state               = "running"
+  startup             = "enabled"
   management_strategy = "brew_services"
-  
+
   # Explicitly use brew services management
 }
 
 # Example 3: Direct command strategy with custom commands
 resource "pkg_service" "colima" {
   service_name        = "colima"
-  state              = "running"
-  startup            = "enabled"
+  state               = "running"
+  startup             = "enabled"
   management_strategy = "direct_command"
-  
+
   # Custom commands for Colima
   custom_commands = {
     start   = ["colima", "start"]
@@ -46,14 +46,14 @@ resource "pkg_service" "colima" {
     restart = ["colima", "restart"]
     status  = ["colima", "status"]
   }
-  
+
   # Health check to ensure Colima is running properly
   health_check = {
     type    = "command"
     command = "colima status"
     timeout = "30s"
   }
-  
+
   wait_for_healthy = true
   wait_timeout     = "120s"
 }
@@ -61,10 +61,10 @@ resource "pkg_service" "colima" {
 # Example 4: Docker Desktop with direct command strategy
 resource "pkg_service" "docker_desktop" {
   service_name        = "docker-desktop"
-  state              = "running"
-  startup            = "enabled"
+  state               = "running"
+  startup             = "enabled"
   management_strategy = "direct_command"
-  
+
   # Custom commands for Docker Desktop
   custom_commands = {
     start   = ["open", "-a", "Docker"]
@@ -72,14 +72,14 @@ resource "pkg_service" "docker_desktop" {
     restart = ["killall", "Docker", "&&", "open", "-a", "Docker"]
     status  = ["pgrep", "-f", "Docker"]
   }
-  
+
   # Health check using Docker command
   health_check = {
     type    = "command"
     command = "docker ps"
     timeout = "30s"
   }
-  
+
   wait_for_healthy = true
   wait_timeout     = "60s"
 }
@@ -87,10 +87,10 @@ resource "pkg_service" "docker_desktop" {
 # Example 5: Lima with direct command strategy
 resource "pkg_service" "lima" {
   service_name        = "lima"
-  state              = "running"
-  startup            = "enabled"
+  state               = "running"
+  startup             = "enabled"
   management_strategy = "direct_command"
-  
+
   # Custom commands for Lima
   custom_commands = {
     start   = ["limactl", "start", "default"]
@@ -98,14 +98,14 @@ resource "pkg_service" "lima" {
     restart = ["limactl", "stop", "default", "&&", "limactl", "start", "default"]
     status  = ["limactl", "list"]
   }
-  
+
   # Health check using Lima command
   health_check = {
     type    = "command"
     command = "limactl list"
     timeout = "30s"
   }
-  
+
   wait_for_healthy = true
   wait_timeout     = "90s"
 }
@@ -113,9 +113,9 @@ resource "pkg_service" "lima" {
 # Example 6: Process-only strategy (read-only)
 resource "pkg_service" "existing_service" {
   service_name        = "some-existing-service"
-  state              = "running"
+  state               = "running"
   management_strategy = "process_only"
-  
+
   # This strategy only checks if the process is running
   # It cannot start, stop, or restart the service
   # Useful for monitoring existing services
@@ -124,10 +124,10 @@ resource "pkg_service" "existing_service" {
 # Example 7: Launchd strategy for system services
 resource "pkg_service" "system_service" {
   service_name        = "com.example.service"
-  state              = "running"
-  startup            = "enabled"
+  state               = "running"
+  startup             = "enabled"
   management_strategy = "launchd"
-  
+
   # Uses launchd for system service management
   # Requires proper plist files in /Library/LaunchDaemons/ or ~/Library/LaunchAgents/
 }
@@ -135,12 +135,12 @@ resource "pkg_service" "system_service" {
 # Example 8: Service with package validation
 resource "pkg_service" "nginx" {
   service_name        = "nginx"
-  state              = "running"
-  startup            = "enabled"
+  state               = "running"
+  startup             = "enabled"
   management_strategy = "brew_services"
   validate_package    = true
-  package_name       = "nginx"
-  
+  package_name        = "nginx"
+
   # Validates that the nginx package is installed
   # before attempting to manage the service
 }
@@ -148,10 +148,10 @@ resource "pkg_service" "nginx" {
 # Example 9: Service with HTTP health check
 resource "pkg_service" "web_service" {
   service_name        = "web-service"
-  state              = "running"
-  startup            = "enabled"
+  state               = "running"
+  startup             = "enabled"
   management_strategy = "auto"
-  
+
   # HTTP health check
   health_check = {
     type          = "http"
@@ -159,7 +159,7 @@ resource "pkg_service" "web_service" {
     expected_code = 200
     timeout       = "30s"
   }
-  
+
   wait_for_healthy = true
   wait_timeout     = "60s"
 }
@@ -167,17 +167,17 @@ resource "pkg_service" "web_service" {
 # Example 10: Service with TCP health check
 resource "pkg_service" "database" {
   service_name        = "database"
-  state              = "running"
-  startup            = "enabled"
+  state               = "running"
+  startup             = "enabled"
   management_strategy = "auto"
-  
+
   # TCP health check
   health_check = {
     type    = "tcp"
     port    = 5432
     timeout = "30s"
   }
-  
+
   wait_for_healthy = true
   wait_timeout     = "60s"
 }
