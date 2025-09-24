@@ -38,6 +38,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
 	"github.com/jamesainslie/terraform-package/internal/executor"
 	"github.com/jamesainslie/terraform-package/internal/services"
@@ -73,6 +74,9 @@ type ServiceResourceModel struct {
 	Timeout         types.String `tfsdk:"timeout"`
 	WaitForHealthy  types.Bool   `tfsdk:"wait_for_healthy"`
 	WaitTimeout     types.String `tfsdk:"wait_timeout"`
+	// Strategy configuration
+	ManagementStrategy types.String `tfsdk:"management_strategy"`
+	CustomCommands     types.Object `tfsdk:"custom_commands"`
 	// Computed attributes
 	Running     types.Bool   `tfsdk:"running"`
 	Healthy     types.Bool   `tfsdk:"healthy"`
@@ -96,6 +100,14 @@ type ServiceHealthCheckModel struct {
 	Timeout      types.String `tfsdk:"timeout"`
 	ExpectedCode types.Int64  `tfsdk:"expected_code"`
 	Interval     types.String `tfsdk:"interval"`
+}
+
+// CustomCommandsModel describes custom commands for service management.
+type CustomCommandsModel struct {
+	Start   types.List `tfsdk:"start"`
+	Stop    types.List `tfsdk:"stop"`
+	Restart types.List `tfsdk:"restart"`
+	Status  types.List `tfsdk:"status"`
 }
 
 // PackageModel describes the package information.
@@ -219,6 +231,41 @@ func (r *ServiceResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Optional:    true,
 				Computed:    true,
 				Default:     stringdefault.StaticString("120s"),
+			},
+			"management_strategy": schema.StringAttribute{
+				Description: "Strategy for managing the service. Valid values: 'auto', 'brew_services', 'direct_command', 'launchd', 'process_only'.",
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("auto"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("auto", "brew_services", "direct_command", "launchd", "process_only"),
+				},
+			},
+			"custom_commands": schema.SingleNestedAttribute{
+				Description: "Custom commands for service management. Used when management_strategy is 'direct_command'.",
+				Optional:    true,
+				Attributes: map[string]schema.Attribute{
+					"start": schema.ListAttribute{
+						Description: "Command and arguments to start the service.",
+						Optional:    true,
+						ElementType: types.StringType,
+					},
+					"stop": schema.ListAttribute{
+						Description: "Command and arguments to stop the service.",
+						Optional:    true,
+						ElementType: types.StringType,
+					},
+					"restart": schema.ListAttribute{
+						Description: "Command and arguments to restart the service.",
+						Optional:    true,
+						ElementType: types.StringType,
+					},
+					"status": schema.ListAttribute{
+						Description: "Command and arguments to check service status.",
+						Optional:    true,
+						ElementType: types.StringType,
+					},
+				},
 			},
 			// Computed attributes
 			"running": schema.BoolAttribute{
@@ -483,21 +530,99 @@ func (r *ServiceResource) applyServiceState(ctx context.Context, model *ServiceR
 	desiredState := model.State.ValueString()
 	desiredStartup := model.Startup.ValueString()
 
-	// Apply startup configuration
-	enabled := desiredStartup == "enabled"
-	if err := r.serviceManager.SetServiceStartup(ctx, serviceName, enabled); err != nil {
-		return fmt.Errorf("failed to set service startup: %w", err)
+	// Determine strategy
+	strategy := services.StrategyAuto
+	if !model.ManagementStrategy.IsNull() && !model.ManagementStrategy.IsUnknown() {
+		strategy = services.ServiceManagementStrategy(model.ManagementStrategy.ValueString())
 	}
 
-	// Apply service state
+	// Parse custom commands if provided
+	var customCommands *services.CustomCommands
+	if !model.CustomCommands.IsNull() && !model.CustomCommands.IsUnknown() {
+		var customCommandsModel CustomCommandsModel
+		diags := model.CustomCommands.As(ctx, &customCommandsModel, basetypes.ObjectAsOptions{})
+		if diags.HasError() {
+			return fmt.Errorf("failed to parse custom commands: %v", diags)
+		}
+
+		customCommands = &services.CustomCommands{}
+
+		// Parse start command
+		if !customCommandsModel.Start.IsNull() && !customCommandsModel.Start.IsUnknown() {
+			var startCommands []types.String
+			diags := customCommandsModel.Start.ElementsAs(ctx, &startCommands, false)
+			if !diags.HasError() {
+				customCommands.Start = make([]string, len(startCommands))
+				for i, cmd := range startCommands {
+					customCommands.Start[i] = cmd.ValueString()
+				}
+			}
+		}
+
+		// Parse stop command
+		if !customCommandsModel.Stop.IsNull() && !customCommandsModel.Stop.IsUnknown() {
+			var stopCommands []types.String
+			diags := customCommandsModel.Stop.ElementsAs(ctx, &stopCommands, false)
+			if !diags.HasError() {
+				customCommands.Stop = make([]string, len(stopCommands))
+				for i, cmd := range stopCommands {
+					customCommands.Stop[i] = cmd.ValueString()
+				}
+			}
+		}
+
+		// Parse restart command
+		if !customCommandsModel.Restart.IsNull() && !customCommandsModel.Restart.IsUnknown() {
+			var restartCommands []types.String
+			diags := customCommandsModel.Restart.ElementsAs(ctx, &restartCommands, false)
+			if !diags.HasError() {
+				customCommands.Restart = make([]string, len(restartCommands))
+				for i, cmd := range restartCommands {
+					customCommands.Restart[i] = cmd.ValueString()
+				}
+			}
+		}
+
+		// Parse status command
+		if !customCommandsModel.Status.IsNull() && !customCommandsModel.Status.IsUnknown() {
+			var statusCommands []types.String
+			diags := customCommandsModel.Status.ElementsAs(ctx, &statusCommands, false)
+			if !diags.HasError() {
+				customCommands.Status = make([]string, len(statusCommands))
+				for i, cmd := range statusCommands {
+					customCommands.Status[i] = cmd.ValueString()
+				}
+			}
+		}
+	}
+
+	// If no custom commands provided and strategy is direct_command, try to get defaults
+	if customCommands == nil && strategy == services.StrategyDirectCommand {
+		factory := services.NewServiceStrategyFactory(r.executor)
+		customCommands = factory.GetDefaultCommandsForService(serviceName)
+	}
+
+	// Create strategy
+	strategyFactory := services.NewServiceStrategyFactory(r.executor)
+	serviceStrategy := strategyFactory.CreateStrategy(strategy, customCommands)
+
+	// Apply startup configuration (only for strategies that support it)
+	if strategy != services.StrategyProcessOnly {
+		enabled := desiredStartup == "enabled"
+		if err := r.serviceManager.SetServiceStartup(ctx, serviceName, enabled); err != nil {
+			return fmt.Errorf("failed to set service startup: %w", err)
+		}
+	}
+
+	// Apply service state using the chosen strategy
 	switch desiredState {
 	case "running":
-		if err := r.serviceManager.StartService(ctx, serviceName); err != nil {
-			return fmt.Errorf("failed to start service: %w", err)
+		if err := serviceStrategy.StartService(ctx, serviceName); err != nil {
+			return fmt.Errorf("failed to start service with strategy %s: %w", strategy, err)
 		}
 	case "stopped":
-		if err := r.serviceManager.StopService(ctx, serviceName); err != nil {
-			return fmt.Errorf("failed to stop service: %w", err)
+		if err := serviceStrategy.StopService(ctx, serviceName); err != nil {
+			return fmt.Errorf("failed to stop service with strategy %s: %w", strategy, err)
 		}
 	}
 
