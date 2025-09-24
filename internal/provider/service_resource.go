@@ -529,53 +529,59 @@ func (r *ServiceResource) updateComputedAttributes(ctx context.Context, model *S
 	model.ProcessID = types.StringValue(serviceInfo.ProcessID)
 	model.ManagerType = types.StringValue(serviceInfo.ManagerType)
 
+	// Always set start_time - use empty string if not available
 	if serviceInfo.StartTime != nil {
 		model.StartTime = types.StringValue(serviceInfo.StartTime.Format(time.RFC3339))
+	} else {
+		model.StartTime = types.StringValue("")
 	}
 
-	// Update package information
+	// Update package information - always set a value, even if empty
+	var packageModel PackageModel
 	if serviceInfo.Package != nil {
-		packageModel := PackageModel{
+		packageModel = PackageModel{
 			Name:    types.StringValue(serviceInfo.Package.Name),
 			Manager: types.StringValue(serviceInfo.Package.Manager),
 			Version: types.StringValue(serviceInfo.Package.Version),
 		}
-		packageObject, diags := types.ObjectValueFrom(ctx, map[string]attr.Type{
-			"name":    types.StringType,
-			"manager": types.StringType,
-			"version": types.StringType,
-		}, packageModel)
-		if diags.HasError() {
-			return fmt.Errorf("failed to create package object: %v", diags)
+	} else {
+		packageModel = PackageModel{
+			Name:    types.StringValue(""),
+			Manager: types.StringValue(""),
+			Version: types.StringValue(""),
 		}
-		model.Package = packageObject
 	}
+	packageObject, diags := types.ObjectValueFrom(ctx, map[string]attr.Type{
+		"name":    types.StringType,
+		"manager": types.StringType,
+		"version": types.StringType,
+	}, packageModel)
+	if diags.HasError() {
+		return fmt.Errorf("failed to create package object: %v", diags)
+	}
+	model.Package = packageObject
 
-	// Update ports
-	if len(serviceInfo.Ports) > 0 {
-		portValues := make([]attr.Value, len(serviceInfo.Ports))
-		for i, port := range serviceInfo.Ports {
-			portValues[i] = types.Int64Value(int64(port))
-		}
-		ports, diags := types.ListValue(types.Int64Type, portValues)
-		if diags.HasError() {
-			return fmt.Errorf("failed to create ports list: %v", diags)
-		}
-		model.Ports = ports
+	// Update ports - always set a value, even if empty
+	portValues := make([]attr.Value, len(serviceInfo.Ports))
+	for i, port := range serviceInfo.Ports {
+		portValues[i] = types.Int64Value(int64(port))
 	}
+	ports, diags := types.ListValue(types.Int64Type, portValues)
+	if diags.HasError() {
+		return fmt.Errorf("failed to create ports list: %v", diags)
+	}
+	model.Ports = ports
 
-	// Update metadata
-	if len(serviceInfo.Metadata) > 0 {
-		metadataValues := make(map[string]attr.Value)
-		for k, v := range serviceInfo.Metadata {
-			metadataValues[k] = types.StringValue(v)
-		}
-		metadata, diags := types.MapValue(types.StringType, metadataValues)
-		if diags.HasError() {
-			return fmt.Errorf("failed to create metadata map: %v", diags)
-		}
-		model.Metadata = metadata
+	// Update metadata - always set a value, even if empty
+	metadataValues := make(map[string]attr.Value)
+	for k, v := range serviceInfo.Metadata {
+		metadataValues[k] = types.StringValue(v)
 	}
+	metadata, diags := types.MapValue(types.StringType, metadataValues)
+	if diags.HasError() {
+		return fmt.Errorf("failed to create metadata map: %v", diags)
+	}
+	model.Metadata = metadata
 
 	return nil
 }
