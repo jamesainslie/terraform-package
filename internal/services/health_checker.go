@@ -133,7 +133,7 @@ func (h *DefaultHealthChecker) CheckHTTP(ctx context.Context, endpoint string, e
 			},
 		}, nil
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Check status code
 	healthy := resp.StatusCode == expectedStatus

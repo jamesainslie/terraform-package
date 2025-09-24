@@ -134,13 +134,14 @@ func TestCheckCommand(t *testing.T) {
 func TestCheckHTTP(t *testing.T) {
 	// Create a test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/health" {
+		switch r.URL.Path {
+		case "/health":
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("OK"))
-		} else if r.URL.Path == "/error" {
+		case "/error":
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte("Error"))
-		} else {
+		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))

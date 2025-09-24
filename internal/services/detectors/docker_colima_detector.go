@@ -179,7 +179,7 @@ func (d *DockerColimaDetector) ValidateDockerColimaSetup(ctx context.Context) er
 	}
 
 	if !d.isColimaContext(context) {
-		return fmt.Errorf("Docker context '%s' is not configured for Colima", context)
+		return fmt.Errorf("docker context '%s' is not configured for Colima", context)
 	}
 
 	// Check if Colima is running
@@ -189,14 +189,14 @@ func (d *DockerColimaDetector) ValidateDockerColimaSetup(ctx context.Context) er
 	}
 
 	if !colimaAvailable {
-		return fmt.Errorf("Colima is not running or not available")
+		return fmt.Errorf("colima is not running or not available")
 	}
 
 	// Check if Docker can connect to Colima
 	cmd := exec.CommandContext(ctx, "docker", "version")
 	err = cmd.Run()
 	if err != nil {
-		return fmt.Errorf("Docker cannot connect to Colima: %w", err)
+		return fmt.Errorf("docker cannot connect to Colima: %w", err)
 	}
 
 	return nil
