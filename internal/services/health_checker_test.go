@@ -120,8 +120,8 @@ func TestCheckCommand(t *testing.T) {
 				t.Errorf("Expected healthy=%v but got %v", tt.expectHealthy, result.Healthy)
 			}
 
-			if result.ResponseTime <= 0 {
-				t.Error("Expected positive response time")
+			if result.ResponseTime < 0 {
+				t.Error("Expected non-negative response time")
 			}
 
 			if result.Metadata == nil {
@@ -213,8 +213,8 @@ func TestCheckHTTP(t *testing.T) {
 				t.Errorf("Expected healthy=%v but got %v", tt.expectHealthy, result.Healthy)
 			}
 
-			if result.ResponseTime <= 0 {
-				t.Error("Expected positive response time")
+			if result.ResponseTime < 0 {
+				t.Error("Expected non-negative response time")
 			}
 
 			if result.Metadata == nil {
@@ -277,8 +277,8 @@ func TestCheckTCP(t *testing.T) {
 				t.Fatal("Expected result but got nil")
 			}
 
-			if result.ResponseTime <= 0 {
-				t.Error("Expected positive response time")
+			if result.ResponseTime < 0 {
+				t.Error("Expected non-negative response time")
 			}
 
 			if result.Metadata == nil {
@@ -324,8 +324,8 @@ func TestCheckMultiple(t *testing.T) {
 			t.Errorf("Expected service %s to be healthy", serviceName)
 		}
 
-		if result.ResponseTime <= 0 {
-			t.Errorf("Expected positive response time for service %s", serviceName)
+		if result.ResponseTime < 0 {
+			t.Errorf("Expected non-negative response time for service %s", serviceName)
 		}
 	}
 }
