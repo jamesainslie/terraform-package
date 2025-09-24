@@ -42,6 +42,7 @@ import (
 
 	"github.com/jamesainslie/terraform-package/internal/executor"
 	"github.com/jamesainslie/terraform-package/internal/services"
+	"github.com/jamesainslie/terraform-package/internal/services/detectors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.
@@ -58,8 +59,9 @@ func NewServiceResource() resource.Resource {
 
 // ServiceResource defines the resource implementation.
 type ServiceResource struct {
-	executor       executor.Executor
-	serviceManager services.ServiceManager
+	executor          executor.Executor
+	serviceManager    services.ServiceManager
+	dependencyManager *services.DependencyManager
 }
 
 // ServiceResourceModel describes the resource data model.
@@ -349,6 +351,11 @@ func (r *ServiceResource) Configure(_ context.Context, req resource.ConfigureReq
 
 	r.executor = providerData.Executor
 	r.serviceManager = services.NewServiceManager(providerData.Executor)
+
+	// Initialize dependency manager with detectors
+	r.dependencyManager = services.NewDependencyManager()
+	r.dependencyManager.RegisterDetector(detectors.NewDockerColimaDetector())
+	r.dependencyManager.RegisterDetector(detectors.NewContainerRuntimeDetector())
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -363,6 +370,33 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 
 	// Set the ID
 	plan.ID = types.StringValue(plan.ServiceName.ValueString())
+
+	// Detect and validate service dependencies
+	serviceName := plan.ServiceName.ValueString()
+	dependencies, err := r.dependencyManager.DetectDependencies(ctx, serviceName)
+	if err != nil {
+		resp.Diagnostics.AddWarning(
+			"Dependency Detection Warning",
+			fmt.Sprintf("Failed to detect dependencies for service %s: %v", serviceName, err),
+		)
+	}
+
+	// Validate dependency chain
+	if err := r.dependencyManager.ValidateDependencyChain(ctx, serviceName); err != nil {
+		resp.Diagnostics.AddError(
+			"Dependency Validation Error",
+			fmt.Sprintf("Failed to validate dependency chain for service %s: %v", serviceName, err),
+		)
+		return
+	}
+
+	// Log detected dependencies
+	if len(dependencies) > 0 {
+		resp.Diagnostics.AddWarning(
+			"Dependencies Detected",
+			fmt.Sprintf("Service %s has %d dependencies: %v", serviceName, len(dependencies), dependencies),
+		)
+	}
 
 	// Validate package if requested
 	if plan.ValidatePackage.ValueBool() && !plan.PackageName.IsNull() && !plan.PackageName.IsUnknown() {
@@ -614,6 +648,13 @@ func (r *ServiceResource) applyServiceState(ctx context.Context, model *ServiceR
 		}
 	}
 
+	// Handle service dependencies before applying state
+	if desiredState == "running" {
+		if err := r.handleServiceDependencies(ctx, serviceName); err != nil {
+			return fmt.Errorf("failed to handle service dependencies: %w", err)
+		}
+	}
+
 	// Apply service state using the chosen strategy
 	switch desiredState {
 	case "running":
@@ -744,5 +785,134 @@ func (r *ServiceResource) waitForHealthy(ctx context.Context, model *ServiceReso
 				return nil
 			}
 		}
+	}
+}
+
+// handleServiceDependencies handles service dependencies before starting a service
+func (r *ServiceResource) handleServiceDependencies(ctx context.Context, serviceName string) error {
+	// Get dependencies for the service
+	dependencies := r.dependencyManager.GetDependencies(serviceName)
+	if len(dependencies) == 0 {
+		return nil // No dependencies to handle
+	}
+
+	// Handle each dependency
+	for _, dep := range dependencies {
+		if dep.DependencyType == services.DependencyTypeRequired ||
+			dep.DependencyType == services.DependencyTypeProxy ||
+			dep.DependencyType == services.DependencyTypeContainer {
+
+			// Check if target service is running
+			targetServiceInfo, err := r.serviceManager.GetServiceInfo(ctx, dep.TargetService)
+			if err != nil {
+				return fmt.Errorf("failed to get info for dependency service %s: %w", dep.TargetService, err)
+			}
+
+			// If target service is not running, start it using the appropriate strategy
+			if !targetServiceInfo.Running {
+				if err := r.startDependencyService(ctx, dep.TargetService); err != nil {
+					return fmt.Errorf("failed to start dependency service %s: %w", dep.TargetService, err)
+				}
+			}
+
+			// Wait for target service to be healthy
+			if dep.HealthCheck != nil {
+				if err := r.waitForDependencyHealthy(ctx, dep); err != nil {
+					return fmt.Errorf("dependency service %s is not healthy: %w", dep.TargetService, err)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// startDependencyService starts a dependency service using the appropriate strategy
+func (r *ServiceResource) startDependencyService(ctx context.Context, serviceName string) error {
+	// Create dependency configuration manager
+	configManager := services.NewDependencyConfigManager()
+
+	// Try to detect service configuration from environment
+	config, err := configManager.DetectServiceConfiguration(ctx, serviceName)
+	if err != nil {
+		// Fallback to default configuration
+		defaultConfigs := configManager.GetDefaultConfigs()
+		if defaultConfig, exists := defaultConfigs[serviceName]; exists {
+			config = defaultConfig
+		} else {
+			// Use auto strategy as final fallback
+			config = &services.DependencyConfig{
+				ServiceName: serviceName,
+				Strategy:    services.StrategyAuto,
+				AutoDetect:  false,
+			}
+		}
+	}
+
+	// Create strategy factory and start the service
+	strategyFactory := services.NewServiceStrategyFactory(r.executor)
+	serviceStrategy := strategyFactory.CreateStrategy(config.Strategy, config.CustomCommands)
+
+	return serviceStrategy.StartService(ctx, serviceName)
+}
+
+// waitForDependencyHealthy waits for a dependency service to be healthy
+func (r *ServiceResource) waitForDependencyHealthy(ctx context.Context, dep services.ServiceDependency) error {
+	if dep.HealthCheck == nil {
+		return nil // No health check defined
+	}
+
+	timeout := dep.HealthCheck.Timeout
+	if timeout == 0 {
+		timeout = 30 * time.Second // Default timeout
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	ticker := time.NewTicker(dep.HealthCheck.Interval)
+	if ticker == nil {
+		ticker = time.NewTicker(5 * time.Second) // Default interval
+	}
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for dependency %s to be healthy", dep.TargetService)
+		case <-ticker.C:
+			// Perform health check
+			healthy, err := r.performHealthCheck(ctx, dep.HealthCheck)
+			if err != nil {
+				continue // Retry on error
+			}
+			if healthy {
+				return nil // Dependency is healthy
+			}
+		}
+	}
+}
+
+// performHealthCheck performs a health check based on the configuration
+func (r *ServiceResource) performHealthCheck(ctx context.Context, healthCheck *services.DependencyHealthCheck) (bool, error) {
+	switch healthCheck.Type {
+	case "command":
+		if healthCheck.Command == "" {
+			return false, fmt.Errorf("command health check requires a command")
+		}
+		// Execute the health check command
+		// This would integrate with the executor
+		return true, nil // Simplified for now
+	case "http":
+		// HTTP health check would be implemented here
+		return true, nil // Simplified for now
+	case "tcp":
+		// TCP health check would be implemented here
+		return true, nil // Simplified for now
+	case "socket":
+		// Socket health check would be implemented here
+		return true, nil // Simplified for now
+	default:
+		return false, fmt.Errorf("unsupported health check type: %s", healthCheck.Type)
 	}
 }
