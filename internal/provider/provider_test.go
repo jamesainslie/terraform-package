@@ -124,9 +124,9 @@ func TestPackageProvider_Resources(t *testing.T) {
 
 	resources := p.Resources(ctx)
 
-	// Should have 2 resources in Phase 2.3 (pkg_package, pkg_repo)
-	if len(resources) != 2 {
-		t.Errorf("Expected 2 resources in Phase 2.3, got %d", len(resources))
+	// Should have 3 resources in Phase 2 (pkg_package, pkg_repo, pkg_service)
+	if len(resources) != 3 {
+		t.Errorf("Expected 3 resources in Phase 2 (including service management), got %d", len(resources))
 	}
 }
 
@@ -136,9 +136,9 @@ func TestPackageProvider_DataSources(t *testing.T) {
 
 	dataSources := p.DataSources(ctx)
 
-	// Should have 10 data sources in Phase 2.4 (comprehensive data source suite)
-	if len(dataSources) != 10 {
-		t.Errorf("Expected 10 data sources in Phase 2.4, got %d", len(dataSources))
+	// Should have 12 data sources in Phase 2.4 (comprehensive data source suite + service status)
+	if len(dataSources) != 12 {
+		t.Errorf("Expected 12 data sources in Phase 2.4 (including service status), got %d", len(dataSources))
 	}
 }
 
