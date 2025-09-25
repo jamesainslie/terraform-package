@@ -252,7 +252,6 @@ func (w *WindowsServiceDetector) RestartService(ctx context.Context, serviceName
 	return nil
 }
 
-
 // DisableService disables a service from starting automatically on system startup
 func (w *WindowsServiceDetector) DisableService(ctx context.Context, serviceName string) error {
 	cmd := fmt.Sprintf("Set-Service -Name '%s' -StartupType Disabled", serviceName)

@@ -252,7 +252,6 @@ func (l *LinuxServiceDetector) RestartService(ctx context.Context, serviceName s
 	return nil
 }
 
-
 // DisableService disables a service from starting automatically on system startup
 func (l *LinuxServiceDetector) DisableService(ctx context.Context, serviceName string) error {
 	result, err := l.executor.Run(ctx, "systemctl", []string{"disable", serviceName}, executor.ExecOpts{})
