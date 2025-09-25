@@ -39,6 +39,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/jamesainslie/terraform-package/internal/executor"
 	"github.com/jamesainslie/terraform-package/internal/services"
@@ -559,6 +560,8 @@ func (r *ServiceResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 // applyServiceState applies the desired service state (running/stopped and enabled/disabled).
+// Idempotency: Before starting/stopping, GetServiceInfo (via strategy) checks current state.
+// If already in desired state (e.g., running and state="running"), the strategy methods are no-ops.
 func (r *ServiceResource) applyServiceState(ctx context.Context, model *ServiceResourceModel) error {
 	serviceName := model.ServiceName.ValueString()
 	desiredState := model.State.ValueString()
@@ -636,9 +639,9 @@ func (r *ServiceResource) applyServiceState(ctx context.Context, model *ServiceR
 		customCommands = factory.GetDefaultCommandsForService(serviceName)
 	}
 
-	// Create strategy
+	// Create lifecycle strategy (supports both management and health checks)
 	strategyFactory := services.NewServiceStrategyFactory(r.executor)
-	serviceStrategy := strategyFactory.CreateStrategy(strategy, customCommands)
+	lifecycleStrategy := strategyFactory.CreateLifecycleStrategy(strategy, customCommands, serviceName)
 
 	// Apply startup configuration (only for strategies that support it)
 	if strategy != services.StrategyProcessOnly {
@@ -658,18 +661,18 @@ func (r *ServiceResource) applyServiceState(ctx context.Context, model *ServiceR
 	// Apply service state using the chosen strategy
 	switch desiredState {
 	case "running":
-		if err := serviceStrategy.StartService(ctx, serviceName); err != nil {
+		if err := lifecycleStrategy.StartService(ctx, serviceName); err != nil {
 			return fmt.Errorf("failed to start service with strategy %s: %w", strategy, err)
 		}
 	case "stopped":
-		if err := serviceStrategy.StopService(ctx, serviceName); err != nil {
+		if err := lifecycleStrategy.StopService(ctx, serviceName); err != nil {
 			return fmt.Errorf("failed to stop service with strategy %s: %w", strategy, err)
 		}
 	}
 
 	// Wait for healthy if requested
 	if model.WaitForHealthy.ValueBool() && desiredState == "running" {
-		if err := r.waitForHealthy(ctx, model); err != nil {
+		if err := r.waitForHealthy(ctx, model, lifecycleStrategy); err != nil {
 			return fmt.Errorf("failed to wait for healthy: %w", err)
 		}
 	}
@@ -678,44 +681,52 @@ func (r *ServiceResource) applyServiceState(ctx context.Context, model *ServiceR
 }
 
 // updateComputedAttributes updates the computed attributes with current service information.
+// Idempotency: This read-only method fetches real system state, allowing Terraform to detect if
+// the desired state (e.g., running=true) already matches the actual state, resulting in no planned changes.
 func (r *ServiceResource) updateComputedAttributes(ctx context.Context, model *ServiceResourceModel) error {
 	serviceName := model.ServiceName.ValueString()
 
-	// Get service information
-	serviceInfo, err := r.serviceManager.GetServiceInfo(ctx, serviceName)
+	// Create lifecycle strategy for strategy-aware health checks
+	strategy := services.ServiceManagementStrategy(model.ManagementStrategy.ValueString())
+	if strategy == "" {
+		strategy = services.StrategyAuto // Default to auto if not specified
+	}
+	
+	var customCommands *services.CustomCommands
+	if !model.CustomCommands.IsNull() && !model.CustomCommands.IsUnknown() {
+		customCommands = parseCustomCommands(ctx, model.CustomCommands)
+	}
+
+	strategyFactory := services.NewServiceStrategyFactory(r.executor)
+	lifecycleStrategy := strategyFactory.CreateLifecycleStrategy(strategy, customCommands, serviceName)
+
+	// Get service information using strategy-aware methods
+	statusInfo, err := lifecycleStrategy.StatusCheck(ctx, serviceName)
 	if err != nil {
-		return fmt.Errorf("failed to get service info: %w", err)
+		return fmt.Errorf("failed to get service status: %w", err)
+	}
+	
+	healthInfo, err := lifecycleStrategy.HealthCheck(ctx, serviceName)
+	if err != nil {
+		return fmt.Errorf("failed to get service health: %w", err)
 	}
 
-	// Update computed attributes
-	model.Running = types.BoolValue(serviceInfo.Running)
-	model.Healthy = types.BoolValue(serviceInfo.Healthy)
-	model.Enabled = types.BoolValue(serviceInfo.Enabled)
-	model.Version = types.StringValue(serviceInfo.Version)
-	model.ProcessID = types.StringValue(serviceInfo.ProcessID)
-	model.ManagerType = types.StringValue(serviceInfo.ManagerType)
+	// Update computed attributes from real state using strategy-aware information
+	model.Running = types.BoolValue(statusInfo.Running)
+	model.Healthy = types.BoolValue(healthInfo.Healthy)
+	model.Enabled = types.BoolValue(statusInfo.Enabled)
+	model.Version = types.StringValue("") // Version info not available from strategy
+	model.ProcessID = types.StringValue(statusInfo.ProcessID)
+	model.ManagerType = types.StringValue(string(statusInfo.Strategy))
 
-	// Always set start_time - use empty string if not available
-	if serviceInfo.StartTime != nil {
-		model.StartTime = types.StringValue(serviceInfo.StartTime.Format(time.RFC3339))
-	} else {
-		model.StartTime = types.StringValue("")
-	}
+	// Handle start_time - not available from strategy, so leave empty
+	model.StartTime = types.StringValue("")
 
-	// Update package information - always set a value, even if empty
-	var packageModel PackageModel
-	if serviceInfo.Package != nil {
-		packageModel = PackageModel{
-			Name:    types.StringValue(serviceInfo.Package.Name),
-			Manager: types.StringValue(serviceInfo.Package.Manager),
-			Version: types.StringValue(serviceInfo.Package.Version),
-		}
-	} else {
-		packageModel = PackageModel{
-			Name:    types.StringValue(""),
-			Manager: types.StringValue(""),
-			Version: types.StringValue(""),
-		}
+	// Update package information - not available from strategy, so set empty
+	packageModel := PackageModel{
+		Name:    types.StringValue(""),
+		Manager: types.StringValue(""),
+		Version: types.StringValue(""),
 	}
 	packageObject, diags := types.ObjectValueFrom(ctx, map[string]attr.Type{
 		"name":    types.StringType,
@@ -727,22 +738,19 @@ func (r *ServiceResource) updateComputedAttributes(ctx context.Context, model *S
 	}
 	model.Package = packageObject
 
-	// Update ports - always set a value, even if empty
-	portValues := make([]attr.Value, len(serviceInfo.Ports))
-	for i, port := range serviceInfo.Ports {
-		portValues[i] = types.Int64Value(int64(port))
-	}
-	ports, diags := types.ListValue(types.Int64Type, portValues)
+	// Update ports - not available from strategy, so set empty
+	ports, diags := types.ListValue(types.Int64Type, []attr.Value{})
 	if diags.HasError() {
 		return fmt.Errorf("failed to create ports list: %v", diags)
 	}
 	model.Ports = ports
 
-	// Update metadata - always set a value, even if empty
+	// Update metadata - use strategy details as metadata
 	metadataValues := make(map[string]attr.Value)
-	for k, v := range serviceInfo.Metadata {
-		metadataValues[k] = types.StringValue(v)
-	}
+	metadataValues["strategy"] = types.StringValue(string(statusInfo.Strategy))
+	metadataValues["health_details"] = types.StringValue(healthInfo.Details)
+	metadataValues["status_details"] = types.StringValue(statusInfo.Details)
+	
 	metadata, diags := types.MapValue(types.StringType, metadataValues)
 	if diags.HasError() {
 		return fmt.Errorf("failed to create metadata map: %v", diags)
@@ -752,8 +760,73 @@ func (r *ServiceResource) updateComputedAttributes(ctx context.Context, model *S
 	return nil
 }
 
-// waitForHealthy waits for the service to become healthy.
-func (r *ServiceResource) waitForHealthy(ctx context.Context, model *ServiceResourceModel) error {
+// parseCustomCommands parses custom commands from the Terraform model
+func parseCustomCommands(ctx context.Context, customCommandsObject types.Object) *services.CustomCommands {
+	if customCommandsObject.IsNull() || customCommandsObject.IsUnknown() {
+		return nil
+	}
+
+	var customCommandsModel CustomCommandsModel
+	diags := customCommandsObject.As(ctx, &customCommandsModel, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return nil // Return nil if parsing fails
+	}
+
+	customCommands := &services.CustomCommands{}
+
+	// Parse start command
+	if !customCommandsModel.Start.IsNull() && !customCommandsModel.Start.IsUnknown() {
+		var startCommands []types.String
+		diags := customCommandsModel.Start.ElementsAs(ctx, &startCommands, false)
+		if !diags.HasError() {
+			customCommands.Start = make([]string, len(startCommands))
+			for i, cmd := range startCommands {
+				customCommands.Start[i] = cmd.ValueString()
+			}
+		}
+	}
+
+	// Parse stop command
+	if !customCommandsModel.Stop.IsNull() && !customCommandsModel.Stop.IsUnknown() {
+		var stopCommands []types.String
+		diags := customCommandsModel.Stop.ElementsAs(ctx, &stopCommands, false)
+		if !diags.HasError() {
+			customCommands.Stop = make([]string, len(stopCommands))
+			for i, cmd := range stopCommands {
+				customCommands.Stop[i] = cmd.ValueString()
+			}
+		}
+	}
+
+	// Parse restart command
+	if !customCommandsModel.Restart.IsNull() && !customCommandsModel.Restart.IsUnknown() {
+		var restartCommands []types.String
+		diags := customCommandsModel.Restart.ElementsAs(ctx, &restartCommands, false)
+		if !diags.HasError() {
+			customCommands.Restart = make([]string, len(restartCommands))
+			for i, cmd := range restartCommands {
+				customCommands.Restart[i] = cmd.ValueString()
+			}
+		}
+	}
+
+	// Parse status command
+	if !customCommandsModel.Status.IsNull() && !customCommandsModel.Status.IsUnknown() {
+		var statusCommands []types.String
+		diags := customCommandsModel.Status.ElementsAs(ctx, &statusCommands, false)
+		if !diags.HasError() {
+			customCommands.Status = make([]string, len(statusCommands))
+			for i, cmd := range statusCommands {
+				customCommands.Status[i] = cmd.ValueString()
+			}
+		}
+	}
+
+	return customCommands
+}
+
+// waitForHealthy waits for the service to become healthy using strategy-aware health checks.
+func (r *ServiceResource) waitForHealthy(ctx context.Context, model *ServiceResourceModel, lifecycleStrategy services.ServiceLifecycleStrategy) error {
 	serviceName := model.ServiceName.ValueString()
 	waitTimeout := model.WaitTimeout.ValueString()
 
@@ -763,8 +836,14 @@ func (r *ServiceResource) waitForHealthy(ctx context.Context, model *ServiceReso
 		return fmt.Errorf("invalid wait timeout: %w", err)
 	}
 
-	// Create context with timeout
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+	// DEBUG: Log health check start
+	tflog.Debug(ctx, "Starting service health check", map[string]interface{}{
+		"service_name": serviceName,
+		"timeout":      timeout.String(),
+	})
+
+	// Create context with timeout for the overall operation
+	operationCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	// Wait for service to be healthy
@@ -773,15 +852,47 @@ func (r *ServiceResource) waitForHealthy(ctx context.Context, model *ServiceReso
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-operationCtx.Done():
+			tflog.Debug(ctx, "Service health check timed out", map[string]interface{}{
+				"service_name": serviceName,
+				"timeout":      timeout.String(),
+			})
 			return fmt.Errorf("timeout waiting for service to be healthy")
 		case <-ticker.C:
-			// Check if service is healthy
-			serviceInfo, err := r.serviceManager.GetServiceInfo(ctx, serviceName)
+			// Create fresh context for each health check command to avoid timeout chain reaction
+			// This prevents expired contexts from causing immediate command failures
+			checkCtx, checkCancel := context.WithTimeout(context.Background(), 30*time.Second)
+
+			tflog.Debug(ctx, "Performing health check", map[string]interface{}{
+				"service_name":  serviceName,
+				"check_timeout": "30s",
+			})
+
+			// Check if service is healthy using strategy-aware health check
+			healthInfo, err := lifecycleStrategy.HealthCheck(checkCtx, serviceName)
+			checkCancel() // Always cancel the check context
+
 			if err != nil {
+				tflog.Debug(ctx, "Health check failed, retrying", map[string]interface{}{
+					"service_name": serviceName,
+					"error":        err.Error(),
+				})
 				continue
 			}
-			if serviceInfo.Healthy {
+
+			tflog.Debug(ctx, "Health check completed", map[string]interface{}{
+				"service_name": serviceName,
+				"healthy":      healthInfo.Healthy,
+				"strategy":     healthInfo.Strategy,
+				"details":      healthInfo.Details,
+			})
+
+			if healthInfo.Healthy {
+				tflog.Debug(ctx, "Service is healthy", map[string]interface{}{
+					"service_name": serviceName,
+					"strategy":     healthInfo.Strategy,
+					"details":      healthInfo.Details,
+				})
 				return nil
 			}
 		}
@@ -849,11 +960,11 @@ func (r *ServiceResource) startDependencyService(ctx context.Context, serviceNam
 		}
 	}
 
-	// Create strategy factory and start the service
+	// Create lifecycle strategy factory and start the service
 	strategyFactory := services.NewServiceStrategyFactory(r.executor)
-	serviceStrategy := strategyFactory.CreateStrategy(config.Strategy, config.CustomCommands)
+	lifecycleStrategy := strategyFactory.CreateLifecycleStrategy(config.Strategy, config.CustomCommands, serviceName)
 
-	return serviceStrategy.StartService(ctx, serviceName)
+	return lifecycleStrategy.StartService(ctx, serviceName)
 }
 
 // waitForDependencyHealthy waits for a dependency service to be healthy
@@ -867,7 +978,14 @@ func (r *ServiceResource) waitForDependencyHealthy(ctx context.Context, dep serv
 		timeout = 30 * time.Second // Default timeout
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+	// DEBUG: Log dependency health check start
+	tflog.Debug(ctx, "Starting dependency health check", map[string]interface{}{
+		"target_service": dep.TargetService,
+		"timeout":        timeout.String(),
+	})
+
+	// Create context with timeout for the overall operation
+	operationCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	ticker := time.NewTicker(dep.HealthCheck.Interval)
@@ -878,15 +996,42 @@ func (r *ServiceResource) waitForDependencyHealthy(ctx context.Context, dep serv
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-operationCtx.Done():
+			tflog.Debug(ctx, "Dependency health check timed out", map[string]interface{}{
+				"target_service": dep.TargetService,
+				"timeout":        timeout.String(),
+			})
 			return fmt.Errorf("timeout waiting for dependency %s to be healthy", dep.TargetService)
 		case <-ticker.C:
-			// Perform health check
-			healthy, err := r.performHealthCheck(ctx, dep.HealthCheck)
+			// Create fresh context for each health check command to avoid timeout chain reaction
+			checkCtx, checkCancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+			tflog.Debug(ctx, "Performing dependency health check", map[string]interface{}{
+				"target_service": dep.TargetService,
+				"check_timeout":  "15s",
+			})
+
+			// Perform health check using fresh context
+			healthy, err := r.performHealthCheck(checkCtx, dep.HealthCheck)
+			checkCancel() // Always cancel the check context
+
 			if err != nil {
+				tflog.Debug(ctx, "Dependency health check failed, retrying", map[string]interface{}{
+					"target_service": dep.TargetService,
+					"error":          err.Error(),
+				})
 				continue // Retry on error
 			}
+
+			tflog.Debug(ctx, "Dependency health check completed", map[string]interface{}{
+				"target_service": dep.TargetService,
+				"healthy":        healthy,
+			})
+
 			if healthy {
+				tflog.Debug(ctx, "Dependency is healthy", map[string]interface{}{
+					"target_service": dep.TargetService,
+				})
 				return nil // Dependency is healthy
 			}
 		}
