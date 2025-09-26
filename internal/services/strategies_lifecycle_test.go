@@ -21,10 +21,10 @@ func (m *MockExecutorForLifecycle) Run(ctx context.Context, command string, args
 
 func TestDirectCommandLifecycleStrategy_HealthCheck(t *testing.T) {
 	tests := []struct {
-		name           string
-		serviceName    string
-		customCommands *CustomCommands
-		mockSetup      func(*MockExecutorForLifecycle)
+		name            string
+		serviceName     string
+		customCommands  *CustomCommands
+		mockSetup       func(*MockExecutorForLifecycle)
 		expectedHealthy bool
 		expectedDetails string
 		expectError     bool
@@ -286,11 +286,11 @@ func TestServiceStrategyFactory_CreateLifecycleStrategy(t *testing.T) {
 	factory := NewServiceStrategyFactory(mockExecutor)
 
 	tests := []struct {
-		name            string
-		strategy        ServiceManagementStrategy
-		customCommands  *CustomCommands
-		serviceName     string
-		expectedType    string
+		name           string
+		strategy       ServiceManagementStrategy
+		customCommands *CustomCommands
+		serviceName    string
+		expectedType   string
 	}{
 		{
 			name:           "Direct command strategy for Colima",
@@ -325,10 +325,10 @@ func TestServiceStrategyFactory_CreateLifecycleStrategy(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			lifecycleStrategy := factory.CreateLifecycleStrategy(tt.strategy, tt.customCommands, tt.serviceName)
-			
+
 			assert.NotNil(t, lifecycleStrategy)
 			assert.Equal(t, tt.expectedType, getTypeName(lifecycleStrategy))
-			
+
 			// Verify it implements both interfaces
 			assert.Implements(t, (*ServiceStrategy)(nil), lifecycleStrategy)
 			assert.Implements(t, (*ServiceLifecycleStrategy)(nil), lifecycleStrategy)

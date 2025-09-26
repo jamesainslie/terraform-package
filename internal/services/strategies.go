@@ -512,7 +512,7 @@ func (d *DirectCommandLifecycleStrategy) HealthCheck(ctx context.Context, servic
 		tflog.Debug(ctx, "No status command configured, using process check", map[string]interface{}{
 			"service_name": serviceName,
 		})
-		
+
 		running, err := d.checkProcessName(ctx, serviceName)
 		return &ServiceHealthInfo{
 			Healthy:  running,
@@ -522,12 +522,12 @@ func (d *DirectCommandLifecycleStrategy) HealthCheck(ctx context.Context, servic
 	}
 
 	tflog.Debug(ctx, "Executing status command for health check", map[string]interface{}{
-		"service_name":    serviceName,
-		"status_command":  d.commands.Status,
+		"service_name":   serviceName,
+		"status_command": d.commands.Status,
 	})
 
 	result, err := d.executor.Run(ctx, d.commands.Status[0], d.commands.Status[1:], executor.ExecOpts{})
-	
+
 	tflog.Debug(ctx, "Status command completed", map[string]interface{}{
 		"service_name": serviceName,
 		"exit_code":    result.ExitCode,
@@ -547,7 +547,7 @@ func (d *DirectCommandLifecycleStrategy) HealthCheck(ctx context.Context, servic
 	// For direct commands, exit code 0 typically means healthy
 	healthy := result.ExitCode == 0
 	details := fmt.Sprintf("Status command exit code: %d", result.ExitCode)
-	
+
 	// Add service-specific health parsing
 	if healthy {
 		details += d.parseHealthDetails(serviceName, result.Stdout, result.Stderr)
@@ -825,13 +825,13 @@ func (a *AutoLifecycleStrategy) HealthCheck(ctx context.Context, serviceName str
 			// Found a strategy that reports the service as healthy
 			healthInfo.Strategy = a.GetStrategyName() // Override to show this was auto-detected
 			healthInfo.Details = fmt.Sprintf("Auto-detected via %s: %s", strategy.GetStrategyName(), healthInfo.Details)
-			
+
 			tflog.Debug(ctx, "AutoLifecycleStrategy.HealthCheck found healthy service", map[string]interface{}{
 				"service_name":      serviceName,
 				"detected_strategy": strategy.GetStrategyName(),
 				"details":           healthInfo.Details,
 			})
-			
+
 			return healthInfo, nil
 		}
 		if err != nil {

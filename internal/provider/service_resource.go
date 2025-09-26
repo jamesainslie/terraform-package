@@ -691,7 +691,7 @@ func (r *ServiceResource) updateComputedAttributes(ctx context.Context, model *S
 	if strategy == "" {
 		strategy = services.StrategyAuto // Default to auto if not specified
 	}
-	
+
 	var customCommands *services.CustomCommands
 	if !model.CustomCommands.IsNull() && !model.CustomCommands.IsUnknown() {
 		customCommands = parseCustomCommands(ctx, model.CustomCommands)
@@ -705,7 +705,7 @@ func (r *ServiceResource) updateComputedAttributes(ctx context.Context, model *S
 	if err != nil {
 		return fmt.Errorf("failed to get service status: %w", err)
 	}
-	
+
 	healthInfo, err := lifecycleStrategy.HealthCheck(ctx, serviceName)
 	if err != nil {
 		return fmt.Errorf("failed to get service health: %w", err)
@@ -750,7 +750,7 @@ func (r *ServiceResource) updateComputedAttributes(ctx context.Context, model *S
 	metadataValues["strategy"] = types.StringValue(string(statusInfo.Strategy))
 	metadataValues["health_details"] = types.StringValue(healthInfo.Details)
 	metadataValues["status_details"] = types.StringValue(statusInfo.Details)
-	
+
 	metadata, diags := types.MapValue(types.StringType, metadataValues)
 	if diags.HasError() {
 		return fmt.Errorf("failed to create metadata map: %v", diags)

@@ -50,19 +50,19 @@ type ServiceLifecycleStrategy interface {
 
 // ServiceHealthInfo contains health check results with strategy context
 type ServiceHealthInfo struct {
-	Healthy  bool                   `json:"healthy"`
-	Details  string                 `json:"details,omitempty"`
-	Metrics  map[string]interface{} `json:"metrics,omitempty"`
+	Healthy  bool                      `json:"healthy"`
+	Details  string                    `json:"details,omitempty"`
+	Metrics  map[string]interface{}    `json:"metrics,omitempty"`
 	Strategy ServiceManagementStrategy `json:"strategy"`
 }
 
 // ServiceStatusInfo contains detailed status information with strategy context
 type ServiceStatusInfo struct {
-	Running   bool                   `json:"running"`
-	Enabled   bool                   `json:"enabled"`
-	ProcessID string                 `json:"process_id,omitempty"`
-	Details   string                 `json:"details,omitempty"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	Running   bool                      `json:"running"`
+	Enabled   bool                      `json:"enabled"`
+	ProcessID string                    `json:"process_id,omitempty"`
+	Details   string                    `json:"details,omitempty"`
+	Metadata  map[string]interface{}    `json:"metadata,omitempty"`
 	Strategy  ServiceManagementStrategy `json:"strategy"`
 }
 
@@ -111,7 +111,7 @@ func (f *ServiceStrategyFactory) CreateLifecycleStrategy(strategy ServiceManagem
 	// Get platform-specific defaults and service-specific overrides
 	effectiveStrategy := f.resolveEffectiveStrategy(strategy, serviceName)
 	effectiveCommands := f.resolveEffectiveCommands(customCommands, serviceName)
-	
+
 	// Create the appropriate lifecycle strategy
 	switch effectiveStrategy {
 	case StrategyBrewServices:
@@ -286,7 +286,7 @@ func (f *ServiceStrategyFactory) resolveEffectiveStrategy(requestedStrategy Serv
 	if requestedStrategy != StrategyAuto {
 		return requestedStrategy
 	}
-	
+
 	// For auto strategy, determine the best strategy for this service
 	return f.GetDefaultStrategyForService(serviceName)
 }
@@ -297,7 +297,7 @@ func (f *ServiceStrategyFactory) resolveEffectiveCommands(customCommands *Custom
 	if customCommands != nil {
 		return customCommands
 	}
-	
+
 	// Otherwise, get default commands for the service
 	return f.GetDefaultCommandsForService(serviceName)
 }
