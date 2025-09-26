@@ -43,6 +43,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/jamesainslie/terraform-package/internal/adapters"
 	"github.com/jamesainslie/terraform-package/internal/executor"
 )
@@ -255,24 +256,101 @@ func (b *BrewAdapter) Install(ctx context.Context, name, version string) error {
 }
 
 // InstallWithType installs a package with explicit type and optional version specification.
+// Implements idempotency by checking if the package is already installed before attempting installation.
 func (b *BrewAdapter) InstallWithType(ctx context.Context, name, version string, packageType adapters.PackageType) error {
+	// DEBUG: Log installation request
+	tflog.Debug(ctx, "BrewAdapter.InstallWithType starting",
+		map[string]interface{}{
+			"package_name": name,
+			"version":      version,
+			"package_type": string(packageType),
+			"brew_path":    b.brewPath,
+		})
+
 	var isCask bool
 	var err error
 
 	switch packageType {
 	case adapters.PackageTypeCask:
 		isCask = true
+		tflog.Debug(ctx, "Installing as Homebrew cask", map[string]interface{}{
+			"package_name": name,
+			"is_cask":      true,
+		})
 	case adapters.PackageTypeFormula:
 		isCask = false
+		tflog.Debug(ctx, "Installing as Homebrew formula", map[string]interface{}{
+			"package_name": name,
+			"is_cask":      false,
+		})
 	case adapters.PackageTypeAuto:
 		// Auto-detect as before
+		tflog.Debug(ctx, "Auto-detecting package type", map[string]interface{}{
+			"package_name": name,
+		})
 		isCask, err = b.isCask(ctx, name)
 		if err != nil {
 			// If we can't determine, try as formula first
 			isCask = false
+			tflog.Debug(ctx, "Auto-detection failed, defaulting to formula", map[string]interface{}{
+				"package_name": name,
+				"error":        err.Error(),
+				"is_cask":      false,
+			})
+		} else {
+			tflog.Debug(ctx, "Auto-detection completed", map[string]interface{}{
+				"package_name": name,
+				"is_cask":      isCask,
+			})
 		}
 	default:
+		tflog.Debug(ctx, "Unsupported package type", map[string]interface{}{
+			"package_name": name,
+			"package_type": string(packageType),
+		})
 		return fmt.Errorf("unsupported package type: %s", packageType)
+	}
+
+	// IDEMPOTENCY CHECK: Check if package is already installed to avoid unnecessary operations
+	// This is especially important for casks, which fail with exit code 1 if already installed
+	tflog.Debug(ctx, "Performing idempotency check", map[string]interface{}{
+		"package_name": name,
+		"is_cask":      isCask,
+	})
+
+	info, err := b.DetectInstalled(ctx, name)
+	if err == nil && info.Installed {
+		tflog.Debug(ctx, "Package already installed, checking version compatibility", map[string]interface{}{
+			"package_name":      name,
+			"installed_version": info.Version,
+			"requested_version": version,
+		})
+
+		// Package is already installed - check version compatibility
+		if version == "" || version == info.Version {
+			// Already installed with correct version, no action needed
+			tflog.Debug(ctx, "Package already installed with correct version, skipping installation", map[string]interface{}{
+				"package_name":      name,
+				"installed_version": info.Version,
+				"requested_version": version,
+			})
+			return nil
+		}
+		// Different version requested - continue with installation (may upgrade/downgrade)
+		tflog.Debug(ctx, "Different version requested, proceeding with installation", map[string]interface{}{
+			"package_name":      name,
+			"installed_version": info.Version,
+			"requested_version": version,
+		})
+	} else if err != nil {
+		tflog.Debug(ctx, "Could not detect installation status, proceeding with installation", map[string]interface{}{
+			"package_name": name,
+			"error":        err.Error(),
+		})
+	} else {
+		tflog.Debug(ctx, "Package not installed, proceeding with installation", map[string]interface{}{
+			"package_name": name,
+		})
 	}
 
 	args := []string{"install"}
@@ -286,18 +364,65 @@ func (b *BrewAdapter) InstallWithType(ctx context.Context, name, version string,
 	if version != "" && !isCask {
 		// Try versioned formula naming convention
 		packageName = fmt.Sprintf("%s@%s", name, version)
+		tflog.Debug(ctx, "Using versioned formula naming", map[string]interface{}{
+			"original_name": name,
+			"package_name":  packageName,
+			"version":       version,
+		})
 	}
 
 	args = append(args, packageName)
+
+	// DEBUG: Log the final command being executed
+	tflog.Debug(ctx, "Executing brew install command", map[string]interface{}{
+		"command":      b.brewPath,
+		"args":         args,
+		"package_name": packageName,
+		"is_cask":      isCask,
+		"timeout":      "300s",
+	})
 
 	result, err := b.executor.Run(ctx, b.brewPath, args, executor.ExecOpts{
 		Timeout: 300 * time.Second, // 5 minutes for package installation
 	})
 
+	// DEBUG: Log execution results
+	tflog.Debug(ctx, "Brew install command completed", map[string]interface{}{
+		"package_name": packageName,
+		"exit_code":    result.ExitCode,
+		"has_error":    err != nil,
+		"stdout_len":   len(result.Stdout),
+		"stderr_len":   len(result.Stderr),
+	})
+
 	if err != nil || result.ExitCode != 0 {
+		// Handle cask-specific "already installed" error gracefully
+		if isCask && result.ExitCode == 1 &&
+			(strings.Contains(result.Stderr, "already an App at") ||
+				strings.Contains(result.Stderr, "already installed")) {
+			// This is actually success - the cask is already installed
+			tflog.Debug(ctx, "Cask already installed error detected, treating as success", map[string]interface{}{
+				"package_name": packageName,
+				"stderr":       result.Stderr,
+			})
+			return nil
+		}
+
+		tflog.Debug(ctx, "Installation failed", map[string]interface{}{
+			"package_name": packageName,
+			"exit_code":    result.ExitCode,
+			"error":        err,
+			"stderr":       result.Stderr,
+		})
+
 		return fmt.Errorf("failed to install %s: exit code %d, error: %w, stderr: %s",
 			packageName, result.ExitCode, err, result.Stderr)
 	}
+
+	tflog.Debug(ctx, "BrewAdapter.InstallWithType completed successfully", map[string]interface{}{
+		"package_name": packageName,
+		"is_cask":      isCask,
+	})
 
 	return nil
 }

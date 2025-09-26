@@ -1,0 +1,83 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "dictionaries": [
+    "typescript",
+    "node",
+    "software-terms",
+    "golang",
+    "bash"
+  ],
+  "words": [
+    "ainslie",
+    "choco",
+    "chocolatey",
+    "codebase",
+    "datasource",
+    "datasources",
+    "goreleaser",
+    "hashicorp",
+    "homebrew",
+    "idempotency",
+    "jamesainslie",
+    "macOS",
+    "mermaid",
+    "outdated",
+    "semver",
+    "slog",
+    "terraform",
+    "tfplugindocs",
+    "winget"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    ".git/**",
+    "dist/**",
+    "*.min.*",
+    "*.map",
+    "coverage/**",
+    ".vscode/**",
+    "go.sum",
+    "*.lock"
+  ],
+  "overrides": [
+    {
+      "filename": "**/*.go",
+      "words": [
+        "ctx",
+        "diag",
+        "diags",
+        "func",
+        "struct",
+        "resp",
+        "req",
+        "tflog",
+        "tfsdk",
+        "basetypes",
+        "planmodifier",
+        "stringplanmodifier",
+        "listplanmodifier"
+      ]
+    },
+    {
+      "filename": "**/*.tf",
+      "words": [
+        "bool",
+        "func",
+        "jsonencode",
+        "locals",
+        "nullable",
+        "precondition",
+        "postcondition",
+        "substr",
+        "templatefile",
+        "tobool",
+        "tolist",
+        "tomap",
+        "tonumber",
+        "toset",
+        "tostring"
+      ]
+    }
+  ]
+}

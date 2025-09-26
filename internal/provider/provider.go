@@ -282,6 +282,8 @@ func (p *PackageProvider) Resources(_ context.Context) []func() resource.Resourc
 	return []func() resource.Resource{
 		NewPackageResource,
 		NewRepositoryResource,
+		// Service management resource
+		NewServiceResource,
 	}
 }
 
@@ -298,6 +300,9 @@ func (p *PackageProvider) DataSources(_ context.Context) []func() datasource.Dat
 		NewDependenciesDataSource,
 		NewVersionHistoryDataSource,
 		NewSecurityInfoDataSource,
+		// Service status data sources
+		NewServiceStatusDataSource,
+		NewServicesOverviewDataSource,
 	}
 }
 

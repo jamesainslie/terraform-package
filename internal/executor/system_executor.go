@@ -33,6 +33,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // SystemExecutor implements the Executor interface using os/exec.
@@ -49,9 +51,39 @@ func NewSystemExecutor() *SystemExecutor {
 
 // Run executes a command with the given options.
 func (e *SystemExecutor) Run(ctx context.Context, command string, args []string, opts ExecOpts) (ExecResult, error) {
+	startTime := time.Now()
+
+	// Check if context is already cancelled/expired before starting
+	select {
+	case <-ctx.Done():
+		tflog.Debug(ctx, "Context already expired before command execution", map[string]interface{}{
+			"command": command,
+			"args":    args,
+			"error":   ctx.Err().Error(),
+		})
+		return ExecResult{ExitCode: -1}, fmt.Errorf("context already expired before execution: %w", ctx.Err())
+	default:
+		// Context is still valid, proceed
+	}
+
+	// DEBUG: Log the incoming request with all details
+	tflog.Debug(ctx, "SystemExecutor.Run starting",
+		map[string]interface{}{
+			"command":         command,
+			"args":            args,
+			"timeout":         opts.Timeout.String(),
+			"work_dir":        opts.WorkDir,
+			"env_count":       len(opts.Env),
+			"use_sudo":        opts.UseSudo,
+			"non_interactive": opts.NonInteractive,
+		})
+
 	// Set default timeout if not specified
 	if opts.Timeout == 0 {
 		opts.Timeout = 5 * time.Minute
+		tflog.Debug(ctx, "Using default timeout", map[string]interface{}{
+			"default_timeout": opts.Timeout.String(),
+		})
 	}
 
 	// Create context with timeout
@@ -61,6 +93,16 @@ func (e *SystemExecutor) Run(ctx context.Context, command string, args []string,
 	// Prepare command with sudo if needed
 	finalCmd, finalArgs := e.prepareCommand(command, args, opts)
 
+	// DEBUG: Log the final prepared command
+	tflog.Debug(ctx, "Command prepared",
+		map[string]interface{}{
+			"original_command": command,
+			"final_command":    finalCmd,
+			"original_args":    args,
+			"final_args":       finalArgs,
+			"sudo_applied":     finalCmd == "sudo" || (len(finalArgs) > 0 && finalArgs[0] == command),
+		})
+
 	// Create the command
 	// #nosec G204 - Command construction is controlled and validated through prepareCommand
 	cmd := exec.CommandContext(ctx, finalCmd, finalArgs...)
@@ -68,11 +110,18 @@ func (e *SystemExecutor) Run(ctx context.Context, command string, args []string,
 	// Set working directory if specified
 	if opts.WorkDir != "" {
 		cmd.Dir = opts.WorkDir
+		tflog.Debug(ctx, "Working directory set", map[string]interface{}{
+			"work_dir": opts.WorkDir,
+		})
 	}
 
 	// Set environment variables
 	if len(opts.Env) > 0 {
 		cmd.Env = append(os.Environ(), opts.Env...)
+		tflog.Debug(ctx, "Environment variables set", map[string]interface{}{
+			"env_vars":       opts.Env,
+			"total_env_vars": len(cmd.Env),
+		})
 	}
 
 	// Capture stdout and stderr
@@ -83,8 +132,17 @@ func (e *SystemExecutor) Run(ctx context.Context, command string, args []string,
 	// Log the command being executed (without sensitive info)
 	e.logger.Printf("Executing command: %s %s", finalCmd, strings.Join(finalArgs, " "))
 
+	// DEBUG: Log execution start
+	tflog.Debug(ctx, "Starting command execution",
+		map[string]interface{}{
+			"full_command": fmt.Sprintf("%s %s", finalCmd, strings.Join(finalArgs, " ")),
+			"pid":          cmd.Process,
+		})
+
 	// Execute the command
 	err := cmd.Run()
+
+	executionDuration := time.Since(startTime)
 
 	result := ExecResult{
 		Stdout:   stdout.String(),
@@ -97,17 +155,59 @@ func (e *SystemExecutor) Run(ctx context.Context, command string, args []string,
 		var exitError *exec.ExitError
 		if errors.As(err, &exitError) {
 			result.ExitCode = exitError.ExitCode()
+			tflog.Debug(ctx, "Command failed with exit error", map[string]interface{}{
+				"exit_code": result.ExitCode,
+				"error":     err.Error(),
+			})
 		} else {
 			// Other error (e.g., command not found, context timeout)
 			result.ExitCode = -1
+			tflog.Debug(ctx, "Command failed with system error", map[string]interface{}{
+				"exit_code":  result.ExitCode,
+				"error":      err.Error(),
+				"error_type": fmt.Sprintf("%T", err),
+			})
 		}
 	}
 
-	// Log results (truncated for readability)
+	// DEBUG: Log comprehensive results
+	tflog.Debug(ctx, "Command execution completed",
+		map[string]interface{}{
+			"command":           fmt.Sprintf("%s %s", finalCmd, strings.Join(finalArgs, " ")),
+			"exit_code":         result.ExitCode,
+			"execution_time_ms": executionDuration.Milliseconds(),
+			"stdout_length":     len(result.Stdout),
+			"stderr_length":     len(result.Stderr),
+			"success":           result.ExitCode == 0,
+		})
+
+	// DEBUG: Log stdout/stderr content (truncated for safety)
+	if len(result.Stdout) > 0 {
+		tflog.Debug(ctx, "Command stdout output", map[string]interface{}{
+			"stdout":             e.truncateOutput(result.Stdout, 2000),
+			"stdout_full_length": len(result.Stdout),
+		})
+	}
+
+	if len(result.Stderr) > 0 {
+		tflog.Debug(ctx, "Command stderr output", map[string]interface{}{
+			"stderr":             e.truncateOutput(result.Stderr, 2000),
+			"stderr_full_length": len(result.Stderr),
+		})
+	}
+
+	// Log results (truncated for readability) - keeping existing logger for compatibility
 	e.logger.Printf("Command completed with exit code: %d", result.ExitCode)
 	if result.ExitCode != 0 {
 		e.logger.Printf("Command stderr: %s", e.truncateOutput(result.Stderr, 500))
 	}
+
+	// DEBUG: Final summary
+	tflog.Debug(ctx, "SystemExecutor.Run completed",
+		map[string]interface{}{
+			"total_duration_ms": executionDuration.Milliseconds(),
+			"success":           err == nil && result.ExitCode == 0,
+		})
 
 	return result, err
 }
