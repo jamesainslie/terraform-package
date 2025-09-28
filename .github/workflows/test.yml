@@ -98,50 +98,47 @@ jobs:
           version: v2.4.0
           args: --timeout=5m
 
-  # TEMPORARILY DISABLED: Generate documentation and verify it's up to date
-  # Will re-enable after fixing tools checksum issues
-  # generate:
-  #   name: Generate Documentation
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 10
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v5
-  #       with:
-  #         go-version: '1.25.1'
-  #         cache: true
-  #       env:
-  #         GOPROXY: direct
-  #         GOTOOLCHAIN: go1.25.1
-  #         
-  #     - name: Set up Terraform
-  #       uses: hashicorp/setup-terraform@v3
-  #       with:
-  #         terraform_wrapper: false
-  #         
-  #     - name: Generate documentation
-  #       env:
-  #         GOPROXY: https://proxy.golang.org,direct
-  #         GOSUMDB: sum.golang.org
-  #         GOTOOLCHAIN: go1.25.1
-  #       run: |
-  #         make generate
-  #         go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
-  #         tfplugindocs generate --provider-name pkg
-  #       
-  #     - name: Check for differences
-  #       run: |
-  #         git diff --compact-summary --exit-code || \
-  #           (echo; echo "Unexpected difference in directories after code generation. Run 'make generate' command and commit."; exit 1)
-  #           
-  #     - name: Validate provider schema
-  #       run: |
-  #         go build -o terraform-provider-package .
-  #         echo "Provider binary built successfully: $(file ./terraform-provider-package)"
-  #         echo "Provider schema validation completed"
+  # Generate documentation and verify it's up to date
+  generate:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
+          cache: true
+        env:
+          GOTOOLCHAIN: go1.25.1
+          
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.8"
+          terraform_wrapper: false
+          
+      - name: Generate documentation
+        env:
+          GOTOOLCHAIN: go1.25.1
+          GOPROXY: https://proxy.golang.org,direct
+          GOSUMDB: sum.golang.org
+        run: |
+          make generate
+        
+      - name: Check for differences
+        run: |
+          git diff --compact-summary --exit-code || \
+            (echo; echo "Unexpected difference in directories after code generation. Run 'make generate' command and commit."; exit 1)
+            
+      - name: Validate provider schema
+        run: |
+          go build -o terraform-provider-package .
+          echo "Provider binary built successfully: $(file ./terraform-provider-package)"
+          echo "Provider schema validation completed"
 
   # Unit tests across platforms
   unit-tests:
