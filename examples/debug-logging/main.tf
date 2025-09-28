@@ -16,9 +16,9 @@ provider "pkg" {
 
 # This will demonstrate package installation logging
 resource "pkg_package" "debug_example" {
-  name  = "jq"  # Simple package that exists on most systems
+  name  = "jq" # Simple package that exists on most systems
   state = "present"
-  
+
   # This will show package manager resolution and installation logic
   managers = ["brew", "apt"]
 }
@@ -27,16 +27,16 @@ resource "pkg_package" "debug_example" {
 resource "pkg_service" "debug_service" {
   service_name = "colima"
   state        = "running"
-  
+
   # This will show service strategy selection and execution
   management_strategy = "direct_command"
-  
+
   custom_commands {
     start  = ["colima", "start", "--cpu", "2", "--memory", "4"]
     stop   = ["colima", "stop"]
     status = ["colima", "status"]
   }
-  
+
   # Only create if colima package exists
   depends_on = [pkg_package.debug_example]
 }

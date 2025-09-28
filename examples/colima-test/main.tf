@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     pkg = {
-      source = "jamesainslie/package"
+      source  = "jamesainslie/package"
       version = "~> 0.1"
     }
   }
@@ -13,21 +13,21 @@ provider "pkg" {
 
 # Test Colima service management with direct command strategy
 resource "pkg_service" "colima" {
-  service_name       = "colima"
-  state             = "running"
-  startup           = "disabled"
+  service_name        = "colima"
+  state               = "running"
+  startup             = "disabled"
   management_strategy = "direct_command"
-  
+
   custom_commands = {
     start   = ["colima", "start"]
     stop    = ["colima", "stop"]
     restart = ["colima", "restart"]
     status  = ["colima", "status"]
   }
-  
+
   wait_for_healthy = true
   wait_timeout     = "60s"
-  
+
   timeout = "30s"
 }
 
