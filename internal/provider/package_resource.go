@@ -39,8 +39,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/jamesainslie/terraform-package/internal/adapters"
+	"github.com/jamesainslie/terraform-package/internal/adapters/apt"
 	"github.com/jamesainslie/terraform-package/internal/adapters/brew"
 )
 
@@ -375,18 +377,46 @@ func (r *PackageResource) Create(
 	ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data PackageResourceModel
 
+	// DEBUG: Log resource creation start
+	tflog.Debug(ctx, "PackageResource.Create starting", map[string]interface{}{
+		"resource_type": "pkg_package",
+	})
+
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
+		tflog.Debug(ctx, "Failed to read Terraform plan data", map[string]interface{}{
+			"diagnostics_count": len(resp.Diagnostics),
+		})
 		return
 	}
+
+	// DEBUG: Log the planned package configuration
+	tflog.Debug(ctx, "Package configuration from plan", map[string]interface{}{
+		"name":         data.Name.ValueString(),
+		"version":      data.Version.ValueString(),
+		"state":        data.State.ValueString(),
+		"managers":     data.Managers.String(),
+		"package_type": data.PackageType.ValueString(),
+		"pin":          data.Pin.ValueBool(),
+	})
 
 	// Resolve package manager and name
 	manager, packageName, err := r.resolvePackageManager(ctx, data)
 	if err != nil {
+		tflog.Debug(ctx, "Package manager resolution failed", map[string]interface{}{
+			"error": err.Error(),
+		})
 		resp.Diagnostics.AddError("Package Manager Resolution Failed", err.Error())
 		return
 	}
+
+	// DEBUG: Log resolved package manager and name
+	tflog.Debug(ctx, "Package manager resolved", map[string]interface{}{
+		"manager_name":     manager.GetManagerName(),
+		"resolved_package": packageName,
+		"original_name":    data.Name.ValueString(),
+	})
 
 	// Get timeout for create operation
 	var createTimeout types.String
@@ -398,6 +428,100 @@ func (r *PackageResource) Create(
 	// Create context with timeout
 	createCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
+
+	// IDEMPOTENCY CHECK: Before attempting any installation, check if the package is already
+	// in the desired state. This prevents unnecessary operations and handles cases where
+	// package managers (like Homebrew casks) fail when trying to install already-installed packages.
+	tflog.Debug(ctx, "Starting idempotency check", map[string]interface{}{
+		"package_name":  packageName,
+		"desired_state": data.State.ValueString(),
+	})
+
+	if data.State.ValueString() == "present" {
+		tflog.Debug(ctx, "Desired state is 'present', checking if package is already installed", map[string]interface{}{
+			"package_name": packageName,
+		})
+
+		if err := r.readPackageState(createCtx, manager, packageName, &data); err == nil {
+			tflog.Debug(ctx, "Successfully read package state", map[string]interface{}{
+				"package_name": packageName,
+			})
+
+			// Successfully read package state, check if already installed
+			info, detectErr := manager.DetectInstalled(createCtx, packageName)
+			if detectErr == nil && info.Installed {
+				tflog.Debug(ctx, "Package already installed, checking version compatibility", map[string]interface{}{
+					"package_name":      packageName,
+					"installed_version": info.Version,
+					"desired_version":   data.Version.ValueString(),
+				})
+
+				// Package is already installed - check if version matches (if specified)
+				desiredVersion := data.Version.ValueString()
+				if desiredVersion == "" || desiredVersion == info.Version {
+					// Package is already in desired state, just update computed attributes and return
+					tflog.Debug(ctx, "Package already in desired state, skipping installation", map[string]interface{}{
+						"package_name":      packageName,
+						"installed_version": info.Version,
+						"desired_version":   desiredVersion,
+					})
+
+					data.ID = types.StringValue(fmt.Sprintf("%s:%s", manager.GetManagerName(), packageName))
+					data.VersionActual = types.StringValue(info.Version)
+
+					// Handle pinning if requested
+					if data.Pin.ValueBool() {
+						tflog.Debug(ctx, "Applying package pinning", map[string]interface{}{
+							"package_name": packageName,
+						})
+						if err := manager.Pin(createCtx, packageName, true); err != nil {
+							tflog.Debug(ctx, "Package pinning failed", map[string]interface{}{
+								"package_name": packageName,
+								"error":        err.Error(),
+							})
+							resp.Diagnostics.AddWarning(
+								"Package Pinning Failed",
+								fmt.Sprintf("Package already installed but pinning failed: %v", err),
+							)
+						}
+					}
+
+					// Save data into Terraform state and return - no installation needed
+					resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+					tflog.Debug(ctx, "PackageResource.Create completed via idempotency check", map[string]interface{}{
+						"package_name":         packageName,
+						"skipped_installation": true,
+					})
+					return
+				} else {
+					tflog.Debug(ctx, "Version mismatch detected, proceeding with installation", map[string]interface{}{
+						"package_name":      packageName,
+						"installed_version": info.Version,
+						"desired_version":   desiredVersion,
+					})
+				}
+			} else if detectErr != nil {
+				tflog.Debug(ctx, "Could not detect installation status", map[string]interface{}{
+					"package_name": packageName,
+					"error":        detectErr.Error(),
+				})
+			} else {
+				tflog.Debug(ctx, "Package not installed, proceeding with installation", map[string]interface{}{
+					"package_name": packageName,
+				})
+			}
+		} else {
+			tflog.Debug(ctx, "Could not read package state", map[string]interface{}{
+				"package_name": packageName,
+				"error":        err.Error(),
+			})
+		}
+	} else {
+		tflog.Debug(ctx, "Desired state is not 'present', skipping idempotency check", map[string]interface{}{
+			"package_name":  packageName,
+			"desired_state": data.State.ValueString(),
+		})
+	}
 
 	// Update cache if configured
 	if r.providerData.Config.UpdateCache.ValueString() == "on_change" ||
@@ -695,6 +819,9 @@ func (r *PackageResource) ImportState(
 
 // Helper methods
 
+// resolvePackageManager resolves the appropriate package manager and package name.
+// This function ensures idempotency by selecting the correct adapter based on OS and config,
+// and the caller uses DetectInstalled to check current state before any mutations.
 func (r *PackageResource) resolvePackageManager(
 	ctx context.Context, data PackageResourceModel) (adapters.PackageManager, string, error) {
 	// Check if provider data is available
@@ -721,22 +848,27 @@ func (r *PackageResource) resolvePackageManager(
 		switch runtime.GOOS {
 		case "darwin":
 			managerName = "brew"
+		case "linux":
+			managerName = "apt"
 		default:
-			return nil, "", fmt.Errorf("only macOS (darwin) is supported in Phase 2, got: %s", runtime.GOOS)
+			return nil, "", fmt.Errorf("unsupported OS: %s. Supported: darwin (brew), linux (apt)", runtime.GOOS)
 		}
 	}
 
-	// Create the appropriate manager (only brew supported in Phase 2)
+	// Create the appropriate manager
 	var manager adapters.PackageManager
 	switch managerName {
 	case "brew":
 		brewPath := r.providerData.Config.BrewPath.ValueString()
 		manager = brew.NewBrewAdapter(r.providerData.Executor, brewPath)
+	case "apt":
+		aptGetPath := r.providerData.Config.AptGetPath.ValueString()
+		manager = apt.NewAptAdapter(r.providerData.Executor, aptGetPath, "", r.providerData.Config.AptGetPath.ValueString())
 	default:
-		return nil, "", fmt.Errorf("only homebrew manager is supported in Phase 2, got: %s", managerName)
+		return nil, "", fmt.Errorf("unsupported package manager: %s. Supported: brew, apt", managerName)
 	}
 
-	// Check if manager is available
+	// Check if manager is available - this ensures we don't attempt operations with unavailable tools
 	if !manager.IsAvailable(ctx) {
 		return nil, "", fmt.Errorf("package manager %s is not available on this system", managerName)
 	}
@@ -769,6 +901,10 @@ func (r *PackageResource) resolvePackageManager(
 	return manager, packageName, nil
 }
 
+// readPackageState reads the current package state from the manager.
+// Idempotency: This method is called before any mutation (Create/Update/Delete) to detect if the package
+// is already in the desired state. If info.Installed matches the desired state and version matches,
+// Terraform will plan no changes, preventing unnecessary operations.
 func (r *PackageResource) readPackageState(ctx context.Context, manager adapters.PackageManager, packageName string, data *PackageResourceModel) error {
 	info, err := manager.DetectInstalled(ctx, packageName)
 	if err != nil {
@@ -786,12 +922,12 @@ func (r *PackageResource) readPackageState(ctx context.Context, manager adapters
 	if data.InstallationSource.IsUnknown() {
 		data.InstallationSource = types.StringValue(manager.GetManagerName())
 	}
-	
+
 	if data.DependencyTree.IsUnknown() {
 		// Set to empty map if not tracking dependencies
 		data.DependencyTree = types.MapValueMust(types.StringType, map[string]attr.Value{})
 	}
-	
+
 	if data.LastAccess.IsUnknown() {
 		// Set to empty string if not tracking usage
 		data.LastAccess = types.StringValue("")
@@ -946,41 +1082,4 @@ func (r *PackageResource) detectVersionDrift(current, desired PackageState) Drif
 	drift.HasVersionDrift = current.Version != desired.Version
 
 	return drift
-}
-
-// detectIntegrityDrift detects integrity drift by checking package checksums.
-func (r *PackageResource) detectIntegrityDrift(packagePath, expectedChecksum string) *IntegrityDriftInfo {
-	drift := &IntegrityDriftInfo{
-		ExpectedChecksum: expectedChecksum,
-		ActualChecksum:   "", // Would be computed from file
-	}
-
-	// In a real implementation, we would:
-	// 1. Calculate checksum of the package file
-	// 2. Compare with expected checksum
-	// For now, assume no drift
-	drift.HasDrift = false
-
-	return drift
-}
-
-// determineRemediationAction determines the appropriate remediation action based on drift info.
-func (r *PackageResource) determineRemediationAction(drift DriftInfo) string {
-	switch drift.RemediationStrategy {
-	case "auto":
-		// Automatically determine action based on drift type
-		if drift.HasVersionDrift || drift.HasDependencyDrift {
-			return "reinstall"
-		}
-		if drift.HasIntegrityDrift {
-			return "repair"
-		}
-		return "none"
-	case "manual":
-		return "manual"
-	case "warn":
-		return "warn"
-	default:
-		return "none"
-	}
 }

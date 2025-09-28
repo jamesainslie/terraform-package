@@ -6,8 +6,14 @@ VERSION := $(shell git describe --tags --always --dirty)
 COMMIT_HASH := $(shell git rev-parse HEAD)
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
-# Build flags
+# Go toolchain and build flags
+GOTOOLCHAIN := go1.25.1
 LDFLAGS := -ldflags "-s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT_HASH)"
+GOFLAGS_BUILD := -gcflags=all=-lang=go1.25
+GOFLAGS_TEST := -gcflags=all=-lang=go1.24
+
+# Export environment variables for all targets
+export GOTOOLCHAIN
 
 # Terraform provider installation paths
 TERRAFORM_PLUGINS_DIR := ~/.terraform.d/plugins
@@ -26,7 +32,7 @@ help:
 .PHONY: build
 build:
 	@echo "Building $(BINARY_NAME)..."
-	go build $(LDFLAGS) -o $(BINARY_NAME) .
+	GOFLAGS="$(GOFLAGS_BUILD)" go build $(LDFLAGS) -o $(BINARY_NAME) .
 
 ## install: Install the provider locally for development
 .PHONY: install
@@ -47,13 +53,13 @@ clean:
 .PHONY: test
 test:
 	@echo "Running unit tests..."
-	go test -v ./internal/... -race
+	GOFLAGS="$(GOFLAGS_TEST)" go test -v ./internal/... -race
 
 ## test-coverage: Run tests with coverage
 .PHONY: test-coverage
 test-coverage:
 	@echo "Running tests with coverage..."
-	go test -v ./internal/... -coverprofile=coverage.out -covermode=atomic
+	GOFLAGS="$(GOFLAGS_TEST)" go test -v ./internal/... -coverprofile=coverage.out -covermode=atomic
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
@@ -61,7 +67,7 @@ test-coverage:
 .PHONY: test-acc
 test-acc:
 	@echo "Running acceptance tests..."
-	TF_ACC=1 go test -v ./internal/provider/ -timeout=30m
+	TF_ACC=1 GOFLAGS="$(GOFLAGS_TEST)" go test -v ./internal/provider/ -timeout=30m
 
 ## test-all: Run all tests (unit + acceptance)
 .PHONY: test-all
@@ -71,7 +77,14 @@ test-all: test test-acc
 .PHONY: lint
 lint:
 	@echo "Running linters..."
-	golangci-lint run ./...
+	@command -v golangci-lint >/dev/null 2>&1 || { echo "golangci-lint not found in PATH, trying ~/go/bin/golangci-lint..."; }
+	@if command -v golangci-lint >/dev/null 2>&1; then \
+		golangci-lint run ./...; \
+	elif [ -f ~/go/bin/golangci-lint ]; then \
+		~/go/bin/golangci-lint run ./...; \
+	else \
+		echo "Error: golangci-lint not found. Run 'make dev-setup' to install."; exit 1; \
+	fi
 
 ## fmt: Format Go code
 .PHONY: fmt
@@ -86,6 +99,19 @@ vet:
 	@echo "Running go vet..."
 	go vet ./...
 
+## staticcheck: Run staticcheck static analysis
+.PHONY: staticcheck
+staticcheck:
+	@echo "Running staticcheck..."
+	@command -v staticcheck >/dev/null 2>&1 || { echo "staticcheck not found in PATH, trying ~/go/bin/staticcheck..."; }
+	@if command -v staticcheck >/dev/null 2>&1; then \
+		staticcheck ./...; \
+	elif [ -f ~/go/bin/staticcheck ]; then \
+		~/go/bin/staticcheck ./...; \
+	else \
+		echo "Error: staticcheck not found. Install with: go install honnef.co/go/tools/cmd/staticcheck@latest"; exit 1; \
+	fi
+
 ## mod: Tidy and verify go modules
 .PHONY: mod
 mod:
@@ -93,9 +119,11 @@ mod:
 	go mod tidy
 	go mod verify
 
-## generate: Generate documentation
+## generate: Generate documentation and tools
 .PHONY: generate
 generate:
+	@echo "Generating tools..."
+	cd tools && go generate ./...
 	@echo "Generating documentation..."
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
 	tfplugindocs generate --provider-name pkg
@@ -114,6 +142,7 @@ dev-setup:
 	@echo "Setting up development environment..."
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go install golang.org/x/tools/cmd/goimports@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 
@@ -126,8 +155,39 @@ security:
 
 ## check: Run all quality checks
 .PHONY: check
-check: fmt vet lint test security
+check: fmt vet lint staticcheck test security
 	@echo "All quality checks passed!"
+
+## quality: Run comprehensive tests and quality checks
+.PHONY: quality
+quality:
+	@echo "=== COMPREHENSIVE QUALITY CHECK ==="
+	@echo "1. Running go vet..."
+	@$(MAKE) vet
+	@echo " go vet passed"
+	@echo "2. Running golangci-lint..."
+	@$(MAKE) lint
+	@echo " golangci-lint passed"
+	@echo "3. Running staticcheck..."
+	@$(MAKE) staticcheck
+	@echo " staticcheck passed"
+	@echo "4. Running tests..."
+	@$(MAKE) test
+	@echo " All tests passed"
+	@echo "5. Building project..."
+	@GOFLAGS="$(GOFLAGS_BUILD)" go build ./...
+	@echo " Build successful"
+	@echo ""
+	@echo " ALL QUALITY CHECKS PASSED! "
+
+## lint-all: Run all linting tools (quick check)
+.PHONY: lint-all
+lint-all:
+	@echo "Running all linting tools..."
+	@$(MAKE) vet
+	@$(MAKE) lint
+	@$(MAKE) staticcheck
+	@echo " All linting passed!"
 
 ## ci: Run CI-like checks locally
 .PHONY: ci
@@ -188,12 +248,13 @@ pre-commit: fmt mod vet lint test
 .PHONY: build-all
 build-all:
 	@echo "Building for all platforms..."
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_darwin_amd64 .
-	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_darwin_arm64 .
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_linux_amd64 .
-	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_linux_arm64 .
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_windows_amd64.exe .
-	GOOS=freebsd GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_freebsd_amd64 .
+	mkdir -p dist/
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_darwin_amd64 .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_darwin_arm64 .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_linux_amd64 .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_linux_arm64 .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_windows_amd64.exe .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=freebsd GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_freebsd_amd64 .
 
 ## docker-test: Run tests in Docker container
 .PHONY: docker-test
@@ -205,11 +266,11 @@ docker-test:
 .PHONY: benchmark
 benchmark:
 	@echo "Running benchmark tests..."
-	go test -bench=. -benchmem ./internal/...
+	GOFLAGS="$(GOFLAGS_TEST)" go test -bench=. -benchmem ./internal/...
 
 ## profile: Run tests with profiling
 .PHONY: profile
 profile:
 	@echo "Running tests with profiling..."
-	go test -cpuprofile=cpu.prof -memprofile=mem.prof -bench=. ./internal/...
+	GOFLAGS="$(GOFLAGS_TEST)" go test -cpuprofile=cpu.prof -memprofile=mem.prof -bench=. ./internal/...
 	go tool pprof cpu.prof

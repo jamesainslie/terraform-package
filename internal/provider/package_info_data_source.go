@@ -27,10 +27,13 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/jamesainslie/terraform-package/internal/adapters"
+	"github.com/jamesainslie/terraform-package/internal/adapters/apt"
 	"github.com/jamesainslie/terraform-package/internal/adapters/brew"
 )
 
@@ -136,6 +139,8 @@ func (d *PackageInfoDataSource) Configure(
 	d.providerData = providerData
 }
 
+// Data sources are read-only by design, making them inherently idempotent - multiple reads return the same info
+// without side effects.
 func (d *PackageInfoDataSource) Read(
 	ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data PackageInfoDataSourceModel
@@ -152,30 +157,38 @@ func (d *PackageInfoDataSource) Read(
 		managerName = data.Manager.ValueString()
 	}
 
-	// Auto-detect manager based on OS (Phase 2: only macOS supported)
+	// Auto-detect manager based on OS
 	if managerName == "auto" {
-		if runtime.GOOS != "darwin" {
+		switch runtime.GOOS {
+		case "darwin":
+			managerName = "brew"
+		case "linux":
+			managerName = "apt"
+		default:
 			resp.Diagnostics.AddError(
 				"Unsupported Operating System",
-				fmt.Sprintf("Only macOS (darwin) is supported in Phase 2, got: %s", runtime.GOOS),
+				fmt.Sprintf("Only macOS (darwin) and Linux are supported, got: %s", runtime.GOOS),
 			)
 			return
 		}
-		managerName = "brew"
 	}
 
-	// Only support brew in Phase 2
-	if managerName != "brew" {
+	// Create manager based on name
+	var manager adapters.PackageManager
+	switch managerName {
+	case "brew":
+		brewPath := d.providerData.Config.BrewPath.ValueString()
+		manager = brew.NewBrewAdapter(d.providerData.Executor, brewPath)
+	case "apt":
+		aptPath := d.providerData.Config.AptGetPath.ValueString()
+		manager = apt.NewAptAdapter(d.providerData.Executor, aptPath, "", aptPath)
+	default:
 		resp.Diagnostics.AddError(
 			"Unsupported Package Manager",
-			fmt.Sprintf("Only 'brew' manager is supported in Phase 2, got: %s", managerName),
+			fmt.Sprintf("Only 'brew' and 'apt' managers are supported, got: %s", managerName),
 		)
 		return
 	}
-
-	// Create Homebrew adapter
-	brewPath := d.providerData.Config.BrewPath.ValueString()
-	manager := brew.NewBrewAdapter(d.providerData.Executor, brewPath)
 
 	// Check if manager is available
 	if !manager.IsAvailable(ctx) {
@@ -188,7 +201,7 @@ func (d *PackageInfoDataSource) Read(
 
 	// Get package information
 	packageName := data.Name.ValueString()
-	info, err := manager.Info(ctx, packageName)
+	info, err := manager.DetectInstalled(ctx, packageName)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to Get Package Information",
@@ -197,40 +210,21 @@ func (d *PackageInfoDataSource) Read(
 		return
 	}
 
-	// Set computed values
-	data.ID = types.StringValue(fmt.Sprintf("%s:%s", managerName, packageName))
-	data.Manager = types.StringValue(managerName)
+	// Set data source state
+	data.ID = types.StringValue(packageName)
+	data.Name = types.StringValue(info.Name)
 	data.Installed = types.BoolValue(info.Installed)
+	data.Version = types.StringValue(info.Version)
+	// Convert string slice to attr.Value slice for ListValueMust
+	versionValues := make([]attr.Value, len(info.AvailableVersions))
+	for i, version := range info.AvailableVersions {
+		versionValues[i] = types.StringValue(version)
+	}
+	data.AvailableVersions = types.ListValueMust(types.StringType, versionValues)
 	data.Pinned = types.BoolValue(info.Pinned)
 	data.Repository = types.StringValue(info.Repository)
+	// data.Description = types.StringValue(info.Description) // Assume added to interface if needed
+	// data.Homepage = types.StringValue(info.Homepage)     // Assume added
 
-	// Set version (empty if not installed)
-	if info.Installed {
-		data.Version = types.StringValue(info.Version)
-	} else {
-		data.Version = types.StringValue("")
-	}
-
-	// Set available versions
-	if len(info.AvailableVersions) > 0 {
-		versions := make([]types.String, len(info.AvailableVersions))
-		for i, version := range info.AvailableVersions {
-			versions[i] = types.StringValue(version)
-		}
-		versionsList, diags := types.ListValueFrom(ctx, types.StringType, versions)
-		resp.Diagnostics.Append(diags...)
-		if !resp.Diagnostics.HasError() {
-			data.AvailableVersions = versionsList
-		}
-	} else {
-		// Empty list if no versions available
-		emptyList, diags := types.ListValueFrom(ctx, types.StringType, []types.String{})
-		resp.Diagnostics.Append(diags...)
-		if !resp.Diagnostics.HasError() {
-			data.AvailableVersions = emptyList
-		}
-	}
-
-	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
