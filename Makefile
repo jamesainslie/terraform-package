@@ -6,8 +6,14 @@ VERSION := $(shell git describe --tags --always --dirty)
 COMMIT_HASH := $(shell git rev-parse HEAD)
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
-# Build flags
+# Go toolchain and build flags
+GOTOOLCHAIN := go1.25.1
 LDFLAGS := -ldflags "-s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT_HASH)"
+GOFLAGS_BUILD := -gcflags=all=-lang=go1.25
+GOFLAGS_TEST := -gcflags=all=-lang=go1.24
+
+# Export environment variables for all targets
+export GOTOOLCHAIN
 
 # Terraform provider installation paths
 TERRAFORM_PLUGINS_DIR := ~/.terraform.d/plugins
@@ -26,7 +32,7 @@ help:
 .PHONY: build
 build:
 	@echo "Building $(BINARY_NAME)..."
-	go build $(LDFLAGS) -o $(BINARY_NAME) .
+	GOFLAGS="$(GOFLAGS_BUILD)" go build $(LDFLAGS) -o $(BINARY_NAME) .
 
 ## install: Install the provider locally for development
 .PHONY: install
@@ -47,13 +53,13 @@ clean:
 .PHONY: test
 test:
 	@echo "Running unit tests..."
-	go test -v ./internal/... -race
+	GOFLAGS="$(GOFLAGS_TEST)" go test -v ./internal/... -race
 
 ## test-coverage: Run tests with coverage
 .PHONY: test-coverage
 test-coverage:
 	@echo "Running tests with coverage..."
-	go test -v ./internal/... -coverprofile=coverage.out -covermode=atomic
+	GOFLAGS="$(GOFLAGS_TEST)" go test -v ./internal/... -coverprofile=coverage.out -covermode=atomic
 	go tool cover -html=coverage.out -o coverage.html
 	@echo "Coverage report generated: coverage.html"
 
@@ -61,7 +67,7 @@ test-coverage:
 .PHONY: test-acc
 test-acc:
 	@echo "Running acceptance tests..."
-	TF_ACC=1 go test -v ./internal/provider/ -timeout=30m
+	TF_ACC=1 GOFLAGS="$(GOFLAGS_TEST)" go test -v ./internal/provider/ -timeout=30m
 
 ## test-all: Run all tests (unit + acceptance)
 .PHONY: test-all
@@ -169,7 +175,7 @@ quality:
 	@$(MAKE) test
 	@echo " All tests passed"
 	@echo "5. Building project..."
-	@go build ./...
+	@GOFLAGS="$(GOFLAGS_BUILD)" go build ./...
 	@echo " Build successful"
 	@echo ""
 	@echo " ALL QUALITY CHECKS PASSED! "
@@ -242,12 +248,13 @@ pre-commit: fmt mod vet lint test
 .PHONY: build-all
 build-all:
 	@echo "Building for all platforms..."
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_darwin_amd64 .
-	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_darwin_arm64 .
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_linux_amd64 .
-	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_linux_arm64 .
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_windows_amd64.exe .
-	GOOS=freebsd GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_freebsd_amd64 .
+	mkdir -p dist/
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_darwin_amd64 .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_darwin_arm64 .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_linux_amd64 .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_linux_arm64 .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_windows_amd64.exe .
+	GOFLAGS="$(GOFLAGS_BUILD)" GOOS=freebsd GOARCH=amd64 go build $(LDFLAGS) -o dist/$(BINARY_NAME)_freebsd_amd64 .
 
 ## docker-test: Run tests in Docker container
 .PHONY: docker-test
@@ -259,11 +266,11 @@ docker-test:
 .PHONY: benchmark
 benchmark:
 	@echo "Running benchmark tests..."
-	go test -bench=. -benchmem ./internal/...
+	GOFLAGS="$(GOFLAGS_TEST)" go test -bench=. -benchmem ./internal/...
 
 ## profile: Run tests with profiling
 .PHONY: profile
 profile:
 	@echo "Running tests with profiling..."
-	go test -cpuprofile=cpu.prof -memprofile=mem.prof -bench=. ./internal/...
+	GOFLAGS="$(GOFLAGS_TEST)" go test -cpuprofile=cpu.prof -memprofile=mem.prof -bench=. ./internal/...
 	go tool pprof cpu.prof
