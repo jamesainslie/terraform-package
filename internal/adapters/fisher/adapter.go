@@ -42,10 +42,11 @@ import (
 
 // FisherAdapter implements the PackageManager interface for Fisher.
 type FisherAdapter struct {
-	executor    executor.Executor
-	fishPath    string
-	configDir   string
-	pluginsFile string
+	executor           executor.Executor
+	fishPath           string
+	configDir          string
+	pluginsFile        string
+	latestVersionCache map[string]string
 }
 
 // NewFisherAdapter creates a new Fisher adapter.
@@ -68,10 +69,11 @@ func NewFisherAdapter(exec executor.Executor, fishPath, configDir string) *Fishe
 	}
 
 	return &FisherAdapter{
-		executor:    exec,
-		fishPath:    fishPath,
-		configDir:   configDir,
-		pluginsFile: pluginsFile,
+		executor:           exec,
+		fishPath:           fishPath,
+		configDir:          configDir,
+		pluginsFile:        pluginsFile,
+		latestVersionCache: make(map[string]string),
 	}
 }
 
@@ -170,6 +172,11 @@ func (f *FisherAdapter) InstallWithType(ctx context.Context, name, version strin
 		return fmt.Errorf("fisher only supports plugin package type, got: %s", packageType)
 	}
 
+	// Validate Fish shell version first
+	if err := f.validateFishVersion(ctx); err != nil {
+		return fmt.Errorf("fish shell compatibility check failed: %w", err)
+	}
+
 	tflog.Debug(ctx, "FisherAdapter.InstallWithType starting", map[string]interface{}{
 		"plugin_name":  name,
 		"version":      version,
@@ -183,28 +190,48 @@ func (f *FisherAdapter) InstallWithType(ctx context.Context, name, version strin
 		return fmt.Errorf("invalid plugin name '%s': %w", name, err)
 	}
 
+	// Resolve version if needed (e.g., "latest" -> actual version)
+	resolvedVersion := version
+	if !pluginRef.IsLocal && version != "" {
+		resolved, err := f.resolveLatestVersion(ctx, &PluginRef{
+			Owner:   pluginRef.Owner,
+			Repo:    pluginRef.Repo,
+			Version: version,
+		})
+		if err != nil {
+			return fmt.Errorf("version resolution failed for %s: %w", name, err)
+		}
+		resolvedVersion = resolved
+		
+		tflog.Debug(ctx, "Version resolved", map[string]interface{}{
+			"plugin": name,
+			"original_version": version,
+			"resolved_version": resolvedVersion,
+		})
+	}
+
 	// IDEMPOTENCY CHECK: Check if plugin is already installed
 	packageInfo, err := f.DetectInstalled(ctx, name)
 	if err == nil && packageInfo.Installed {
-		// Check version compatibility
-		if version == "" || version == packageInfo.Version {
-			tflog.Debug(ctx, "Plugin already installed with correct version, skipping installation", map[string]interface{}{
-				"plugin_name":       name,
-				"installed_version": packageInfo.Version,
-				"requested_version": version,
-			})
-			return nil
-		}
+	// Check version compatibility
+	if resolvedVersion == "" || resolvedVersion == packageInfo.Version {
+		tflog.Debug(ctx, "Plugin already installed with correct version, skipping installation", map[string]interface{}{
+			"plugin_name":       name,
+			"installed_version": packageInfo.Version,
+			"requested_version": resolvedVersion,
+		})
+		return nil
+	}
 		// Different version requested - continue with installation
 		tflog.Debug(ctx, "Different version requested, proceeding with installation", map[string]interface{}{
 			"plugin_name":       name,
 			"installed_version": packageInfo.Version,
-			"requested_version": version,
+			"requested_version": resolvedVersion,
 		})
 	}
 
 	// Determine the plugin reference to install
-	pluginToInstall := f.buildPluginReference(pluginRef, version)
+	pluginToInstall := f.buildPluginReference(pluginRef, resolvedVersion)
 
 	tflog.Debug(ctx, "Installing Fisher plugin", map[string]interface{}{
 		"plugin_name":      name,
