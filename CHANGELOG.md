@@ -5,48 +5,20 @@ All notable changes to the Terraform Package Provider will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2025-09-28
-
-### ### Documentation
-
-- Update CHANGELOG.md for v0.2.0
-
-### ### Fixed
-
-- Improve changelog workflow resilience and add manual trigger
-- Restore comprehensive v0.2.0 changelog and improve workflow
-- **ci**: Resolve CI pipeline failures and enhance toolchain support ([#10](<REPO>/issues/10))
-
-## [0.2.0] - 2025-09-22
-
-### ### Added
-
-- Add cask support, dependency management, and enhanced state tracking ([#6](<REPO>/issues/6))
-
-### ### Documentation
-
-- Update CHANGELOG.md for v0.2.0 release
-
-## [0.1.16] - 2025-09-21
-
-### ### Added
-
-- Add intelligent release logic to prevent duplicate asset failures
-
-### ### Documentation
-
-- Update CHANGELOG.md for v0.1.16
-
-### ### Fixed
-
-- Change archive format from tar.gz to zip for Terraform compatibility
-- Changelog workflow now commits directly to main instead of creating PRs
-
-## [0.1.15] - 2025-09-21
+## [0.1.0] - 2025-09-28
 
 ### ### Added
 
 - Initial commit - Terraform Package Provider
+- Add intelligent release logic to prevent duplicate asset failures
+- Add cask support, dependency management, and enhanced state tracking ([#6](<REPO>/issues/6))
+
+### ### Documentation
+
+- Update CHANGELOG.md for v0.1.16
+- Update CHANGELOG.md for v0.2.0 release
+- Update CHANGELOG.md for v0.2.0
+- Update CHANGELOG.md for v0.2.1
 
 ### ### Fixed
 
@@ -69,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove redundant type assertion in test
 - Finalize all documentation and configuration updates
 - Ensure reproducible builds for consistent checksums
+- Change archive format from tar.gz to zip for Terraform compatibility
+- Changelog workflow now commits directly to main instead of creating PRs
+- Improve changelog workflow resilience and add manual trigger
+- Restore comprehensive v0.2.0 changelog and improve workflow
+- **ci**: Resolve CI pipeline failures and enhance toolchain support ([#10](<REPO>/issues/10))
 
 ### ### Testing
 
