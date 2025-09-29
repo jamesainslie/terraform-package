@@ -45,3 +45,4 @@ website/vendor
 terraform-provider-pkg
 .designdocs/
 .howtos/
+terraform-provider-package
