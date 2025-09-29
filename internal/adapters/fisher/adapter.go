@@ -164,6 +164,7 @@ func (f *FisherAdapter) Install(ctx context.Context, name, version string) error
 }
 
 // InstallWithType installs a plugin. Fisher only supports plugin type.
+// Implements idempotency by checking if the plugin is already installed before attempting installation.
 func (f *FisherAdapter) InstallWithType(ctx context.Context, name, version string, packageType adapters.PackageType) error {
 	if packageType != adapters.PackageTypePlugin && packageType != adapters.PackageTypeAuto {
 		return fmt.Errorf("fisher only supports plugin package type, got: %s", packageType)
@@ -176,8 +177,75 @@ func (f *FisherAdapter) InstallWithType(ctx context.Context, name, version strin
 		"fish_path":    f.fishPath,
 	})
 
-	// TODO: Implement actual installation logic
-	return fmt.Errorf("fisher plugin installation not yet implemented")
+	// Parse the plugin reference
+	pluginRef, err := ParsePluginName(name)
+	if err != nil {
+		return fmt.Errorf("invalid plugin name '%s': %w", name, err)
+	}
+
+	// IDEMPOTENCY CHECK: Check if plugin is already installed
+	packageInfo, err := f.DetectInstalled(ctx, name)
+	if err == nil && packageInfo.Installed {
+		// Check version compatibility
+		if version == "" || version == packageInfo.Version {
+			tflog.Debug(ctx, "Plugin already installed with correct version, skipping installation", map[string]interface{}{
+				"plugin_name":       name,
+				"installed_version": packageInfo.Version,
+				"requested_version": version,
+			})
+			return nil
+		}
+		// Different version requested - continue with installation
+		tflog.Debug(ctx, "Different version requested, proceeding with installation", map[string]interface{}{
+			"plugin_name":       name,
+			"installed_version": packageInfo.Version,
+			"requested_version": version,
+		})
+	}
+
+	// Determine the plugin reference to install
+	pluginToInstall := f.buildPluginReference(pluginRef, version)
+
+	tflog.Debug(ctx, "Installing Fisher plugin", map[string]interface{}{
+		"plugin_name":      name,
+		"plugin_reference": pluginToInstall,
+		"is_local":         pluginRef.IsLocal,
+	})
+
+	// Execute fisher install command
+	args := []string{"-c", fmt.Sprintf("fisher install %s", pluginToInstall)}
+	result, err := f.executor.Run(ctx, f.fishPath, args, executor.ExecOpts{
+		Timeout: 120 * time.Second, // 2 minutes for plugin installation
+	})
+
+	if err != nil || result.ExitCode != 0 {
+		// Check for "already installed" errors and handle gracefully
+		if f.isAlreadyInstalledError(result.Stderr) {
+			tflog.Debug(ctx, "Plugin already installed, treating as success", map[string]interface{}{
+				"plugin_name": name,
+				"stderr":      result.Stderr,
+			})
+			return nil
+		}
+
+		tflog.Debug(ctx, "Fisher install failed", map[string]interface{}{
+			"plugin_name": name,
+			"exit_code":   result.ExitCode,
+			"error":       err,
+			"stderr":      result.Stderr,
+			"stdout":      result.Stdout,
+		})
+
+		return fmt.Errorf("failed to install Fisher plugin %s: exit code %d, error: %w, stderr: %s",
+			name, result.ExitCode, err, result.Stderr)
+	}
+
+	tflog.Debug(ctx, "Fisher plugin installed successfully", map[string]interface{}{
+		"plugin_name":      name,
+		"plugin_reference": pluginToInstall,
+	})
+
+	return nil
 }
 
 // Remove uninstalls a plugin.
@@ -197,8 +265,64 @@ func (f *FisherAdapter) RemoveWithType(ctx context.Context, name string, package
 		"fish_path":    f.fishPath,
 	})
 
-	// TODO: Implement actual removal logic
-	return fmt.Errorf("fisher plugin removal not yet implemented")
+	// Parse the plugin reference
+	pluginRef, err := ParsePluginName(name)
+	if err != nil {
+		return fmt.Errorf("invalid plugin name '%s': %w", name, err)
+	}
+
+	// IDEMPOTENCY CHECK: Check if plugin is currently installed
+	packageInfo, err := f.DetectInstalled(ctx, name)
+	if err == nil && !packageInfo.Installed {
+		tflog.Debug(ctx, "Plugin not installed, nothing to remove", map[string]interface{}{
+			"plugin_name": name,
+		})
+		return nil // Already not installed - idempotent
+	}
+
+	// Use the plugin reference for removal
+	pluginToRemove := pluginRef.String()
+
+	tflog.Debug(ctx, "Removing Fisher plugin", map[string]interface{}{
+		"plugin_name":      name,
+		"plugin_reference": pluginToRemove,
+		"is_local":         pluginRef.IsLocal,
+	})
+
+	// Execute fisher remove command
+	args := []string{"-c", fmt.Sprintf("fisher remove %s", pluginToRemove)}
+	result, err := f.executor.Run(ctx, f.fishPath, args, executor.ExecOpts{
+		Timeout: 60 * time.Second, // 1 minute for plugin removal
+	})
+
+	if err != nil || result.ExitCode != 0 {
+		// Check for "not installed" errors and handle gracefully
+		if f.isNotInstalledError(result.Stderr) {
+			tflog.Debug(ctx, "Plugin not installed, treating as success", map[string]interface{}{
+				"plugin_name": name,
+				"stderr":      result.Stderr,
+			})
+			return nil
+		}
+
+		tflog.Debug(ctx, "Fisher remove failed", map[string]interface{}{
+			"plugin_name": name,
+			"exit_code":   result.ExitCode,
+			"error":       err,
+			"stderr":      result.Stderr,
+			"stdout":      result.Stdout,
+		})
+
+		return fmt.Errorf("failed to remove Fisher plugin %s: exit code %d, error: %w, stderr: %s",
+			name, result.ExitCode, err, result.Stderr)
+	}
+
+	tflog.Debug(ctx, "Fisher plugin removed successfully", map[string]interface{}{
+		"plugin_name":      name,
+		"plugin_reference": pluginToRemove,
+	})
+
+	return nil
 }
 
 // Pin pins or unpins a plugin. Fisher doesn't support pinning.
@@ -251,9 +375,9 @@ func (f *FisherAdapter) getInstalledPlugins(ctx context.Context) ([]InstalledPlu
 	if err != nil || result.ExitCode != 0 {
 		// Fisher might not be installed or $_fisher_plugins might not be set
 		tflog.Debug(ctx, "Failed to query Fisher plugins", map[string]interface{}{
-			"error":      err,
-			"exit_code":  result.ExitCode,
-			"stderr":     result.Stderr,
+			"error":     err,
+			"exit_code": result.ExitCode,
+			"stderr":    result.Stderr,
 		})
 		return []InstalledPlugin{}, nil
 	}
@@ -335,4 +459,38 @@ func (f *FisherAdapter) pluginMatches(pluginRef *PluginRef, installed InstalledP
 	}
 
 	return false
+}
+
+// buildPluginReference constructs the plugin reference to use for installation.
+func (f *FisherAdapter) buildPluginReference(pluginRef *PluginRef, version string) string {
+	if pluginRef.IsLocal {
+		return pluginRef.Path
+	}
+
+	// For GitHub plugins, use owner/repo[@version] format
+	baseRef := fmt.Sprintf("%s/%s", pluginRef.Owner, pluginRef.Repo)
+
+	// Use explicit version if provided, otherwise use plugin's version, otherwise just base
+	if version != "" {
+		return fmt.Sprintf("%s@%s", baseRef, version)
+	} else if pluginRef.Version != "" {
+		return fmt.Sprintf("%s@%s", baseRef, pluginRef.Version)
+	}
+
+	return baseRef
+}
+
+// isAlreadyInstalledError checks if the error message indicates the plugin is already installed.
+func (f *FisherAdapter) isAlreadyInstalledError(stderr string) bool {
+	lowerStderr := strings.ToLower(stderr)
+	return strings.Contains(lowerStderr, "already") &&
+		(strings.Contains(lowerStderr, "installed") || strings.Contains(lowerStderr, "exists"))
+}
+
+// isNotInstalledError checks if the error message indicates the plugin is not installed.
+func (f *FisherAdapter) isNotInstalledError(stderr string) bool {
+	lowerStderr := strings.ToLower(stderr)
+	return strings.Contains(lowerStderr, "not installed") ||
+		strings.Contains(lowerStderr, "not found") ||
+		strings.Contains(lowerStderr, "no such plugin")
 }
