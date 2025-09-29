@@ -44,6 +44,7 @@ import (
 	"github.com/jamesainslie/terraform-provider-package/internal/adapters"
 	"github.com/jamesainslie/terraform-provider-package/internal/adapters/apt"
 	"github.com/jamesainslie/terraform-provider-package/internal/adapters/brew"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters/fisher"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -864,8 +865,12 @@ func (r *PackageResource) resolvePackageManager(
 	case "apt":
 		aptGetPath := r.providerData.Config.AptGetPath.ValueString()
 		manager = apt.NewAptAdapter(r.providerData.Executor, aptGetPath, "", r.providerData.Config.AptGetPath.ValueString())
+	case "fisher":
+		fisherPath := r.providerData.Config.FisherPath.ValueString()
+		fishConfigDir := r.providerData.Config.FishConfigDir.ValueString()
+		manager = fisher.NewFisherAdapter(r.providerData.Executor, fisherPath, fishConfigDir)
 	default:
-		return nil, "", fmt.Errorf("unsupported package manager: %s. Supported: brew, apt", managerName)
+		return nil, "", fmt.Errorf("unsupported package manager: %s. Supported: brew, apt, fisher", managerName)
 	}
 
 	// Check if manager is available - this ensures we don't attempt operations with unavailable tools

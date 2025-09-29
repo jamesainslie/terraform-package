@@ -58,6 +58,8 @@ type PackageProviderModel struct {
 	AptGetPath         types.String `tfsdk:"apt_get_path"`
 	WingetPath         types.String `tfsdk:"winget_path"`
 	ChocoPath          types.String `tfsdk:"choco_path"`
+	FisherPath         types.String `tfsdk:"fisher_path"`
+	FishConfigDir      types.String `tfsdk:"fish_config_dir"`
 	UpdateCache        types.String `tfsdk:"update_cache"`
 	LockTimeout        types.String `tfsdk:"lock_timeout"`
 	RetryCount         types.Int64  `tfsdk:"retry_count"`
@@ -89,11 +91,11 @@ func (p *PackageProvider) Metadata(
 func (p *PackageProvider) Schema(
 	_ context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "The pkg provider enables cross-platform package management using Homebrew, APT, winget, and Chocolatey.",
+		MarkdownDescription: "The pkg provider enables cross-platform package management using Homebrew, APT, winget, Chocolatey, and Fisher (Fish shell plugins).",
 		Attributes: map[string]schema.Attribute{
 			"default_manager": schema.StringAttribute{
 				MarkdownDescription: "Default package manager to use. " +
-					"Valid values: auto, brew, apt, winget, choco. " +
+					"Valid values: auto, brew, apt, winget, choco, fisher. " +
 					"Defaults to 'auto' which auto-detects based on OS.",
 				Optional: true,
 			},
@@ -125,6 +127,16 @@ func (p *PackageProvider) Schema(
 			"choco_path": schema.StringAttribute{
 				MarkdownDescription: "Path to the Chocolatey binary. " +
 					"If not specified, will use default system path.",
+				Optional: true,
+			},
+			"fisher_path": schema.StringAttribute{
+				MarkdownDescription: "Path to the Fish shell binary for Fisher plugin management. " +
+					"If not specified, will use default system path.",
+				Optional: true,
+			},
+			"fish_config_dir": schema.StringAttribute{
+				MarkdownDescription: "Path to the Fish shell configuration directory. " +
+					"If not specified, will use default ~/.config/fish.",
 				Optional: true,
 			},
 			"update_cache": schema.StringAttribute{
@@ -222,12 +234,12 @@ func (p *PackageProvider) Configure(
 
 	// Validate configuration values
 	validManagers := map[string]bool{
-		"auto": true, "brew": true, "apt": true, "winget": true, "choco": true,
+		"auto": true, "brew": true, "apt": true, "winget": true, "choco": true, "fisher": true,
 	}
 	if !validManagers[data.DefaultManager.ValueString()] {
 		resp.Diagnostics.AddError(
 			"Invalid default_manager",
-			"default_manager must be one of: auto, brew, apt, winget, choco",
+			"default_manager must be one of: auto, brew, apt, winget, choco, fisher",
 		)
 		return
 	}
