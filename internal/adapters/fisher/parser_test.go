@@ -179,7 +179,7 @@ func TestParsePluginName(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParsePluginName(tt.input)
-			
+
 			if tt.wantErr {
 				if err == nil {
 					t.Errorf("ParsePluginName() expected error, got nil")
@@ -190,17 +190,17 @@ func TestParsePluginName(t *testing.T) {
 				}
 				return
 			}
-			
+
 			if err != nil {
 				t.Errorf("ParsePluginName() unexpected error = %v", err)
 				return
 			}
-			
+
 			if got == nil {
 				t.Errorf("ParsePluginName() returned nil result")
 				return
 			}
-			
+
 			// Check all fields except Path for relative paths (which get expanded)
 			if got.Owner != tt.want.Owner {
 				t.Errorf("ParsePluginName() Owner = %v, want %v", got.Owner, tt.want.Owner)
@@ -217,12 +217,12 @@ func TestParsePluginName(t *testing.T) {
 			if got.Raw != tt.want.Raw {
 				t.Errorf("ParsePluginName() Raw = %v, want %v", got.Raw, tt.want.Raw)
 			}
-			
+
 			// For non-relative local paths, check exact path
 			if tt.want.Path != "" && got.Path != tt.want.Path {
 				t.Errorf("ParsePluginName() Path = %v, want %v", got.Path, tt.want.Path)
 			}
-			
+
 			// For relative paths, just ensure path is not empty
 			if tt.input == "./my-plugin" && !got.IsLocal {
 				t.Errorf("ParsePluginName() expected relative path to be marked as local")
@@ -313,14 +313,14 @@ func TestPluginRef_GitHubURL(t *testing.T) {
 
 // contains is a helper function to check if a string contains a substring
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) && 
+	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) &&
 		(s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-		len(s) > len(substr) && func() bool {
-			for i := 1; i <= len(s)-len(substr); i++ {
-				if s[i:i+len(substr)] == substr {
-					return true
+			len(s) > len(substr) && func() bool {
+				for i := 1; i <= len(s)-len(substr); i++ {
+					if s[i:i+len(substr)] == substr {
+						return true
+					}
 				}
-			}
-			return false
-		}()))
+				return false
+			}()))
 }

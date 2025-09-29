@@ -44,7 +44,7 @@ func (p *PluginRef) String() string {
 	if p.IsLocal {
 		return p.Path
 	}
-	
+
 	result := fmt.Sprintf("%s/%s", p.Owner, p.Repo)
 	if p.Version != "" {
 		result += "@" + p.Version
@@ -92,7 +92,7 @@ func ParsePluginName(name string) (*PluginRef, error) {
 	// But still ensure there's exactly one slash before the @ (if present)
 	githubPattern := regexp.MustCompile(`^([^/@]+)/([^/@]+)(?:@(.+))?$`)
 	matches := githubPattern.FindStringSubmatch(name)
-	
+
 	if len(matches) == 0 {
 		return nil, fmt.Errorf("invalid plugin name format: %s (expected 'owner/repo[@version]' or local path)", name)
 	}
@@ -124,14 +124,14 @@ func expandPath(path string) string {
 		// you might want to use os.UserHomeDir() for proper handling
 		return filepath.Join("$HOME", path[2:])
 	}
-	
+
 	if !filepath.IsAbs(path) {
 		abs, err := filepath.Abs(path)
 		if err == nil {
 			return abs
 		}
 	}
-	
+
 	return path
 }
 
@@ -140,27 +140,27 @@ func validateGitHubName(name string) error {
 	if len(name) == 0 {
 		return fmt.Errorf("name cannot be empty")
 	}
-	
+
 	if len(name) > 39 {
 		return fmt.Errorf("name too long (max 39 characters)")
 	}
-	
+
 	// GitHub usernames can only contain alphanumeric characters or hyphens
 	// Cannot have multiple consecutive hyphens
 	// Cannot begin or end with a hyphen
 	if strings.HasPrefix(name, "-") || strings.HasSuffix(name, "-") {
 		return fmt.Errorf("name cannot start or end with a hyphen")
 	}
-	
+
 	if strings.Contains(name, "--") {
 		return fmt.Errorf("name cannot contain consecutive hyphens")
 	}
-	
+
 	githubNamePattern := regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
 	if !githubNamePattern.MatchString(name) {
 		return fmt.Errorf("name contains invalid characters (only alphanumeric and hyphens allowed)")
 	}
-	
+
 	return nil
 }
 
@@ -169,21 +169,21 @@ func validateGitHubRepoName(name string) error {
 	if len(name) == 0 {
 		return fmt.Errorf("repository name cannot be empty")
 	}
-	
+
 	if len(name) > 100 {
 		return fmt.Errorf("repository name too long (max 100 characters)")
 	}
-	
+
 	// Repository names can contain alphanumeric characters, hyphens, underscores, and periods
 	// Cannot start with a period
 	if strings.HasPrefix(name, ".") {
 		return fmt.Errorf("repository name cannot start with a period")
 	}
-	
+
 	repoNamePattern := regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`)
 	if !repoNamePattern.MatchString(name) {
 		return fmt.Errorf("repository name contains invalid characters")
 	}
-	
+
 	return nil
 }

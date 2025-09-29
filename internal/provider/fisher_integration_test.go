@@ -49,18 +49,18 @@ func (m *MockExecutorFisher) Run(ctx context.Context, command string, args []str
 func TestFisherIntegration_ProviderConfiguration(t *testing.T) {
 	// Create provider configuration with Fisher settings
 	config := &PackageProviderModel{
-		DefaultManager: types.StringValue("fisher"),
-		FisherPath:     types.StringValue("/opt/homebrew/bin/fish"),
-		FishConfigDir:  types.StringValue("/tmp/test-fish"),
-		AssumeYes:      types.BoolValue(true),
-		SudoEnabled:    types.BoolValue(false),
-		UpdateCache:    types.StringValue("never"),
-		LockTimeout:    types.StringValue("5m"),
-		RetryCount:     types.Int64Value(2),
-		RetryDelay:     types.StringValue("10s"),
-		FailOnDownload: types.BoolValue(false),
-		CleanupOnError: types.BoolValue(true),
-		VerifyDownloads: types.BoolValue(false),
+		DefaultManager:     types.StringValue("fisher"),
+		FisherPath:         types.StringValue("/opt/homebrew/bin/fish"),
+		FishConfigDir:      types.StringValue("/tmp/test-fish"),
+		AssumeYes:          types.BoolValue(true),
+		SudoEnabled:        types.BoolValue(false),
+		UpdateCache:        types.StringValue("never"),
+		LockTimeout:        types.StringValue("5m"),
+		RetryCount:         types.Int64Value(2),
+		RetryDelay:         types.StringValue("10s"),
+		FailOnDownload:     types.BoolValue(false),
+		CleanupOnError:     types.BoolValue(true),
+		VerifyDownloads:    types.BoolValue(false),
 		ChecksumValidation: types.BoolValue(false),
 	}
 
@@ -78,10 +78,10 @@ func TestFisherIntegration_ProviderConfiguration(t *testing.T) {
 	}
 
 	providerData := &ProviderData{
-		Executor:    mockExecutor,
-		Registry:    registry.NewDefaultRegistry(),
-		Config:      config,
-		DetectedOS:  "darwin",
+		Executor:   mockExecutor,
+		Registry:   registry.NewDefaultRegistry(),
+		Config:     config,
+		DetectedOS: "darwin",
 	}
 
 	// Create a package resource
@@ -122,18 +122,18 @@ func TestFisherIntegration_ProviderConfiguration(t *testing.T) {
 // TestFisherIntegration_PackageTypePlugin tests that plugin package type works with Fisher
 func TestFisherIntegration_PackageTypePlugin(t *testing.T) {
 	config := &PackageProviderModel{
-		DefaultManager: types.StringValue("fisher"),
-		FisherPath:     types.StringValue("fish"),
-		FishConfigDir:  types.StringValue(""),
-		AssumeYes:      types.BoolValue(true),
-		SudoEnabled:    types.BoolValue(false),
-		UpdateCache:    types.StringValue("never"),
-		LockTimeout:    types.StringValue("5m"),
-		RetryCount:     types.Int64Value(2),
-		RetryDelay:     types.StringValue("10s"),
-		FailOnDownload: types.BoolValue(false),
-		CleanupOnError: types.BoolValue(true),
-		VerifyDownloads: types.BoolValue(false),
+		DefaultManager:     types.StringValue("fisher"),
+		FisherPath:         types.StringValue("fish"),
+		FishConfigDir:      types.StringValue(""),
+		AssumeYes:          types.BoolValue(true),
+		SudoEnabled:        types.BoolValue(false),
+		UpdateCache:        types.StringValue("never"),
+		LockTimeout:        types.StringValue("5m"),
+		RetryCount:         types.Int64Value(2),
+		RetryDelay:         types.StringValue("10s"),
+		FailOnDownload:     types.BoolValue(false),
+		CleanupOnError:     types.BoolValue(true),
+		VerifyDownloads:    types.BoolValue(false),
 		ChecksumValidation: types.BoolValue(false),
 	}
 

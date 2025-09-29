@@ -202,9 +202,9 @@ func (f *FisherAdapter) InstallWithType(ctx context.Context, name, version strin
 			return fmt.Errorf("version resolution failed for %s: %w", name, err)
 		}
 		resolvedVersion = resolved
-		
+
 		tflog.Debug(ctx, "Version resolved", map[string]interface{}{
-			"plugin": name,
+			"plugin":           name,
 			"original_version": version,
 			"resolved_version": resolvedVersion,
 		})
@@ -213,15 +213,15 @@ func (f *FisherAdapter) InstallWithType(ctx context.Context, name, version strin
 	// IDEMPOTENCY CHECK: Check if plugin is already installed
 	packageInfo, err := f.DetectInstalled(ctx, name)
 	if err == nil && packageInfo.Installed {
-	// Check version compatibility
-	if resolvedVersion == "" || resolvedVersion == packageInfo.Version {
-		tflog.Debug(ctx, "Plugin already installed with correct version, skipping installation", map[string]interface{}{
-			"plugin_name":       name,
-			"installed_version": packageInfo.Version,
-			"requested_version": resolvedVersion,
-		})
-		return nil
-	}
+		// Check version compatibility
+		if resolvedVersion == "" || resolvedVersion == packageInfo.Version {
+			tflog.Debug(ctx, "Plugin already installed with correct version, skipping installation", map[string]interface{}{
+				"plugin_name":       name,
+				"installed_version": packageInfo.Version,
+				"requested_version": resolvedVersion,
+			})
+			return nil
+		}
 		// Different version requested - continue with installation
 		tflog.Debug(ctx, "Different version requested, proceeding with installation", map[string]interface{}{
 			"plugin_name":       name,

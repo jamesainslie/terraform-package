@@ -45,7 +45,7 @@ func (m *MockExecutor) Run(ctx context.Context, command string, args []string, o
 
 func TestNewFisherAdapter(t *testing.T) {
 	mockExec := &MockExecutor{}
-	
+
 	tests := []struct {
 		name      string
 		fishPath  string
@@ -53,24 +53,24 @@ func TestNewFisherAdapter(t *testing.T) {
 		want      *FisherAdapter
 	}{
 		{
-			name:     "default paths",
-			fishPath: "",
+			name:      "default paths",
+			fishPath:  "",
 			configDir: "",
 			want: &FisherAdapter{
-				executor:  mockExec,
-				fishPath:  "fish",
-				configDir: "",
+				executor:    mockExec,
+				fishPath:    "fish",
+				configDir:   "",
 				pluginsFile: "",
 			},
 		},
 		{
-			name:     "custom paths",
-			fishPath: "/usr/local/bin/fish",
+			name:      "custom paths",
+			fishPath:  "/usr/local/bin/fish",
 			configDir: "/custom/.config/fish",
 			want: &FisherAdapter{
-				executor:  mockExec,
-				fishPath:  "/usr/local/bin/fish",
-				configDir: "/custom/.config/fish",
+				executor:    mockExec,
+				fishPath:    "/usr/local/bin/fish",
+				configDir:   "/custom/.config/fish",
 				pluginsFile: "/custom/.config/fish/fish_plugins",
 			},
 		},
@@ -79,7 +79,7 @@ func TestNewFisherAdapter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewFisherAdapter(mockExec, tt.fishPath, tt.configDir)
-			
+
 			if got.executor != tt.want.executor {
 				t.Errorf("NewFisherAdapter() executor = %v, want %v", got.executor, tt.want.executor)
 			}
@@ -98,10 +98,10 @@ func TestNewFisherAdapter(t *testing.T) {
 
 func TestFisherAdapter_GetManagerName(t *testing.T) {
 	adapter := NewFisherAdapter(&MockExecutor{}, "", "")
-	
+
 	got := adapter.GetManagerName()
 	want := "fisher"
-	
+
 	if got != want {
 		t.Errorf("GetManagerName() = %v, want %v", got, want)
 	}
@@ -109,9 +109,9 @@ func TestFisherAdapter_GetManagerName(t *testing.T) {
 
 func TestFisherAdapter_IsAvailable(t *testing.T) {
 	tests := []struct {
-		name     string
-		runFunc  func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error)
-		want     bool
+		name    string
+		runFunc func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error)
+		want    bool
 	}{
 		{
 			name: "fish and fisher available",
@@ -152,7 +152,7 @@ func TestFisherAdapter_IsAvailable(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockExec := &MockExecutor{runFunc: tt.runFunc}
 			adapter := NewFisherAdapter(mockExec, "fish", "")
-			
+
 			got := adapter.IsAvailable(context.Background())
 			if got != tt.want {
 				t.Errorf("IsAvailable() = %v, want %v", got, tt.want)
@@ -163,11 +163,11 @@ func TestFisherAdapter_IsAvailable(t *testing.T) {
 
 func TestFisherAdapter_DetectInstalled(t *testing.T) {
 	tests := []struct {
-		name     string
-		plugin   string
-		runFunc  func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error)
-		want     *adapters.PackageInfo
-		wantErr  bool
+		name    string
+		plugin  string
+		runFunc func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error)
+		want    *adapters.PackageInfo
+		wantErr bool
 	}{
 		{
 			name:   "plugin installed",
@@ -233,14 +233,14 @@ func TestFisherAdapter_DetectInstalled(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockExec := &MockExecutor{runFunc: tt.runFunc}
 			adapter := NewFisherAdapter(mockExec, "fish", "")
-			
+
 			got, err := adapter.DetectInstalled(context.Background(), tt.plugin)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DetectInstalled() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			
+
 			if !tt.wantErr {
 				if got.Name != tt.want.Name {
 					t.Errorf("DetectInstalled() Name = %v, want %v", got.Name, tt.want.Name)
@@ -261,11 +261,11 @@ func TestFisherAdapter_DetectInstalled(t *testing.T) {
 
 func TestFisherAdapter_Install(t *testing.T) {
 	tests := []struct {
-		name     string
-		plugin   string
-		version  string
-		runFunc  func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error)
-		wantErr  bool
+		name    string
+		plugin  string
+		version string
+		runFunc func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error)
+		wantErr bool
 	}{
 		{
 			name:    "successful installation",
@@ -348,9 +348,9 @@ func TestFisherAdapter_Install(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockExec := &MockExecutor{runFunc: tt.runFunc}
 			adapter := NewFisherAdapter(mockExec, "fish", "")
-			
+
 			err := adapter.Install(context.Background(), tt.plugin, tt.version)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Install() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -360,10 +360,10 @@ func TestFisherAdapter_Install(t *testing.T) {
 
 func TestFisherAdapter_Remove(t *testing.T) {
 	tests := []struct {
-		name     string
-		plugin   string
-		runFunc  func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error)
-		wantErr  bool
+		name    string
+		plugin  string
+		runFunc func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error)
+		wantErr bool
 	}{
 		{
 			name:   "successful removal",
@@ -417,9 +417,9 @@ func TestFisherAdapter_Remove(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockExec := &MockExecutor{runFunc: tt.runFunc}
 			adapter := NewFisherAdapter(mockExec, "fish", "")
-			
+
 			err := adapter.Remove(context.Background(), tt.plugin)
-			
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Remove() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -429,13 +429,13 @@ func TestFisherAdapter_Remove(t *testing.T) {
 
 func TestFisherAdapter_Pin(t *testing.T) {
 	adapter := NewFisherAdapter(&MockExecutor{}, "", "")
-	
+
 	// Test pinning (should fail)
 	err := adapter.Pin(context.Background(), "test/plugin", true)
 	if err == nil {
 		t.Error("Pin(true) should return error, got nil")
 	}
-	
+
 	// Test unpinning (should succeed)
 	err = adapter.Pin(context.Background(), "test/plugin", false)
 	if err != nil {
@@ -445,7 +445,7 @@ func TestFisherAdapter_Pin(t *testing.T) {
 
 func TestFisherAdapter_UpdateCache(t *testing.T) {
 	adapter := NewFisherAdapter(&MockExecutor{}, "", "")
-	
+
 	// UpdateCache should always succeed (no-op for Fisher)
 	err := adapter.UpdateCache(context.Background())
 	if err != nil {
@@ -455,7 +455,7 @@ func TestFisherAdapter_UpdateCache(t *testing.T) {
 
 func TestFisherAdapter_Search(t *testing.T) {
 	adapter := NewFisherAdapter(&MockExecutor{}, "", "")
-	
+
 	// Search is not yet implemented
 	results, err := adapter.Search(context.Background(), "test")
 	if err == nil {
@@ -475,15 +475,15 @@ func TestFisherAdapter_Info(t *testing.T) {
 			return executor.ExecResult{ExitCode: 0}, nil
 		},
 	}
-	
+
 	adapter := NewFisherAdapter(mockExec, "fish", "")
-	
+
 	info, err := adapter.Info(context.Background(), "ilancosman/tide")
 	if err != nil {
 		t.Errorf("Info() error = %v", err)
 		return
 	}
-	
+
 	if !info.Installed {
 		t.Error("Info() should show plugin as installed")
 	}
@@ -491,7 +491,7 @@ func TestFisherAdapter_Info(t *testing.T) {
 
 func TestFisherAdapter_buildPluginReference(t *testing.T) {
 	adapter := NewFisherAdapter(&MockExecutor{}, "", "")
-	
+
 	tests := []struct {
 		name      string
 		pluginRef *PluginRef
@@ -549,7 +549,7 @@ func TestFisherAdapter_buildPluginReference(t *testing.T) {
 
 func TestFisherAdapter_isAlreadyInstalledError(t *testing.T) {
 	adapter := NewFisherAdapter(&MockExecutor{}, "", "")
-	
+
 	tests := []struct {
 		name   string
 		stderr string
@@ -589,7 +589,7 @@ func TestFisherAdapter_isAlreadyInstalledError(t *testing.T) {
 
 func TestFisherAdapter_isNotInstalledError(t *testing.T) {
 	adapter := NewFisherAdapter(&MockExecutor{}, "", "")
-	
+
 	tests := []struct {
 		name   string
 		stderr string

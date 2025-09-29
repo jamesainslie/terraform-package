@@ -50,7 +50,7 @@ func TestResolveLatestVersion(t *testing.T) {
 		},
 		{
 			name:           "specific version unchanged",
-			owner:          "ilancosman", 
+			owner:          "ilancosman",
 			repo:           "tide",
 			inputVersion:   "v5.0.0",
 			expectedResult: "v5.0.0", // Should remain unchanged
@@ -82,7 +82,7 @@ func TestResolveLatestVersion(t *testing.T) {
 				},
 			}
 			adapter := NewFisherAdapter(mockExecutor, "fish", "")
-			
+
 			// Mock the GitHub API response for testing
 			if !tt.expectedError {
 				adapter.latestVersionCache[fmt.Sprintf("%s/%s", tt.owner, tt.repo)] = tt.expectedResult
@@ -125,13 +125,13 @@ func TestFishVersionValidation(t *testing.T) {
 		errorContains string
 	}{
 		{
-			name:          "fish 3.6.0 - compatible", 
+			name:          "fish 3.6.0 - compatible",
 			fishVersion:   "fish, version 3.6.0",
 			expectedError: false,
 		},
 		{
 			name:          "fish 3.4.0 - minimum compatible",
-			fishVersion:   "fish, version 3.4.0", 
+			fishVersion:   "fish, version 3.4.0",
 			expectedError: false,
 		},
 		{
@@ -171,7 +171,7 @@ func TestFishVersionValidation(t *testing.T) {
 
 			adapter := NewFisherAdapter(mockExecutor, "fish", "")
 			ctx := context.Background()
-			
+
 			err := adapter.validateFishVersion(ctx)
 
 			if tt.expectedError {
@@ -204,7 +204,7 @@ func TestEnhancedInstallWithVersionResolution(t *testing.T) {
 		{
 			name:            "install tide with latest version",
 			pluginName:      "ilancosman/tide",
-			inputVersion:    "latest", 
+			inputVersion:    "latest",
 			resolvedVersion: "v6.0.1",
 			expectedCommand: []string{"-c", "fisher install ilancosman/tide@v6.0.1"},
 		},
@@ -220,7 +220,7 @@ func TestEnhancedInstallWithVersionResolution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var capturedCommand []string
-			
+
 			mockExecutor := &MockExecutor{
 				runFunc: func(ctx context.Context, command string, args []string, opts executor.ExecOpts) (executor.ExecResult, error) {
 					// Mock Fish version check
@@ -241,12 +241,12 @@ func TestEnhancedInstallWithVersionResolution(t *testing.T) {
 			}
 
 			adapter := NewFisherAdapter(mockExecutor, "fish", "")
-			
+
 			// Mock the resolveLatestVersion method result
 			adapter.latestVersionCache = map[string]string{
 				tt.pluginName: tt.resolvedVersion,
 			}
-			
+
 			ctx := context.Background()
 			err := adapter.Install(ctx, tt.pluginName, tt.inputVersion)
 
