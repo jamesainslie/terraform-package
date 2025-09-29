@@ -25,7 +25,7 @@
 package services
 
 import (
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // newPlatformServiceDetector creates a macOS-specific service detector/manager

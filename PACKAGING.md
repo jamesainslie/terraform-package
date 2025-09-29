@@ -4,7 +4,7 @@
 
 This document explains how to package and distribute the Terraform Package Provider for consumption by Terraform users.
 
-## 📦 Packaging Methods
+##  Packaging Methods
 
 ### 1. Terraform Registry (Primary Distribution)
 
@@ -30,7 +30,7 @@ registry.terraform.io/jamesainslie/package
 ```hcl
 terraform {
   required_providers {
-    package = {
+    pkg = {
       source  = "jamesainslie/package"
       version = "~> 0.1"
     }
@@ -71,13 +71,13 @@ For development and testing:
 # ~/.terraformrc
 provider_installation {
   dev_overrides {
-    "jamesainslie/package" = "/path/to/terraform-package"
+    "jamesainslie/package" = "/path/to/terraform-provider-package"
   }
   direct {}
 }
 ```
 
-## 🚀 Release Process
+##  Release Process
 
 ### Automated Release (Recommended)
 
@@ -111,23 +111,23 @@ goreleaser release --clean
 # 4. Publish to registry (if configured)
 ```
 
-## 📋 Required Files for Distribution
+##  Required Files for Distribution
 
 ### **Essential Files:**
-- ✅ `terraform-registry-manifest.json` - Registry metadata
-- ✅ `.goreleaser.yml` - Build configuration
-- ✅ `LICENSE` - MIT license
-- ✅ `README.md` - Usage documentation
-- ✅ `CHANGELOG.md` - Version history
-- ✅ `docs/` - Generated provider documentation
-- ✅ `examples/` - Usage examples
+-  `terraform-registry-manifest.json` - Registry metadata
+-  `.goreleaser.yml` - Build configuration
+-  `LICENSE` - MIT license
+-  `README.md` - Usage documentation
+-  `CHANGELOG.md` - Version history
+-  `docs/` - Generated provider documentation
+-  `examples/` - Usage examples
 
 ### **Security Files:**
-- ✅ `terraform-provider-package_VERSION_SHA256SUMS` - Checksums
-- ✅ `terraform-provider-package_VERSION_SHA256SUMS.sig` - GPG signature
-- ✅ GPG public key for verification
+-  `terraform-provider-package_VERSION_SHA256SUMS` - Checksums
+-  `terraform-provider-package_VERSION_SHA256SUMS.sig` - GPG signature
+-  GPG public key for verification
 
-## 🔐 Security & Signing
+##  Security & Signing
 
 ### **GPG Key Setup:**
 ```bash
@@ -149,7 +149,7 @@ gpg --verify terraform-provider-package_0.1.0_SHA256SUMS.sig terraform-provider-
 sha256sum -c terraform-provider-package_0.1.0_SHA256SUMS
 ```
 
-## 📚 Documentation Packaging
+##  Documentation Packaging
 
 ### **Generated Documentation:**
 ```bash
@@ -175,7 +175,7 @@ docs/
     └── pkg_security_info.md
 ```
 
-## 🏷️ Versioning Strategy
+##  Versioning Strategy
 
 ### **Semantic Versioning:**
 - **v0.x.x**: Pre-1.0 development (breaking changes allowed)
@@ -189,22 +189,22 @@ docs/
 - **Minor releases**: Monthly for new features
 - **Major releases**: When breaking changes are necessary
 
-## 🎯 Distribution Targets
+##  Distribution Targets
 
 ### **Phase 2 (Current):**
-- ✅ **macOS support** via Homebrew
-- ✅ **Terraform Registry** publishing
-- ✅ **GitHub Releases** for direct download
+-  **macOS support** via Homebrew
+-  **Terraform Registry** publishing
+-  **GitHub Releases** for direct download
 
 ### **Phase 3 (Linux):**
-- 🔄 **Linux support** via APT
-- 🔄 **Multi-platform testing** in CI
+-  **Linux support** via APT
+-  **Multi-platform testing** in CI
 
 ### **Phase 4 (Windows):**
-- 🔄 **Windows support** via winget/chocolatey
-- 🔄 **Complete cross-platform** distribution
+-  **Windows support** via winget/chocolatey
+-  **Complete cross-platform** distribution
 
-## 📊 Usage Analytics
+##  Usage Analytics
 
 ### **Registry Analytics:**
 - Download counts per version
@@ -216,7 +216,7 @@ docs/
 - Issue and PR metrics
 - Community engagement
 
-## 🔧 Development Workflow
+##  Development Workflow
 
 ### **Local Testing:**
 ```bash

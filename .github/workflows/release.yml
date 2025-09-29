@@ -120,15 +120,15 @@ jobs:
           go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
           tfplugindocs generate --provider-name pkg
           
-      - name: Check if release already exists
+      - name: Check if release already exists with assets
         id: check_release
         run: |
-          if gh release view ${{ github.ref_name }} >/dev/null 2>&1; then
+          if gh release view ${{ github.ref_name }} --json assets --jq '.assets | length' 2>/dev/null | grep -q '^[1-9]'; then
             echo "release_exists=true" >> $GITHUB_OUTPUT
-            echo "Release ${{ github.ref_name }} already exists, will skip GoReleaser"
+            echo "Release ${{ github.ref_name }} already exists with assets, will skip GoReleaser"
           else
             echo "release_exists=false" >> $GITHUB_OUTPUT
-            echo "Release ${{ github.ref_name }} does not exist, proceeding with GoReleaser"
+            echo "Release ${{ github.ref_name }} does not exist or has no assets, proceeding with GoReleaser"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

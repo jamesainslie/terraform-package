@@ -31,7 +31,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // MacOSServiceDetector implements service detection and management for macOS using launchd and brew services

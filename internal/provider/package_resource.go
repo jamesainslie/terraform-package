@@ -41,9 +41,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/jamesainslie/terraform-package/internal/adapters"
-	"github.com/jamesainslie/terraform-package/internal/adapters/apt"
-	"github.com/jamesainslie/terraform-package/internal/adapters/brew"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters/apt"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters/brew"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.

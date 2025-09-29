@@ -35,8 +35,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/jamesainslie/terraform-package/internal/adapters"
-	"github.com/jamesainslie/terraform-package/internal/adapters/brew"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters/brew"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.

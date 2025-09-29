@@ -35,7 +35,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/jamesainslie/terraform-package/internal/services"
+	"github.com/jamesainslie/terraform-provider-package/internal/services"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.

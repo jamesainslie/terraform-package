@@ -33,8 +33,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
-	"github.com/jamesainslie/terraform-package/internal/registry"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/registry"
 )
 
 // Ensure PackageProvider satisfies various provider interfaces.

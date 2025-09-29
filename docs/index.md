@@ -23,17 +23,17 @@ The `pkg` provider enables cross-platform package management using Homebrew (mac
 
 | Platform | Package Manager | Status | Phase |
 |----------|----------------|---------|-------|
-| macOS    | Homebrew       | ✅ Complete | Phase 2 |
-| Linux    | APT            | 🔄 Planned | Phase 3 |
-| Windows  | winget         | 🔄 Planned | Phase 4 |
-| Windows  | Chocolatey     | 🔄 Planned | Phase 4 |
+| macOS    | Homebrew       |  Complete | Phase 2 |
+| Linux    | APT            |  Planned | Phase 3 |
+| Windows  | winget         |  Planned | Phase 4 |
+| Windows  | Chocolatey     |  Planned | Phase 4 |
 
 ## Example Usage
 
 ```terraform
 terraform {
   required_providers {
-    package = {
+    pkg = {
       source  = "jamesainslie/package"
       version = "~> 0.1"
     }
@@ -225,7 +225,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for development and contribution guide
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/jamesainslie/terraform-package/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/jamesainslie/terraform-package/discussions)
+- **Issues**: [GitHub Issues](https://github.com/jamesainslie/terraform-provider-package/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jamesainslie/terraform-provider-package/discussions)
 - **Documentation**: [Provider Documentation](.)
 - **Security**: [Security Policy](../SECURITY.md)

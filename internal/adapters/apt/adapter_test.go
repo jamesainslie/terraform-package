@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/jamesainslie/terraform-package/internal/adapters"
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

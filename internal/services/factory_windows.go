@@ -25,7 +25,7 @@
 package services
 
 import (
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // newPlatformServiceDetector creates a Windows-specific service detector/manager

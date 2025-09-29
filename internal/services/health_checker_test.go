@@ -30,7 +30,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // MockExecutor implements the executor interface for testing

@@ -33,8 +33,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/jamesainslie/terraform-package/internal/adapters/brew"
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters/brew"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.

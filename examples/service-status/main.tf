@@ -2,6 +2,7 @@ terraform {
   required_providers {
     pkg = {
       source = "jamesainslie/package"
+      version = "~> 0.1"
     }
   }
 }

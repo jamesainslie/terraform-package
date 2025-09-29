@@ -34,7 +34,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
-	"github.com/jamesainslie/terraform-package/internal/services"
+	"github.com/jamesainslie/terraform-provider-package/internal/services"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.

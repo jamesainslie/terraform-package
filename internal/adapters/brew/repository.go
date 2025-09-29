@@ -28,8 +28,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jamesainslie/terraform-package/internal/adapters"
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 const (

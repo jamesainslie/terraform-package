@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // GenericServiceDetector provides a basic service detection and management implementation

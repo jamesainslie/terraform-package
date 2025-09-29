@@ -16,7 +16,7 @@ Error: Failed to query available provider packages
    ```hcl
    terraform {
      required_providers {
-       package = {
+       pkg = {
          source = "jamesainslie/package"  # Correct namespace
          version = "~> 0.1"
        }
@@ -439,4 +439,4 @@ Include:
    }
    ```
 
-Still having issues? Check our [GitHub Issues](https://github.com/jamesainslie/terraform-package/issues) or create a new one!
+Still having issues? Check our [GitHub Issues](https://github.com/jamesainslie/terraform-provider-package/issues) or create a new one!

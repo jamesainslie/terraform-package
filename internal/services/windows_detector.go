@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // WindowsServiceDetector implements service detection and management for Windows using Windows Services

@@ -167,4 +167,4 @@ We appreciate security researchers and users who help keep this project secure. 
 - **CHANGELOG.md**: Recognition for contributions
 - **Hall of Fame**: Public recognition (if desired)
 
-Thank you for helping keep the Terraform Package Provider secure! 🛡️
+Thank you for helping keep the Terraform Package Provider secure! 

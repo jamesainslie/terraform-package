@@ -1,4 +1,4 @@
-module github.com/jamesainslie/terraform-package
+module github.com/jamesainslie/terraform-provider-package
 
 go 1.25.1
 

@@ -18,7 +18,7 @@ The bug occurred in the service resource's health check functionality where a ti
 // BUGGY CODE - DO NOT USE
 func (r *ServiceResource) waitForHealthy(ctx context.Context, model *ServiceResourceModel) error {
     // Create timeout context
-    ctx, cancel := context.WithTimeout(ctx, timeout) // ❌ BUG: Reuses variable name
+    ctx, cancel := context.WithTimeout(ctx, timeout) //  BUG: Reuses variable name
     defer cancel()
     
     for {
@@ -27,7 +27,7 @@ func (r *ServiceResource) waitForHealthy(ctx context.Context, model *ServiceReso
             return fmt.Errorf("timeout")
         case <-ticker.C:
             // Uses the same timeout context for commands
-            serviceInfo, err := r.serviceManager.GetServiceInfo(ctx, serviceName) // ❌ BUG: Expired context
+            serviceInfo, err := r.serviceManager.GetServiceInfo(ctx, serviceName) //  BUG: Expired context
         }
     }
 }
@@ -51,18 +51,18 @@ Implemented **Option 1: Separate Contexts** - Create separate contexts for the o
 // FIXED CODE
 func (r *ServiceResource) waitForHealthy(ctx context.Context, model *ServiceResourceModel) error {
     // Create context with timeout for the overall operation
-    operationCtx, cancel := context.WithTimeout(ctx, timeout) // ✅ Separate variable
+    operationCtx, cancel := context.WithTimeout(ctx, timeout) //  Separate variable
     defer cancel()
     
     for {
         select {
-        case <-operationCtx.Done(): // ✅ Check operation timeout
+        case <-operationCtx.Done(): //  Check operation timeout
             return fmt.Errorf("timeout waiting for service to be healthy")
         case <-ticker.C:
             // Create fresh context for each health check command
-            checkCtx, checkCancel := context.WithTimeout(context.Background(), 30*time.Second) // ✅ Fresh context
+            checkCtx, checkCancel := context.WithTimeout(context.Background(), 30*time.Second) //  Fresh context
             
-            serviceInfo, err := r.serviceManager.GetServiceInfo(checkCtx, serviceName) // ✅ Uses fresh context
+            serviceInfo, err := r.serviceManager.GetServiceInfo(checkCtx, serviceName) //  Uses fresh context
             checkCancel() // Always cancel the check context
             
             // Handle results...
@@ -164,16 +164,16 @@ terraform apply
 ## Impact
 
 ### Before Fix
-- ❌ Service management completely broken
-- ❌ Health checks fail immediately  
-- ❌ Colima, Docker, PostgreSQL management unusable
-- ❌ False negatives for running services
+-  Service management completely broken
+-  Health checks fail immediately  
+-  Colima, Docker, PostgreSQL management unusable
+-  False negatives for running services
 
 ### After Fix
-- ✅ Service management works correctly
-- ✅ Health checks execute with proper timeouts
-- ✅ All service management features functional
-- ✅ Accurate service status reporting
+-  Service management works correctly
+-  Health checks execute with proper timeouts
+-  All service management features functional
+-  Accurate service status reporting
 
 ## Performance Characteristics
 
@@ -240,10 +240,10 @@ terraform apply
 
 ## Backward Compatibility
 
-- ✅ **API Compatible**: No changes to Terraform configuration schema
-- ✅ **Behavior Compatible**: Health checks work the same from user perspective
-- ✅ **Performance Compatible**: No significant performance impact
-- ✅ **Configuration Compatible**: All existing timeout settings work as expected
+-  **API Compatible**: No changes to Terraform configuration schema
+-  **Behavior Compatible**: Health checks work the same from user perspective
+-  **Performance Compatible**: No significant performance impact
+-  **Configuration Compatible**: All existing timeout settings work as expected
 
 ## Future Considerations
 

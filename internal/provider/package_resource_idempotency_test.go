@@ -27,7 +27,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/jamesainslie/terraform-package/internal/adapters"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters"
 )
 
 // TestIdempotencyLogic tests the core idempotency logic without mocking the full resource lifecycle

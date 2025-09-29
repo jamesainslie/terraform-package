@@ -25,7 +25,7 @@ package services
 import (
 	"runtime"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // NewServiceDetector creates a platform-appropriate service detector

@@ -44,8 +44,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/jamesainslie/terraform-package/internal/adapters"
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/adapters"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // BrewAdapter implements the PackageManager interface for Homebrew.

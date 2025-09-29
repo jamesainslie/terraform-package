@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 	"github.com/stretchr/testify/assert"
 )
 

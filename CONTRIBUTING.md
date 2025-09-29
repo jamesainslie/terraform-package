@@ -22,8 +22,8 @@ This project adheres to a code of conduct. By participating, you are expected to
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR-USERNAME/terraform-package.git
-   cd terraform-package
+   git clone https://github.com/YOUR-USERNAME/terraform-provider-package.git
+   cd terraform-provider-package
    ```
 3. **Set up the development environment** (see below)
 
@@ -288,17 +288,17 @@ go test -v ./internal/provider/ -run TestSpecificTest
 
 ## Platform-Specific Development
 
-### macOS (Homebrew) - Phase 2 ✅
+### macOS (Homebrew) - Phase 2 
 - **Current status**: Fully implemented
 - **Testing**: Full acceptance test suite
 - **Requirements**: Homebrew installed
 
-### Linux (APT) - Phase 3 🔄
+### Linux (APT) - Phase 3 
 - **Status**: Planned
 - **Testing**: Ubuntu/Debian environments
 - **Requirements**: APT package manager
 
-### Windows (winget/Chocolatey) - Phase 4 🔄
+### Windows (winget/Chocolatey) - Phase 4 
 - **Status**: Planned  
 - **Testing**: Windows environments
 - **Requirements**: winget or Chocolatey
@@ -317,4 +317,4 @@ Contributors will be recognized in:
 - **README.md**: For major features
 - **GitHub contributors**: Automatic recognition
 
-Thank you for contributing to the Terraform Package Provider! 🎉
+Thank you for contributing to the Terraform Package Provider! 

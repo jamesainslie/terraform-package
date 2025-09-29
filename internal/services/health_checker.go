@@ -30,7 +30,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // DefaultHealthChecker implements the HealthChecker interface

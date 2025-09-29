@@ -29,8 +29,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
-	"github.com/jamesainslie/terraform-package/internal/services"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/services"
 )
 
 // SimpleServiceManager for testing context timeout scenarios

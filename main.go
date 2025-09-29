@@ -29,7 +29,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/jamesainslie/terraform-package/internal/provider"
+	"github.com/jamesainslie/terraform-provider-package/internal/provider"
 )
 
 var (

@@ -44,3 +44,4 @@ website/vendor
 .ado/
 terraform-provider-pkg
 .designdocs/
+.howtos/

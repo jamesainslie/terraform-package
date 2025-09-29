@@ -41,9 +41,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
-	"github.com/jamesainslie/terraform-package/internal/services"
-	"github.com/jamesainslie/terraform-package/internal/services/detectors"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/services"
+	"github.com/jamesainslie/terraform-provider-package/internal/services/detectors"
 )
 
 // Ensure the implementation satisfies the expected interfaces.

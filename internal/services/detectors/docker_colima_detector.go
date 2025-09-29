@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jamesainslie/terraform-package/internal/services"
+	"github.com/jamesainslie/terraform-provider-package/internal/services"
 )
 
 // DockerColimaDetector detects Docker → Colima dependency relationships

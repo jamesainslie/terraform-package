@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jamesainslie/terraform-package/internal/executor"
+	"github.com/jamesainslie/terraform-provider-package/internal/executor"
 )
 
 // ServiceManagementStrategy represents the strategy for managing a service
