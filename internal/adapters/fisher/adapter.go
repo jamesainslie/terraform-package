@@ -32,6 +32,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -52,7 +53,7 @@ func NewFisherAdapter(exec executor.Executor, fishPath, configDir string) *Fishe
 	if fishPath == "" {
 		fishPath = "fish"
 	}
-	
+
 	if configDir == "" {
 		// Default Fish config directory
 		homeDir, err := os.UserHomeDir()
@@ -83,7 +84,7 @@ func (f *FisherAdapter) GetManagerName() string {
 func (f *FisherAdapter) IsAvailable(ctx context.Context) bool {
 	// Fisher requires Fish shell, which is available on multiple platforms
 	// but we need to ensure both Fish and Fisher are installed
-	
+
 	// Check if fish command is available
 	_, err := exec.LookPath(f.fishPath)
 	if err != nil {
@@ -102,7 +103,7 @@ func (f *FisherAdapter) IsAvailable(ctx context.Context) bool {
 	result, err = f.executor.Run(ctx, f.fishPath, []string{"-c", "functions -q fisher"}, executor.ExecOpts{
 		Timeout: 5 * time.Second,
 	})
-	
+
 	return err == nil && result.ExitCode == 0
 }
 
@@ -114,13 +115,47 @@ func (f *FisherAdapter) DetectInstalled(ctx context.Context, name string) (*adap
 		"config_dir":  f.configDir,
 	})
 
-	// TODO: Implement actual detection logic
-	// For now, return a basic structure indicating the plugin is not installed
-	return &adapters.PackageInfo{
+	// Parse the plugin name to understand its format
+	pluginRef, err := ParsePluginName(name)
+	if err != nil {
+		return nil, fmt.Errorf("invalid plugin name '%s': %w", name, err)
+	}
+
+	// Check if plugin is installed by querying Fisher's plugin list
+	installedPlugins, err := f.getInstalledPlugins(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get installed plugins: %w", err)
+	}
+
+	// Create basic package info
+	packageInfo := &adapters.PackageInfo{
 		Name:      name,
-		Installed: false,
 		Type:      adapters.PackageTypePlugin,
-	}, nil
+		Installed: false,
+	}
+
+	// Check if plugin is in the installed list
+	if installedPlugin, found := f.findInstalledPlugin(pluginRef, installedPlugins); found {
+		packageInfo.Installed = true
+		packageInfo.Version = installedPlugin.Version
+		if pluginRef.IsLocal {
+			packageInfo.Repository = "local"
+		} else {
+			packageInfo.Repository = pluginRef.GitHubURL()
+		}
+
+		tflog.Debug(ctx, "Plugin found in installed list", map[string]interface{}{
+			"plugin_name": name,
+			"version":     installedPlugin.Version,
+			"repository":  packageInfo.Repository,
+		})
+	} else {
+		tflog.Debug(ctx, "Plugin not found in installed list", map[string]interface{}{
+			"plugin_name": name,
+		})
+	}
+
+	return packageInfo, nil
 }
 
 // Install installs a plugin with optional version specification.
@@ -196,4 +231,108 @@ func (f *FisherAdapter) Search(ctx context.Context, query string) ([]adapters.Pa
 // Info retrieves detailed information about a plugin.
 func (f *FisherAdapter) Info(ctx context.Context, name string) (*adapters.PackageInfo, error) {
 	return f.DetectInstalled(ctx, name)
+}
+
+// InstalledPlugin represents a Fisher plugin that is currently installed.
+type InstalledPlugin struct {
+	Name    string // Original plugin reference (e.g., "owner/repo@version")
+	Version string // Git commit SHA or tag
+	Path    string // Local path if applicable
+}
+
+// getInstalledPlugins retrieves the list of currently installed Fisher plugins.
+func (f *FisherAdapter) getInstalledPlugins(ctx context.Context) ([]InstalledPlugin, error) {
+	// Query Fisher's $_fisher_plugins universal variable
+	// This contains the list of currently installed plugins
+	result, err := f.executor.Run(ctx, f.fishPath, []string{"-c", "echo $_fisher_plugins"}, executor.ExecOpts{
+		Timeout: 10 * time.Second,
+	})
+
+	if err != nil || result.ExitCode != 0 {
+		// Fisher might not be installed or $_fisher_plugins might not be set
+		tflog.Debug(ctx, "Failed to query Fisher plugins", map[string]interface{}{
+			"error":      err,
+			"exit_code":  result.ExitCode,
+			"stderr":     result.Stderr,
+		})
+		return []InstalledPlugin{}, nil
+	}
+
+	// Parse the output - plugins are typically space-separated
+	pluginList := strings.TrimSpace(result.Stdout)
+	if pluginList == "" {
+		return []InstalledPlugin{}, nil
+	}
+
+	var plugins []InstalledPlugin
+	pluginNames := strings.Fields(pluginList)
+
+	for _, pluginName := range pluginNames {
+		if pluginName == "" {
+			continue
+		}
+
+		plugin := InstalledPlugin{
+			Name: pluginName,
+		}
+
+		// Try to get version information by checking Git metadata
+		// This is more complex and might require accessing the plugin's directory
+		// For now, we'll leave version empty and implement this in a future iteration
+		plugin.Version = ""
+
+		plugins = append(plugins, plugin)
+	}
+
+	tflog.Debug(ctx, "Retrieved installed plugins", map[string]interface{}{
+		"plugin_count": len(plugins),
+		"plugins":      pluginNames,
+	})
+
+	return plugins, nil
+}
+
+// findInstalledPlugin searches for a plugin reference in the list of installed plugins.
+func (f *FisherAdapter) findInstalledPlugin(pluginRef *PluginRef, installedPlugins []InstalledPlugin) (*InstalledPlugin, bool) {
+	for _, installed := range installedPlugins {
+		if f.pluginMatches(pluginRef, installed) {
+			return &installed, true
+		}
+	}
+	return nil, false
+}
+
+// pluginMatches checks if a plugin reference matches an installed plugin.
+func (f *FisherAdapter) pluginMatches(pluginRef *PluginRef, installed InstalledPlugin) bool {
+	// Try exact match first
+	if pluginRef.Raw == installed.Name {
+		return true
+	}
+
+	// For GitHub plugins, try different variations
+	if !pluginRef.IsLocal {
+		// Check owner/repo format without version
+		baseFormat := fmt.Sprintf("%s/%s", pluginRef.Owner, pluginRef.Repo)
+		if baseFormat == installed.Name {
+			return true
+		}
+
+		// Check with version if specified
+		if pluginRef.Version != "" {
+			withVersion := fmt.Sprintf("%s@%s", baseFormat, pluginRef.Version)
+			if withVersion == installed.Name {
+				return true
+			}
+		}
+	}
+
+	// For local plugins, check path matching
+	if pluginRef.IsLocal {
+		// Simple path comparison - could be enhanced for relative paths
+		if pluginRef.Path == installed.Name || pluginRef.Raw == installed.Name {
+			return true
+		}
+	}
+
+	return false
 }
