@@ -34,6 +34,7 @@ const (
 	PackageTypeAuto    PackageType = "auto"
 	PackageTypeFormula PackageType = "formula"
 	PackageTypeCask    PackageType = "cask"
+	PackageTypePlugin  PackageType = "plugin"
 )
 
 // PackageInfo represents information about a package.
